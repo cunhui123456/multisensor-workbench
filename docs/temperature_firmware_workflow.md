@@ -17,7 +17,7 @@
 
 两种应用采用先前实机验证的 HEX，配套源码和来源 SHA-256 位于 [firmware/temperature_pressure](../firmware/temperature_pressure/README.md)。本次不改算法，也不把旧固件重新编译为未经验证的版本。上传速率为 **57600**，采集串口为 **9600**。
 
-烧录优先复用 Arduino IDE 开发板工具包自带的 `avrdude` 及配置。先用帮助命令确认能运行；若捆绑的 Intel 版本报架构不兼容，再尝试已安装的原生工具，例如 `/opt/homebrew/bin/avrdude`。工作台不重新实现上传协议，只负责调用工具、检查与记录证据。软件不会自动安装依赖、写 EEPROM、改熔丝或写 bootloader。仅支持该已验证 Nano 板型；USB 桥的 VID/PID 不是 MCU 身份证明，烧录前还会检查 ATmega328P 签名 `1e950f`。
+烧录直接优先使用 Mac 原生 `/opt/homebrew/bin/avrdude` 与 `/opt/homebrew/etc/avrdude.conf`。启动前读取 Mach-O 架构，排除不匹配当前 Mac 的 Intel/x86_64 工具，不启动它们试错，也不扫描 Arduino15 捆绑工具；显式指定的路径同样校验。选中的原生工具失败时直接报告原因，不循环回退。2026-10-31 在 M5 Max 上只读核实 Homebrew AVRDUDE 8.3 为 ARM64。工作台不重新实现上传协议，只负责调用工具、检查与记录证据。软件不会自动安装依赖、写 EEPROM、改熔丝或写 bootloader。仅支持该已验证 Nano 板型；USB 桥的 VID/PID 不是 MCU 身份证明，烧录前还会检查 ATmega328P 签名 `1e950f`。
 
 ## 数据与故障证据
 

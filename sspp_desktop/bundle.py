@@ -126,6 +126,8 @@ class BundleExportMixin:
                           "actual_hardware": manifest.get("actual_hardware", {}),
                           "sweep_config": manifest.get("sweep", manifest.get("sweep_config", manifest.get("requested_sweep", {}))),
                           "duration_limit_s": manifest.get("duration_limit_s"),
+                          "temperature_sweep": manifest.get("temperature_sweep"),
+                          "sweep_algorithm": manifest.get("sweep_algorithm"),
                           "source_manifest": "results/" + manifest_name,
                           "missing_fields_are_unknown_not_defaults": True}
             candidates = []
@@ -140,7 +142,8 @@ class BundleExportMixin:
                 if source.suffix in RAW_EXTENSIONS and not include_raw:
                     excluded_raw.append({"path": str(relative), "bytes": source.stat().st_size})
                     continue
-                if source.suffix not in RESULT_EXTENSIONS | (RAW_EXTENSIONS if include_raw else set()):
+                serial_raw = relative.as_posix() == "temperature/raw_serial.bin"
+                if not serial_raw and source.suffix not in RESULT_EXTENSIONS | (RAW_EXTENSIONS if include_raw else set()):
                     continue
                 candidates.append((source, "results/" + str(relative)))
             if key.startswith("teacher_runs/"):
@@ -160,6 +163,8 @@ class BundleExportMixin:
                       "results/：原有结果数据、重要图表、标注、标定和验证报告。\n"
                       "bundle_manifest.json：逐文件 SHA-256、大小、导出选项与来源实验。\n\n"
                       "标定及毫米估算仅绑定源连续采集；不能套用到新基线。失败实验仍保留原失败状态。\n"
+                      "温度联测包含 temperature/ 原始串口字节、电压与逐点关联结果；未标定时不输出传感器温度。\n"
+                      "新版扫频的 sweep_quality.jsonl 保存逐次验证、被拒窗口与重测证据；算法版本记录于 parameters.json。\n"
                       + ("包含原始 IQ（cf32 / npz）。\n" if include_raw else "未包含原始 IQ（cf32 / npz）；幅相 JSONL 与结果表仍包含。\n"))
             if warnings:
                 readme += "\n导出说明与缺失项：\n" + "\n".join("- " + warning for warning in warnings) + "\n"

@@ -101,6 +101,16 @@ class LineParser:
             return [], [self._event("invalid_encoding", "不是 UTF-8 文本，原始字节保留", host_time_utc, host_elapsed_s)]
         if not text:
             return [], []
+        # Nano 打开串口可能先吐出旧半行，再在复位时输出启动横幅。
+        # 仅识别精确固件签名；残片不解释为测量，原始字节仍完整保存。
+        signature = "# Temperature_Channel_Check v1"
+        banner_at = text.find(signature) if self.protocol == "temperature_v1" else -1
+        if banner_at > 0:
+            kind = "startup_fragment" if host_elapsed_s <= 3.0 else "interrupted_line"
+            fragment = self._event(kind, "固件重启横幅前的未完成行已排除: " + text[:banner_at][:500],
+                                   host_time_utc, host_elapsed_s)
+            rows, messages = self._line(text[banner_at:].encode("utf-8"), host_time_utc, host_elapsed_s)
+            return rows, [fragment, *messages]
         if text.startswith("#"):
             kind = "firmware_error" if "ERROR" in text.upper() else "firmware_status"
             messages = [self._event(kind, text, host_time_utc, host_elapsed_s)]

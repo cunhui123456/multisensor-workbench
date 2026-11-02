@@ -70,10 +70,10 @@ class ReplaySession:
             for row in csv.DictReader(stream):
                 point = {
                     "carrier_hz": float(row["requested_carrier_GHz"]) * 1e9,
-                    "amplitude_dB": float(row["peak_amplitude_dBFS_est"]),
+                    "amplitude_dB": None if row.get("measurement_status")=="invalid" else float(row["peak_amplitude_dBFS_est"]),
                     "repeat": int(row["repeat"]), "point": int(row["point"]),
                 }
-                if not all(math.isfinite(v) for v in point.values()):
+                if not all(math.isfinite(v) for v in point.values() if v is not None):
                     continue
                 self.points.append(point)
                 self.times.append(float(len(self.points)))

@@ -1,0 +1,518 @@
+{
+  "device": "macbook-pro-m5max-64g",
+  "date": "2026-11-02",
+  "findings": [
+    "TX/RX loops AST unchanged from 06163b8",
+    "hardware.py byte-identical to 06163b8",
+    "Same code failed before power-cycle and recovered afterwards",
+    "Same USB hub retained; exact faulty component not isolated"
+  ],
+  "runs": [
+    {
+      "run": "20261102T031625_354476Z",
+      "path": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T031625_354476Z",
+      "manifest_sha256": "466304e9a018f356502d89ffcae80f4b2dc566ac8c8f56b40e8a85be14783a09",
+      "status": "complete",
+      "errors": [],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "4668d51a18fa7949c89c0fbbada64ef6eb0fc3433df24ac05ea32edc83f4f34d",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749",
+        "sspp_experiments/temperature_sweep/metadata.py": "06a96fb08cc60c9efff90bae0a1171156cf882fae53e419108a5dfd0e6ac101e",
+        "sspp_experiments/temperature_sweep/__init__.py": "de35ff624ec005f60b051a52ca0330a5b37c47c5c2eb5902f68eac79c0cf7fd1",
+        "sspp_experiments/temperature_sweep/intervals.py": "364f5fa585a925cafee4fe9686cb3df10f6d732c38f099321ab84a7eeb93615c",
+        "sspp_experiments/temperature_sweep/acquisition.py": "636bb073693b7a7794c04587eb0fccfe386207c8ff3dfbad38f72e8d36f66ccb",
+        "sspp_experiments/temperature_pressure/ramp.py": "a95a83400244798d21507513804d30052902e7d27359006cc0f5e3dd64833e7b",
+        "sspp_experiments/temperature_pressure/firmware.py": "d10e129de3a61476c596996d3112206164926810d15b246a25a4df8c01e76f7c",
+        "sspp_experiments/temperature_pressure/protocol.py": "745a1370416fc8b256f6aaf9ef1577c6021945f349b49e0894b3d84dd26c10f3",
+        "sspp_experiments/temperature_pressure/__init__.py": "06e4a83c9194338ae2147dcb39e63e77e8f0f61221092219bb9800a64108963e",
+        "sspp_experiments/temperature_pressure/serial_io.py": "65d8e838448c8768ea49ef5328cad6a72f3cade9558e447361b21b114720010c",
+        "sspp_experiments/temperature_pressure/acquisition.py": "416df079dd8c50535231b2f5c038e3af7a9820d990640d59a1690bb47f0af0a8",
+        "sspp_experiments/temperature_pressure/plateau.py": "4228642c4be2900cab444d50654e0c93cc8642fa5869b20aebe31909557e6bda"
+      },
+      "telemetry": {
+        "tx_samples": 20750000,
+        "rx_samples": 20692992,
+        "tx_partial_sends": 0,
+        "rx_timeouts": 0,
+        "rx_peak_component": 0.0804162546992302,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 257,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 257,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [
+          40,
+          40,
+          40
+        ],
+        "valid_counts": [
+          40,
+          40,
+          40
+        ],
+        "invalid_count": 0,
+        "scan_completed": true,
+        "complete": true,
+        "measurement_tone_failures": 0,
+        "amplitude_range_dBFS_est": [
+          -108.18799862126338,
+          -87.31960585062964
+        ],
+        "max_repeat_sd_dB": 2.871111852919883
+      },
+      "started_utc": "2026-11-02T03:16:25.354744+00:00",
+      "ended_utc": "2026-11-02T03:17:50.684767+00:00"
+    },
+    {
+      "run": "20261102T041008_535295Z",
+      "path": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T041008_535295Z",
+      "manifest_sha256": "895a58afd4edf8799a72af64a3fbb9073082cbcf3eb44bbb098c190a8d07279c",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "TX: TX send returned zero samples",
+        "RX shutdown: AssertionError: accum_timeout < _timeout\n  in wait_for_ack\n  at /Users/runner/miniforge3/conda-bld/uhd_1780089055843/work/host/lib/usrp/b200/b200_radio_ctrl_core.cpp:227\n",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749",
+        "sspp_experiments/temperature_sweep/metadata.py": "06a96fb08cc60c9efff90bae0a1171156cf882fae53e419108a5dfd0e6ac101e",
+        "sspp_experiments/temperature_sweep/__init__.py": "de35ff624ec005f60b051a52ca0330a5b37c47c5c2eb5902f68eac79c0cf7fd1",
+        "sspp_experiments/temperature_sweep/intervals.py": "364f5fa585a925cafee4fe9686cb3df10f6d732c38f099321ab84a7eeb93615c",
+        "sspp_experiments/temperature_sweep/acquisition.py": "636bb073693b7a7794c04587eb0fccfe386207c8ff3dfbad38f72e8d36f66ccb",
+        "sspp_experiments/temperature_pressure/ramp.py": "a95a83400244798d21507513804d30052902e7d27359006cc0f5e3dd64833e7b",
+        "sspp_experiments/temperature_pressure/firmware.py": "d10e129de3a61476c596996d3112206164926810d15b246a25a4df8c01e76f7c",
+        "sspp_experiments/temperature_pressure/protocol.py": "745a1370416fc8b256f6aaf9ef1577c6021945f349b49e0894b3d84dd26c10f3",
+        "sspp_experiments/temperature_pressure/__init__.py": "06e4a83c9194338ae2147dcb39e63e77e8f0f61221092219bb9800a64108963e",
+        "sspp_experiments/temperature_pressure/serial_io.py": "65d8e838448c8768ea49ef5328cad6a72f3cade9558e447361b21b114720010c",
+        "sspp_experiments/temperature_pressure/acquisition.py": "416df079dd8c50535231b2f5c038e3af7a9820d990640d59a1690bb47f0af0a8",
+        "sspp_experiments/temperature_pressure/plateau.py": "4228642c4be2900cab444d50654e0c93cc8642fa5869b20aebe31909557e6bda"
+      },
+      "telemetry": {
+        "tx_samples": 160000,
+        "rx_samples": 106496,
+        "tx_partial_sends": 0,
+        "rx_timeouts": 0,
+        "rx_peak_component": 0.009399699047207832,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 0,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 0,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [],
+        "complete": false,
+        "measurement_tone_failures": 0
+      },
+      "started_utc": "2026-11-02T04:10:08.535520+00:00",
+      "ended_utc": "2026-11-02T04:10:14.432252+00:00"
+    },
+    {
+      "run": "20261102T041106_980784Z",
+      "path": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T041106_980784Z",
+      "manifest_sha256": "9dd9a5d53b74211d64739296383930d2d3c104f3055048df183c7e4789050654",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "TX: TX send returned zero samples",
+        "RX shutdown: AssertionError: accum_timeout < _timeout\n  in wait_for_ack\n  at /Users/runner/miniforge3/conda-bld/uhd_1780089055843/work/host/lib/usrp/b200/b200_radio_ctrl_core.cpp:227\n",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749",
+        "sspp_experiments/temperature_sweep/metadata.py": "06a96fb08cc60c9efff90bae0a1171156cf882fae53e419108a5dfd0e6ac101e",
+        "sspp_experiments/temperature_sweep/__init__.py": "de35ff624ec005f60b051a52ca0330a5b37c47c5c2eb5902f68eac79c0cf7fd1",
+        "sspp_experiments/temperature_sweep/intervals.py": "364f5fa585a925cafee4fe9686cb3df10f6d732c38f099321ab84a7eeb93615c",
+        "sspp_experiments/temperature_sweep/acquisition.py": "636bb073693b7a7794c04587eb0fccfe386207c8ff3dfbad38f72e8d36f66ccb",
+        "sspp_experiments/temperature_pressure/ramp.py": "a95a83400244798d21507513804d30052902e7d27359006cc0f5e3dd64833e7b",
+        "sspp_experiments/temperature_pressure/firmware.py": "d10e129de3a61476c596996d3112206164926810d15b246a25a4df8c01e76f7c",
+        "sspp_experiments/temperature_pressure/protocol.py": "745a1370416fc8b256f6aaf9ef1577c6021945f349b49e0894b3d84dd26c10f3",
+        "sspp_experiments/temperature_pressure/__init__.py": "06e4a83c9194338ae2147dcb39e63e77e8f0f61221092219bb9800a64108963e",
+        "sspp_experiments/temperature_pressure/serial_io.py": "65d8e838448c8768ea49ef5328cad6a72f3cade9558e447361b21b114720010c",
+        "sspp_experiments/temperature_pressure/acquisition.py": "416df079dd8c50535231b2f5c038e3af7a9820d990640d59a1690bb47f0af0a8",
+        "sspp_experiments/temperature_pressure/plateau.py": "4228642c4be2900cab444d50654e0c93cc8642fa5869b20aebe31909557e6bda"
+      },
+      "telemetry": {
+        "tx_samples": 130000,
+        "rx_samples": 81600,
+        "tx_partial_sends": 1,
+        "rx_timeouts": 1,
+        "rx_peak_component": 0.007965329103171825,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 1,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 1,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [],
+        "complete": false,
+        "measurement_tone_failures": 0
+      },
+      "started_utc": "2026-11-02T04:11:06.981013+00:00",
+      "ended_utc": "2026-11-02T04:11:13.422075+00:00"
+    },
+    {
+      "run": "20261102T042920_478582Z",
+      "path": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T042920_478582Z",
+      "manifest_sha256": "5312872bc465b37e10e67815b46004b07a797d65f8383ca0d5ee5784d46d5f13",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "TX: TX send returned zero samples",
+        "RX shutdown: AssertionError: accum_timeout < _timeout\n  in wait_for_ack\n  at /Users/runner/miniforge3/conda-bld/uhd_1780089055843/work/host/lib/usrp/b200/b200_radio_ctrl_core.cpp:227\n",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749",
+        "sspp_experiments/temperature_sweep/metadata.py": "06a96fb08cc60c9efff90bae0a1171156cf882fae53e419108a5dfd0e6ac101e",
+        "sspp_experiments/temperature_sweep/__init__.py": "de35ff624ec005f60b051a52ca0330a5b37c47c5c2eb5902f68eac79c0cf7fd1",
+        "sspp_experiments/temperature_sweep/intervals.py": "364f5fa585a925cafee4fe9686cb3df10f6d732c38f099321ab84a7eeb93615c",
+        "sspp_experiments/temperature_sweep/acquisition.py": "636bb073693b7a7794c04587eb0fccfe386207c8ff3dfbad38f72e8d36f66ccb",
+        "sspp_experiments/temperature_pressure/ramp.py": "a95a83400244798d21507513804d30052902e7d27359006cc0f5e3dd64833e7b",
+        "sspp_experiments/temperature_pressure/firmware.py": "d10e129de3a61476c596996d3112206164926810d15b246a25a4df8c01e76f7c",
+        "sspp_experiments/temperature_pressure/protocol.py": "745a1370416fc8b256f6aaf9ef1577c6021945f349b49e0894b3d84dd26c10f3",
+        "sspp_experiments/temperature_pressure/__init__.py": "06e4a83c9194338ae2147dcb39e63e77e8f0f61221092219bb9800a64108963e",
+        "sspp_experiments/temperature_pressure/serial_io.py": "65d8e838448c8768ea49ef5328cad6a72f3cade9558e447361b21b114720010c",
+        "sspp_experiments/temperature_pressure/acquisition.py": "416df079dd8c50535231b2f5c038e3af7a9820d990640d59a1690bb47f0af0a8",
+        "sspp_experiments/temperature_pressure/plateau.py": "4228642c4be2900cab444d50654e0c93cc8642fa5869b20aebe31909557e6bda"
+      },
+      "telemetry": {
+        "tx_samples": 130000,
+        "rx_samples": 81600,
+        "tx_partial_sends": 1,
+        "rx_timeouts": 1,
+        "rx_peak_component": 0.006775107234716415,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 1,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 1,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [],
+        "complete": false,
+        "measurement_tone_failures": 0
+      },
+      "started_utc": "2026-11-02T04:29:20.478812+00:00",
+      "ended_utc": "2026-11-02T04:29:29.956157+00:00"
+    },
+    {
+      "run": "20261102T043101_621665Z",
+      "path": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T043101_621665Z",
+      "manifest_sha256": "dd18359725f818d62ba6691216f814355788ca88e279b526d6321acf3d51001f",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "TX: TX send returned zero samples",
+        "RX shutdown: AssertionError: accum_timeout < _timeout\n  in wait_for_ack\n  at /Users/runner/miniforge3/conda-bld/uhd_1780089055843/work/host/lib/usrp/b200/b200_radio_ctrl_core.cpp:227\n",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749",
+        "sspp_experiments/temperature_sweep/metadata.py": "06a96fb08cc60c9efff90bae0a1171156cf882fae53e419108a5dfd0e6ac101e",
+        "sspp_experiments/temperature_sweep/__init__.py": "de35ff624ec005f60b051a52ca0330a5b37c47c5c2eb5902f68eac79c0cf7fd1",
+        "sspp_experiments/temperature_sweep/intervals.py": "364f5fa585a925cafee4fe9686cb3df10f6d732c38f099321ab84a7eeb93615c",
+        "sspp_experiments/temperature_sweep/acquisition.py": "636bb073693b7a7794c04587eb0fccfe386207c8ff3dfbad38f72e8d36f66ccb",
+        "sspp_experiments/temperature_pressure/ramp.py": "a95a83400244798d21507513804d30052902e7d27359006cc0f5e3dd64833e7b",
+        "sspp_experiments/temperature_pressure/firmware.py": "d10e129de3a61476c596996d3112206164926810d15b246a25a4df8c01e76f7c",
+        "sspp_experiments/temperature_pressure/protocol.py": "745a1370416fc8b256f6aaf9ef1577c6021945f349b49e0894b3d84dd26c10f3",
+        "sspp_experiments/temperature_pressure/__init__.py": "06e4a83c9194338ae2147dcb39e63e77e8f0f61221092219bb9800a64108963e",
+        "sspp_experiments/temperature_pressure/serial_io.py": "65d8e838448c8768ea49ef5328cad6a72f3cade9558e447361b21b114720010c",
+        "sspp_experiments/temperature_pressure/acquisition.py": "416df079dd8c50535231b2f5c038e3af7a9820d990640d59a1690bb47f0af0a8",
+        "sspp_experiments/temperature_pressure/plateau.py": "4228642c4be2900cab444d50654e0c93cc8642fa5869b20aebe31909557e6bda"
+      },
+      "telemetry": {
+        "tx_samples": 220000,
+        "rx_samples": 173400,
+        "tx_partial_sends": 1,
+        "rx_timeouts": 0,
+        "rx_peak_component": 0.005890070926398039,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 2,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 2,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [],
+        "complete": false,
+        "measurement_tone_failures": 0
+      },
+      "started_utc": "2026-11-02T04:31:01.621896+00:00",
+      "ended_utc": "2026-11-02T04:31:11.558730+00:00"
+    },
+    {
+      "run": "20261102T043714_516997Z",
+      "path": "/private/tmp/sspp_b210_repair_20261102/20261102T043714_516997Z",
+      "manifest_sha256": "ce0c6e056110f785ceb5c197b02a88cf26fe0f429506eead632fe41a17ba304b",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "TX: TX send returned zero samples",
+        "RX shutdown: AssertionError: accum_timeout < _timeout\n  in wait_for_ack\n  at /Users/runner/miniforge3/conda-bld/uhd_1780089055843/work/host/lib/usrp/b200/b200_radio_ctrl_core.cpp:227\n",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20,
+        "rx_gain": 30,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749"
+      },
+      "telemetry": {
+        "tx_samples": 70000,
+        "rx_samples": 26520,
+        "tx_partial_sends": 1,
+        "rx_timeouts": 1,
+        "rx_peak_component": 0.009460736066102982,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 1,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 1,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [],
+        "complete": false,
+        "measurement_tone_failures": 0
+      },
+      "started_utc": "2026-11-02T04:37:14.517274+00:00",
+      "ended_utc": "2026-11-02T04:37:20.924519+00:00"
+    },
+    {
+      "run": "20261102T043824_925365Z",
+      "path": "/private/tmp/sspp_b210_repair_20261102/20261102T043824_925365Z",
+      "manifest_sha256": "012520e7ac83967bfb202b94afe1bf70069f0996537d8bc95315fb28b51fa448",
+      "status": "failed_or_incomplete",
+      "errors": [
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20,
+        "rx_gain": 30,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749"
+      },
+      "telemetry": {
+        "tx_samples": 0,
+        "rx_samples": 0,
+        "tx_partial_sends": 0,
+        "rx_timeouts": 0,
+        "rx_peak_component": 0.0,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": false,
+        "rf_start_attempted": false,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 0,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 0,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "complete": false,
+        "counts": []
+      },
+      "started_utc": "2026-11-02T04:38:24.925639+00:00",
+      "ended_utc": "2026-11-02T04:38:30.095686+00:00"
+    },
+    {
+      "run": "20261102T043839_144647Z",
+      "path": "/private/tmp/sspp_b210_repair_20261102/20261102T043839_144647Z",
+      "manifest_sha256": "fed137a30ec6a9ae5d10f7159dc2fa5e3d6098f50765766217418b3f7c5876da",
+      "status": "complete_with_gaps",
+      "errors": [],
+      "settings": {
+        "freq": 5000000000.0,
+        "rate": 250000.0,
+        "amp": 0.3,
+        "tx_gain": 20,
+        "rx_gain": 30,
+        "channel": 0
+      },
+      "source_hashes": {
+        "sspp_lab/hardware.py": "b2a567dc944a6178322085f5327339a92244ab4e1123f0a807e23b5f8ded160b",
+        "sspp_experiments/material_sweep/logic.py": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+        "sspp_experiments/material_sweep/acquisition.py": "189543e3db8147143a148954346617a0bc0ae78cd930e9f3711413d9c25bf4e6",
+        "sspp_lab/realtime.py": "4e02ac71324b64282a3d024ec9ae567ca89372eed9a4d9dc76cacd938da42749"
+      },
+      "telemetry": {
+        "tx_samples": 2600000,
+        "rx_samples": 2539520,
+        "tx_partial_sends": 0,
+        "rx_timeouts": 0,
+        "rx_peak_component": 0.07272559404373169,
+        "rx_near_fullscale_components": 0,
+        "tx_end_of_burst_sent": true,
+        "rf_start_attempted": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true,
+        "realtime_display": {
+          "display_only": true,
+          "trace_packets": 0,
+          "preview_packets": 33,
+          "trace_dropped": 0,
+          "preview_dropped": 0,
+          "trace_delivered": 0,
+          "preview_delivered": 33,
+          "preview_errors": 0,
+          "output_error": null
+        }
+      },
+      "quality": {
+        "counts": [
+          2
+        ],
+        "valid_counts": [
+          1
+        ],
+        "invalid_count": 1,
+        "scan_completed": true,
+        "complete": false,
+        "measurement_tone_failures": 0,
+        "amplitude_range_dBFS_est": [
+          -97.1623821609238,
+          -97.1623821609238
+        ],
+        "max_repeat_sd_dB": null
+      },
+      "started_utc": "2026-11-02T04:38:39.144936+00:00",
+      "ended_utc": "2026-11-02T04:39:00.283429+00:00"
+    }
+  ]
+}

@@ -1,0 +1,698 @@
+{
+  "results": [
+    {
+      "file": "tests/test_analysis_workbench.py",
+      "exit_code": 0,
+      "seconds": 1.26,
+      "summary": "14 passed in 1.04s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_analysis_workbench.py"
+      ]
+    },
+    {
+      "file": "tests/test_b210_shutdown_evidence.py",
+      "exit_code": 0,
+      "seconds": 1.25,
+      "summary": "10 passed, 12 subtests passed in 0.97s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_b210_shutdown_evidence.py"
+      ]
+    },
+    {
+      "file": "tests/test_comparison_domain.py",
+      "exit_code": 0,
+      "seconds": 0.35,
+      "summary": "27 passed, 54 subtests passed in 0.18s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_comparison_domain.py"
+      ]
+    },
+    {
+      "file": "tests/test_comparison_service.py",
+      "exit_code": 0,
+      "seconds": 0.25,
+      "summary": "8 passed, 4 subtests passed in 0.08s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_comparison_service.py"
+      ]
+    },
+    {
+      "file": "tests/test_comparison_ui.py",
+      "exit_code": 0,
+      "seconds": 3.01,
+      "summary": "10 passed in 2.77s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_comparison_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_controller.py",
+      "exit_code": 0,
+      "seconds": 0.18,
+      "summary": "12 passed, 10 subtests passed in 0.03s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_controller.py"
+      ]
+    },
+    {
+      "file": "tests/test_desktop_service.py",
+      "exit_code": 0,
+      "seconds": 0.29,
+      "summary": "8 passed, 1 skipped, 2 subtests passed in 0.13s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_desktop_service.py"
+      ]
+    },
+    {
+      "file": "tests/test_desktop_ui.py",
+      "exit_code": 0,
+      "seconds": 1.51,
+      "summary": "8 passed, 2 deselected, 7 subtests passed in 1.30s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_desktop_ui.py",
+        "-k",
+        "not test_real_replay_seek_force_refreshes_preview_and_shows_timing_note and not test_real_history_diagnostic_coverage"
+      ]
+    },
+    {
+      "file": "tests/test_device_environment.py",
+      "exit_code": 0,
+      "seconds": 0.35,
+      "summary": "30 passed, 25 subtests passed in 0.19s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_device_environment.py"
+      ]
+    },
+    {
+      "file": "tests/test_diagnostics.py",
+      "exit_code": 0,
+      "seconds": 0.22,
+      "summary": "11 passed, 3 subtests passed in 0.07s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_diagnostics.py"
+      ]
+    },
+    {
+      "file": "tests/test_environment_ui.py",
+      "exit_code": 0,
+      "seconds": 7.94,
+      "summary": "36 passed, 12 subtests passed in 7.56s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_environment_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_experiment_navigation.py",
+      "exit_code": 0,
+      "seconds": 3.87,
+      "summary": "14 passed, 18 subtests passed in 3.64s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_experiment_navigation.py"
+      ]
+    },
+    {
+      "file": "tests/test_finger_domain.py",
+      "exit_code": 0,
+      "seconds": 0.2,
+      "summary": "17 passed, 15 subtests passed in 0.05s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_finger_domain.py"
+      ]
+    },
+    {
+      "file": "tests/test_initialization_logging.py",
+      "exit_code": 0,
+      "seconds": 1.81,
+      "summary": "13 passed, 3 subtests passed in 1.66s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_initialization_logging.py"
+      ]
+    },
+    {
+      "file": "tests/test_initialize_device_progress.py",
+      "exit_code": 0,
+      "seconds": 0.27,
+      "summary": "8 passed, 2 subtests passed in 0.12s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_initialize_device_progress.py"
+      ]
+    },
+    {
+      "file": "tests/test_liquid_temperature_domain.py",
+      "exit_code": 0,
+      "seconds": 0.22,
+      "summary": "12 passed, 10 subtests passed in 0.07s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_liquid_temperature_domain.py"
+      ]
+    },
+    {
+      "file": "tests/test_liquid_temperature_mainwindow.py",
+      "exit_code": 0,
+      "seconds": 1.79,
+      "summary": "6 passed in 1.58s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_liquid_temperature_mainwindow.py"
+      ]
+    },
+    {
+      "file": "tests/test_liquid_temperature_service.py",
+      "exit_code": 0,
+      "seconds": 0.41,
+      "summary": "18 passed, 20 subtests passed in 0.26s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_liquid_temperature_service.py"
+      ]
+    },
+    {
+      "file": "tests/test_liquid_temperature_ui.py",
+      "exit_code": 0,
+      "seconds": 0.68,
+      "summary": "9 passed in 0.50s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_liquid_temperature_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_multidevice_environment.py",
+      "exit_code": 0,
+      "seconds": 0.32,
+      "summary": "16 passed, 3 subtests passed in 0.16s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_multidevice_environment.py"
+      ]
+    },
+    {
+      "file": "tests/test_phase_timestamps.py",
+      "exit_code": 0,
+      "seconds": 1.28,
+      "summary": "13 passed, 26 subtests passed in 1.02s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_phase_timestamps.py"
+      ]
+    },
+    {
+      "file": "tests/test_qt_lifecycle.py",
+      "exit_code": 0,
+      "seconds": 1.15,
+      "summary": "1 passed in 1.00s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_qt_lifecycle.py"
+      ]
+    },
+    {
+      "file": "tests/test_realtime.py",
+      "exit_code": 0,
+      "seconds": 0.58,
+      "summary": "10 passed in 0.36s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_realtime.py"
+      ]
+    },
+    {
+      "file": "tests/test_research_service.py",
+      "exit_code": 0,
+      "seconds": 1.65,
+      "summary": "13 passed in 1.43s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_research_service.py"
+      ]
+    },
+    {
+      "file": "tests/test_research_ui.py",
+      "exit_code": 0,
+      "seconds": 1.1,
+      "summary": "9 passed in 0.89s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_research_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_serial_archive.py",
+      "exit_code": 0,
+      "seconds": 0.91,
+      "summary": "3 passed in 0.71s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_serial_archive.py"
+      ]
+    },
+    {
+      "file": "tests/test_sspp_dual_modes.py",
+      "exit_code": 0,
+      "seconds": 0.82,
+      "summary": "5 passed in 0.59s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_sspp_dual_modes.py"
+      ]
+    },
+    {
+      "file": "tests/test_sweep_budget.py",
+      "exit_code": 0,
+      "seconds": 1.77,
+      "summary": "6 passed, 3 subtests passed in 1.56s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_sweep_budget.py"
+      ]
+    },
+    {
+      "file": "tests/test_sweep_quality.py",
+      "exit_code": 0,
+      "seconds": 7.94,
+      "summary": "20 passed, 45 subtests passed in 7.70s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_sweep_quality.py"
+      ]
+    },
+    {
+      "file": "tests/test_sweep_unlimited_backend.py",
+      "exit_code": 0,
+      "seconds": 0.58,
+      "summary": "13 passed, 28 subtests passed in 0.36s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_sweep_unlimited_backend.py"
+      ]
+    },
+    {
+      "file": "tests/test_target_quality_comparison.py",
+      "exit_code": 0,
+      "seconds": 0.73,
+      "summary": "13 passed, 134 subtests passed in 0.50s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_target_quality_comparison.py"
+      ]
+    },
+    {
+      "file": "tests/test_target_tone_quality.py",
+      "exit_code": 0,
+      "seconds": 1.15,
+      "summary": "6 passed, 15 subtests passed in 0.93s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_target_tone_quality.py"
+      ]
+    },
+    {
+      "file": "tests/test_teacher_bundle.py",
+      "exit_code": 0,
+      "seconds": 0.23,
+      "summary": "4 passed, 5 subtests passed in 0.08s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_teacher_bundle.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_capture.py",
+      "exit_code": 0,
+      "seconds": 0.82,
+      "summary": "11 passed, 3 subtests passed in 0.67s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_capture.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_firmware.py",
+      "exit_code": 0,
+      "seconds": 0.35,
+      "summary": "17 passed (combined rerun)",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_firmware.py"
+      ],
+      "initial_summary": "17 failed in 0.21s"
+    },
+    {
+      "file": "tests/test_temperature_plateau.py",
+      "exit_code": 0,
+      "seconds": 0.81,
+      "summary": "7 passed in 0.67s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_plateau.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_protocol.py",
+      "exit_code": 0,
+      "seconds": 0.16,
+      "summary": "7 passed in 0.02s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_protocol.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_ramp.py",
+      "exit_code": 0,
+      "seconds": 0.22,
+      "summary": "3 passed, 2 subtests passed in 0.04s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_ramp.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_serial_io.py",
+      "exit_code": 0,
+      "seconds": 0.17,
+      "summary": "3 passed in 0.02s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_serial_io.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_sweep_capture.py",
+      "exit_code": 0,
+      "seconds": 1.65,
+      "summary": "15 passed (combined rerun)",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_sweep_capture.py"
+      ],
+      "initial_summary": "1 failed, 14 passed, 7 subtests passed in 1.41s"
+    },
+    {
+      "file": "tests/test_temperature_sweep_mainwindow.py",
+      "exit_code": 0,
+      "seconds": 1.69,
+      "summary": "5 passed in 1.48s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_sweep_mainwindow.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_sweep_service.py",
+      "exit_code": 0,
+      "seconds": 0.25,
+      "summary": "12 passed, 3 subtests passed in 0.09s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_sweep_service.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_sweep_ui.py",
+      "exit_code": 0,
+      "seconds": 0.67,
+      "summary": "8 passed in 0.47s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_sweep_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_temperature_ui.py",
+      "exit_code": 0,
+      "seconds": 1.76,
+      "summary": "19 passed in 1.51s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_temperature_ui.py"
+      ]
+    },
+    {
+      "file": "tests/test_transport_integration.py",
+      "exit_code": 0,
+      "seconds": 0.21,
+      "summary": "1 skipped in 0.06s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_transport_integration.py"
+      ]
+    },
+    {
+      "file": "tests/test_weak_signal_gaps.py",
+      "exit_code": 0,
+      "seconds": 5.75,
+      "summary": "9 passed, 16 subtests passed in 5.49s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_weak_signal_gaps.py"
+      ]
+    },
+    {
+      "file": "test_run_local.py",
+      "exit_code": 0,
+      "seconds": 0.86,
+      "summary": "4 passed in 0.58s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "test_run_local.py"
+      ]
+    },
+    {
+      "file": "test_phase_dsp.py",
+      "exit_code": 0,
+      "seconds": 0.23,
+      "summary": "6 passed in 0.08s",
+      "command": [
+        "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "test_phase_dsp.py"
+      ]
+    }
+  ],
+  "excluded": [
+    "test_desktop_ui::test_real_replay_seek_force_refreshes_preview_and_shows_timing_note",
+    "test_desktop_ui::test_real_history_diagnostic_coverage"
+  ],
+  "exclusion_reason": "These existing integration tests require full live Data archive; isolated staging copies only two targeted historical IQ fixtures. No RF hardware opened.",
+  "rerun": {
+    "files": [
+      "tests/test_temperature_firmware.py",
+      "tests/test_temperature_sweep_capture.py"
+    ],
+    "exit_code": 0,
+    "summary": "32 passed, 14 subtests passed in 2.29s",
+    "reason": "Staging was missing firmware fixtures; copied existing firmware read-only. Updated incomplete mocked CLI options with point_timeout=8 after time policy serialization was added. No firmware written to hardware."
+  },
+  "total_passed": 529,
+  "skipped": 2,
+  "deselected": 2,
+  "hardware_opened": false
+}

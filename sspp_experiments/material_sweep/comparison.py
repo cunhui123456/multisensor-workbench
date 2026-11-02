@@ -5,7 +5,20 @@ import math
 from collections import defaultdict
 from statistics import mean, stdev
 
-from ..comparison import chart, finite, read_source, series, table
+from ..comparison import TARGET_CONFIRMED_SWEEP_VERSION, chart, finite, read_source, series, table
+
+
+def _optional_window_value(row, name, *, integer=False, minimum=0.):
+    value = row.get(name)
+    if value in (None, ""):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("扫频 CSV 的实采窗口元数据无效") from exc
+    if not math.isfinite(number) or number < minimum or (integer and not number.is_integer()):
+        raise ValueError("扫频 CSV 的实采窗口元数据无效")
+    return int(number) if integer else number
 
 
 def _load(record):
@@ -21,6 +34,10 @@ def _load(record):
         raise ValueError("扫频 CSV 没有测量数据")
     parsed, seen = [], set()
     for row in rows:
+        declared = manifest.get("sweep_algorithm")
+        if (isinstance(declared, dict) and declared.get("version") == TARGET_CONFIRMED_SWEEP_VERSION
+                and row.get("algorithm_version") != TARGET_CONFIRMED_SWEEP_VERSION):
+            raise ValueError("v5 扫频 CSV 的 algorithm_version 与 manifest 不一致或缺失")
         try:
             repeat, point = int(row["repeat"]), int(row["point"])
             carrier, tone = float(row["requested_carrier_GHz"])*1e9, float(row["expected_tone_Hz"])
@@ -34,7 +51,10 @@ def _load(record):
             raise ValueError("扫频正式测量峰频不满足原记录的验证容差")
         seen.add((repeat, point))
         parsed.append({"repeat": repeat, "point": point, "requested_carrier_hz": carrier,
-                       "expected_tone_hz": tone, "measured_tone_hz": measured, "amplitude_dB": amplitude})
+                       "expected_tone_hz": tone, "measured_tone_hz": measured, "amplitude_dB": amplitude,
+                       "accepted_window_count": _optional_window_value(row, "accepted_window_count", integer=True, minimum=3),
+                       "accepted_window_duration_s": _optional_window_value(row, "accepted_window_duration_s", minimum=1e-12),
+                       "adaptive_level_index": _optional_window_value(row, "adaptive_level_index", integer=True)})
     repeats = sorted({r["repeat"] for r in parsed})
     points = sorted({r["point"] for r in parsed})
     if repeats != list(range(1, len(repeats)+1)) or points != list(range(1, len(points)+1)) or len(parsed) != len(repeats)*len(points):
@@ -86,6 +106,7 @@ def _load(record):
 
 
 def compare_sweeps(records, reference_index, report, compatible):
+    single = len(records) == 1
     data, raw = [], []
     for record in records:
         values, measurements = _load(record)
@@ -97,7 +118,8 @@ def compare_sweeps(records, reference_index, report, compatible):
         "status": "same" if all(actual_known) else "unknown", "blocking": True,
         "note": "共同频点使用实际 TX/RX 载波与设定 tone 的完整组合，绝不按点号或插值配对。"})
     if not all(actual_known):
-        report["warnings"].append("部分记录缺少逐点实际载波回读，叠加使用请求载波+tone；禁止定量参考差值。")
+        report["warnings"].append("本记录缺少逐点实际载波回读，横轴使用请求载波+tone。" if single else
+                                  "部分记录缺少逐点实际载波回读，叠加使用请求载波+tone；禁止定量参考差值。")
     common = set(data[reference_index])
     for values in data:
         common.intersection_update(values)
@@ -109,15 +131,15 @@ def compare_sweeps(records, reference_index, report, compatible):
         report["warnings"].append(f"频点网格不完全相同；差值只使用全部所选记录共有的 {len(common)} 点，其余仅叠加。")
     if not common:
         report["warnings"].append("没有共同载波+tone 频点，不能生成参考差值。")
-    report["quantitative_difference_allowed"] = bool(compatible and all(actual_known) and common)
+    report["quantitative_difference_allowed"] = bool(not single and compatible and all(actual_known) and common)
     mean_series, sd_series, summary_rows = [], [], []
     for record, values in zip(records, data):
         ordered = sorted(values.values(), key=lambda r: r["target_rf_hz"])
         summary_rows.extend(ordered)
         mean_series.append(series(record, [[r["target_rf_hz"]/1e9, r["mean_amplitude_dB"]] for r in ordered], [r["repeat_sd_dB"] for r in ordered]))
         sd_series.append(series(record, [[r["target_rf_hz"]/1e9, r["repeat_sd_dB"]] for r in ordered]))
-    note = "纵轴为数字 FFT 单音幅度；dB 域均值与 ddof=1 样本 SD。误差棒不是置信区间，连续扫频轮次不是独立取放。横轴为载波回读+设定tone（回读缺失时明确降为请求值）。"
-    report["charts"] = [chart("sweep_mean", "各实验扫频均值 ± 1 样本 SD", "载波 + tone（GHz）", "FFT 峰幅度（dB 数字估计）", mean_series, note),
+    note = "纵轴为数字单音幅度（估计方法由各记录算法版本定义）；dB 域均值与 ddof=1 样本 SD。误差棒不是置信区间，连续扫频轮次不是独立取放。横轴为载波回读+设定tone（回读缺失时明确降为请求值）。"
+    report["charts"] = [chart("sweep_mean", "各实验扫频均值 ± 1 样本 SD", "载波 + tone（GHz）", "单音幅度（dB 数字估计）", mean_series, note),
                          chart("sweep_repeat_sd", "各实验的轮间重复 SD", "载波 + tone（GHz）", "样本 SD（dB）", sd_series, "单轮频点 SD 不可估计，保持空缺；不可解释为跨次取放重复性。")]
     differences, difference_series = [], []
     reference = data[reference_index]
@@ -150,5 +172,12 @@ def compare_sweeps(records, reference_index, report, compatible):
     report["warnings"].append("幅度与差值不是校准 S21/dBm；不同会话可能存在姿态、温漂和环境变化。")
     report["tables"] = {
         "sweep_summary": table(["key", "label", "requested_carrier_hz", "actual_tx_carrier_hz", "actual_rx_carrier_hz", "expected_tone_hz", "target_rf_hz", "frequency_basis", "count", "mean_amplitude_dB", "repeat_sd_dB", "max_tone_error_hz"], summary_rows),
-        "sweep_measurements": table(["key", "label", "repeat", "point", "requested_carrier_hz", "actual_tx_carrier_hz", "actual_rx_carrier_hz", "expected_tone_hz", "measured_tone_hz", "target_rf_hz", "frequency_basis", "amplitude_dB"], raw),
+        "sweep_measurements": table(["key", "label", "repeat", "point", "requested_carrier_hz", "actual_tx_carrier_hz", "actual_rx_carrier_hz", "expected_tone_hz", "measured_tone_hz", "target_rf_hz", "frequency_basis", "amplitude_dB", "accepted_window_count", "accepted_window_duration_s", "adaptive_level_index"], raw),
         "sweep_difference": table(["key", "label", "reference_key", "target_rf_hz", "actual_tx_carrier_hz", "actual_rx_carrier_hz", "expected_tone_hz", "target_count", "reference_count", "target_mean_dB", "reference_mean_dB", "difference_dB", "combined_repeat_sd_dB"], differences)}
+    if single:
+        report['charts'][0]['title'] = '本记录扫频均值 ± 1 样本 SD'
+        report['charts'][1]['title'] = '本记录轮间重复 SD'
+        report['tables'].pop('sweep_difference')
+        for metric in report['metrics']:
+            for name in ('common_points_vs_reference', 'mean_difference_dB', 'max_abs_difference_dB'):
+                metric.pop(name, None)

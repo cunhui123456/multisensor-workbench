@@ -2,13 +2,22 @@
 """扫频逻辑模块（简化版）。"""
 
 import os
+import math
 import time
+from itertools import count
 from queue import Empty
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
+SWEEP_ALGORITHM_VERSION = "sspp.sweep.target_confirmed.v5"
+
+
+class PointQualityTimeout(TimeoutError):
+    """实收IQ持续但没有在点时限内得到可信测量；不代表设备故障。"""
+    pass
 
 """
 Python 里的装饰器。
@@ -40,6 +49,8 @@ class SweepConfig:
     freq_start: float = 2.4e9
     freq_stop: float = 3.0e9
     sweep_repeat: int = 3#改
+    continuous: bool = False
+    skip_invalid_points: bool = False
     tone_start: float = 2e3
     tone_step: float = 1e3
     # VERIFY 阶段：采集 20 个 tone 周期，用于判断当前频点是否稳定；
@@ -54,6 +65,15 @@ class SweepConfig:
     # 上方历史说明中的“100 Hz”是旧文字；当前实际配置为 200 Hz，以字段值为准。
     verify_tolerance_hz: float = 200.0
     nfft: int = 2048
+    verify_min_seconds: float = 0.020
+    measure_min_seconds: float = 0.040
+    verify_consecutive_windows: int = 2
+    min_tone_snr_db: float = 6.0
+    previous_tone_rejection_db: float = 6.0
+    previous_tone_presence_db: float = 6.0
+    adaptive_window_seconds: tuple = (.020, .050, .100, .250, .500, 1.000, 2.000)
+    adaptive_rejections_per_level: int = 2
+    adaptive_carryover_hold_seconds: float = .250
     switch_settle_time: float = 0.1
     save_dir: str = "./Data"
     save_filename: str = "Sweep_data.xlsx"
@@ -70,6 +90,32 @@ class SweepConfig:
 
     # 以接收采样率检查最高基带单音，防止落到 Nyquist 范围之外。
     def validate(self, sdr_rate):
+        values = (sdr_rate, self.verify_min_seconds, self.measure_min_seconds,
+                  self.min_tone_snr_db, self.previous_tone_rejection_db,
+                  self.previous_tone_presence_db, self.adaptive_carryover_hold_seconds,
+                  self.verify_tolerance_hz, self.tone_start, self.tone_step)
+        if not all(math.isfinite(v) for v in values) or sdr_rate <= 0:
+            raise ValueError("扫频质量参数必须为有限数，采样率必须为正")
+        if (self.verify_min_seconds < .020 or self.measure_min_seconds < .040
+                or self.verify_consecutive_windows < 2 or int(self.verify_consecutive_windows) != self.verify_consecutive_windows
+                or self.min_tone_snr_db < 6 or self.previous_tone_rejection_db < 6 or self.previous_tone_presence_db < 6
+                or not 0 <= self.adaptive_carryover_hold_seconds <= .5
+                or self.nfft < 2 or self.verify_cycles <= 0 or self.measure_cycles <= 0
+                or self.verify_tolerance_hz <= 0 or self.tone_start <= 0 or self.tone_step < 0):
+            raise ValueError("扫频质量门限或窗口参数无效")
+        levels = self.adaptive_window_seconds
+        if (not isinstance(levels, (tuple,list)) or not levels
+                or not all(isinstance(v, (int,float)) and not isinstance(v,bool) and math.isfinite(v) for v in levels)
+                or levels[0] < .020 or levels[-1] > 2.0
+                or any(a >= b for a,b in zip(levels,levels[1:]))
+                or self.adaptive_rejections_per_level != 2):
+            raise ValueError("自适应窗口必须递增且位于 20 ms–2 s；每档累计两次拒绝后升级")
+        base_max_samples = max(math.ceil(self.verify_cycles*sdr_rate/self.tone_start),
+                               math.ceil(self.measure_cycles*sdr_rate/self.tone_start),
+                               math.ceil(self.verify_min_seconds*sdr_rate),
+                               math.ceil(self.measure_min_seconds*sdr_rate))
+        if base_max_samples/sdr_rate > 1.0:
+            raise ValueError("最低周期数或最短时长要求超过 1 秒窗口上限；请调整单音/采样参数")
         max_tone = self.tone_start + (self.num_points - 1) * self.tone_step
         if max_tone >= sdr_rate / 2:
             raise ValueError("最大 tone 不能超过 Nyquist 频率")
@@ -91,8 +137,8 @@ def fft_peak(data_seg, rate, nfft=2048, expected_freq=None, search_bw=1000.0):
 
     x = np.asarray(data_seg, dtype=np.complex64)
 
-    if len(x) > nfft:
-        x = x[-nfft:]
+    # nfft 是最低 FFT 长度；完整测量窗全部参与，禁止截掉早期实测样本。
+    nfft = max(int(nfft), len(x))
 
     # Hann 窗抑制频谱泄漏；用窗和归一化可估计落在 FFT 栅格上的单音幅值。
     window = np.hanning(len(x))
@@ -117,6 +163,210 @@ def fft_peak(data_seg, rate, nfft=2048, expected_freq=None, search_bw=1000.0):
 
     idx = np.argmax(spec_db)
     return float(freq[idx]), float(spec_db[idx])
+
+
+def sweep_algorithm_policy(cfg):
+    """用于 manifest/跨记录比较的可复现算法身份。"""
+    return {"version": SWEEP_ALGORITHM_VERSION,
+            "window": "Hann; use all measured samples; FFT length=max(nfft, window_count)",
+            "verify_min_seconds": cfg.verify_min_seconds, "measure_min_seconds": cfg.measure_min_seconds,
+            "verify_consecutive_windows": cfg.verify_consecutive_windows,
+            "min_tone_snr_db": cfg.min_tone_snr_db,
+            "previous_tone_rejection_db": cfg.previous_tone_rejection_db,
+            "previous_tone_presence_db": cfg.previous_tone_presence_db,
+            "adaptive_window_seconds": list(cfg.adaptive_window_seconds),
+            "adaptive_rejections_per_level": cfg.adaptive_rejections_per_level,
+            "rejected_window_policy": "reuse_last_failed_window_only_on_escalation",
+            "skip_invalid_points":cfg.skip_invalid_points, "point_budget_policy":"unchanged absolute deadline; invalid points remain missing; no reset or interpolation",
+            "adaptive_carryover_hold_seconds": cfg.adaptive_carryover_hold_seconds,
+            "previous_tone_detection": "exact_tone_with_half_window_support_or_split_candidate",
+            "verify_tolerance_hz": cfg.verify_tolerance_hz,
+            "nfft_min": cfg.nfft, "search_bandwidth_hz": cfg.verify_tolerance_hz,
+            "target_candidate_search": "expected_tone_plus_minus_verify_tolerance_hz",
+            "target_presence_method": "exact_tone_with_independent_halves_on_background_dominance",
+            "target_confirmation_snr_db": cfg.min_tone_snr_db,
+            "amplitude_estimator": "exact_expected_tone_hann_coefficient",
+            "target_numerical_floor": "float32_epsilon_times_input_rms",
+            "noise_floor_bandwidth_hz": 1000.0,
+            "snr_definition": "exact expected-tone Hann coefficient versus median local FFT-bin amplitude; engineering prominence, not calibrated physical SNR",
+            "retry_policy": "on escalation retain only the last failed window as prefix; accepted VERIFY and MEASURE windows never overlap; two cumulative rejected windows at a level advance duration; evidenced previous-tone rejection during initial carryover hold delays escalation only; isolated passes do not reset rejection count; rejected MEASURE returns to two-window VERIFY; original point deadline never reset"}
+
+
+def _split_previous_candidate(data, rate, previous_tone, target_tone, cfg):
+    """前半窗选候选频率，后半窗独立确认；噪声频带最大峰本身不算旧单音。"""
+    halves = (data[:len(data)//2], data[len(data)//2:])
+    results = []
+    candidate = None
+    for samples in halves:
+        count = len(samples)
+        window = np.hanning(count)
+        weighted = samples*window
+        frequencies = np.fft.fftfreq(count, 1/rate)
+        spectrum = abs(np.fft.fft(weighted))/window.sum()
+        band = np.flatnonzero(abs(frequencies-previous_tone) <= cfg.verify_tolerance_hz)
+        exclusion = max(cfg.verify_tolerance_hz, 3*rate/count)
+        floor_mask = ((abs(frequencies-previous_tone) <= 1000)
+                      & (abs(frequencies-previous_tone) > exclusion)
+                      & (abs(frequencies-target_tone) > exclusion))
+        if not len(band) or np.count_nonzero(floor_mask) < 5:
+            return {"present": False, "candidate_hz": None, "reason": "insufficient_half_window_resolution"}
+        peak_hz = float(frequencies[band[np.argmax(spectrum[band])]])
+        if candidate is None:
+            candidate = peak_hz
+        coefficient = float(abs(np.sum(weighted*np.exp(-2j*np.pi*candidate*np.arange(count)/rate))/window.sum()))
+        floor = float(np.median(spectrum[floor_mask]))
+        prominence = float(20*np.log10(max(coefficient,1e-15)/max(floor,1e-15)))
+        results.append({"peak_hz":peak_hz,"candidate_prominence_db":prominence,
+                        "bin_width_hz":rate/count})
+    agrees = abs(results[0]["peak_hz"]-results[1]["peak_hz"]) <= max(q["bin_width_hz"] for q in results)
+    present = agrees and all(q["candidate_prominence_db"] >= cfg.previous_tone_presence_db for q in results)
+    return {"present":bool(present),"candidate_hz":candidate,"frequency_agreement":bool(agrees),
+            "first_half":results[0],"second_half":results[1]}
+
+
+def _target_half_confirmation(data, rate, tone, previous_tone, cfg, threshold_db=None):
+    """在两个互不重叠半窗各自确认已知单音，不以搜索得到的噪声峰代替目标。"""
+    threshold_db = cfg.min_tone_snr_db if threshold_db is None else threshold_db
+    results = []
+    for samples in (data[:len(data)//2], data[len(data)//2:]):
+        n = len(samples)
+        if n < 3:
+            return {"confirmed": False, "reason": "insufficient_half_window_resolution", "halves": results}
+        window = np.hanning(n)
+        weighted = samples * window
+        frequencies = np.fft.fftfreq(n, 1.0 / rate)
+        spectrum = np.abs(np.fft.fft(weighted)) / window.sum()
+        exclusion = max(cfg.verify_tolerance_hz, 3.0 * rate / n)
+        floor_mask = ((np.abs(frequencies-tone) <= 1000.0)
+                      & (np.abs(frequencies-tone) > exclusion))
+        if previous_tone is not None and abs(previous_tone-tone) > 2*cfg.verify_tolerance_hz:
+            floor_mask &= np.abs(frequencies-previous_tone) > exclusion
+        if np.count_nonzero(floor_mask) < 5:
+            return {"confirmed": False, "reason": "insufficient_half_window_resolution", "halves": results}
+        coefficient = float(abs(np.sum(weighted*np.exp(-2j*np.pi*tone*np.arange(n)/rate))/window.sum()))
+        floor = float(np.median(spectrum[floor_mask]))
+        prominence = float(20*np.log10(max(coefficient, 1e-15)/max(floor, 1e-15)))
+        results.append({"sample_count": n, "target_snr_db": prominence,
+                        "target_amplitude_dB": float(20*np.log10(max(coefficient, 1e-15))),
+                        "local_floor_dB": float(20*np.log10(max(floor, 1e-15)))})
+    return {"confirmed": all(row["target_snr_db"] >= threshold_db for row in results),
+            "halves": results}
+
+
+def quality_measurement(data, rate, tone, previous_tone, cfg):
+    """目标带候选＋完整窗/两半窗已知单音确认；独立保存宽带背景诊断。"""
+    x = np.asarray(data, dtype=np.complex64)
+    if x.ndim != 1 or len(x) < 3 or not np.isfinite(x).all():
+        raise ValueError("扫频质量判定需要有限的一维 IQ 窗")
+    n = len(x)
+    # 不能把单精度量化/运算残差相对近零噪声底的“突出”当成真实目标。
+    input_rms = float(np.sqrt(np.mean(np.abs(x.astype(np.complex128))**2)))
+    numerical_floor = max(1e-15, input_rms * np.finfo(np.float32).eps)
+    nfft = max(int(cfg.nfft), n)
+    window = np.hanning(n)
+    weighted = x * window
+    scale = window.sum()
+    spectrum = np.abs(np.fft.fft(weighted, nfft)) / scale
+    frequencies = np.fft.fftfreq(nfft, 1.0 / rate)
+    local = np.abs(frequencies - tone) <= 1000.0
+    indices = np.flatnonzero(local)
+    if not len(indices):
+        raise ValueError("采样率/FFT 设置无法覆盖目标单音")
+    background_index = indices[np.argmax(spectrum[indices])]
+    target_indices = np.flatnonzero(np.abs(frequencies-tone) <= cfg.verify_tolerance_hz)
+    if not len(target_indices):
+        raise ValueError("采样率/FFT 设置无法覆盖目标频率容差带")
+    peak_index = target_indices[np.argmax(spectrum[target_indices])]
+    measured = float(frequencies[peak_index])
+    # 用已知发射单音的相干系数判定目标是否存在，避免把搜索区噪声最大峰当信号。
+    times = np.arange(n, dtype=np.float64) / rate
+    target = float(abs(np.sum(weighted * np.exp(-2j * np.pi * tone * times)) / scale))
+    exclusion = max(cfg.verify_tolerance_hz, 3.0 * rate / n)
+    floor_mask = local & (np.abs(frequencies - tone) > exclusion)
+    distinct_previous = previous_tone is not None and abs(previous_tone - tone) > 2 * cfg.verify_tolerance_hz
+    if distinct_previous:
+        floor_mask &= np.abs(frequencies - previous_tone) > exclusion
+    if np.count_nonzero(floor_mask) < 5:
+        raise ValueError("窗口过短，无法估计目标单音邻域噪声底")
+    floor = float(np.median(spectrum[floor_mask]))
+    snr = float(20 * np.log10(max(target, 1e-15) / max(floor, 1e-15)))
+    previous_amplitude, previous_margin = None, None
+    previous_floor_db, previous_snr, previous_present = None, None, False
+    previous_exact_present = False
+    previous_exact_confirmation = None
+    previous_split_evidence = None
+    if distinct_previous:
+        # 先证明已知的前一发射单音高于它自己的频域噪声底，再施加抑制门限。
+        # 不把前一频率 ±200 Hz 内任意随机最大峰冒充残留旧单音。
+        previous_coherent = float(abs(np.sum(weighted * np.exp(-2j*np.pi*previous_tone*times))/scale))
+        previous_floor_mask = ((np.abs(frequencies-previous_tone) <= 1000)
+                               & (np.abs(frequencies-previous_tone) > exclusion)
+                               & (np.abs(frequencies-tone) > exclusion))
+        if np.count_nonzero(previous_floor_mask) < 5:
+            raise ValueError("窗口过短，无法估计前一单音邻域噪声底")
+        previous_floor = float(np.median(spectrum[previous_floor_mask]))
+        previous_amplitude = float(20 * np.log10(max(previous_coherent, 1e-15)))
+        previous_floor_db = float(20 * np.log10(max(previous_floor, 1e-15)))
+        previous_snr = float(20 * np.log10(max(previous_coherent, 1e-15)/max(previous_floor, 1e-15)))
+        previous_halves = _target_half_confirmation(x, rate, previous_tone, tone, cfg,
+                                                     cfg.previous_tone_presence_db)["halves"]
+        # 全窗突出还须至少半窗支持；旧单音只在前半残留时也必须拦截。
+        previous_exact_confirmation = {
+            "confirmed": len(previous_halves) == 2 and any(
+                h["target_snr_db"] >= cfg.previous_tone_presence_db for h in previous_halves),
+            "required_halves": 1, "halves": previous_halves}
+        previous_exact_present = (previous_snr >= cfg.previous_tone_presence_db
+                                  and previous_coherent > numerical_floor
+                                  and previous_exact_confirmation["confirmed"])
+        previous_split_evidence = _split_previous_candidate(x,rate,previous_tone,tone,cfg)
+        previous_present = previous_exact_present or previous_split_evidence['present']
+        if previous_split_evidence['present']:
+            # 只有独立半窗已证明有旧单音时才读取完整 FFT 的旧频带峰值。
+            # 半窗的频率栅格较粗，不能用其频率重算整窗相干系数，否则可低估约 6 dB。
+            previous_band = np.abs(frequencies-previous_tone) <= cfg.verify_tolerance_hz
+            candidate_amplitude = float(np.max(spectrum[previous_band]))
+            previous_coherent = max(previous_coherent,candidate_amplitude)
+            previous_amplitude = float(20*np.log10(max(previous_coherent,1e-15)))
+        previous_present = previous_present and previous_coherent > numerical_floor
+        previous_margin = float(20 * np.log10(max(target, 1e-15)/max(previous_coherent, 1e-15)))
+    background_dominates = abs(float(frequencies[background_index])-tone) >= cfg.verify_tolerance_hz
+    target_confirmation = ({"required": True, **_target_half_confirmation(x, rate, tone, previous_tone, cfg)}
+                           if background_dominates else {"required": False, "confirmed": None, "halves": []})
+    reasons = []
+    if target <= numerical_floor:
+        reasons.append("target_tone_below_numerical_resolution")
+    if background_dominates and not target_confirmation["confirmed"]:
+        reasons.append("target_tone_not_confirmed_in_both_halves")
+    if abs(measured - tone) >= cfg.verify_tolerance_hz:
+        reasons.append("tone_frequency_out_of_tolerance")
+    if snr < cfg.min_tone_snr_db:
+        reasons.append("target_tone_below_local_floor_margin")
+    if previous_present and previous_margin < cfg.previous_tone_rejection_db:
+        reasons.append("previous_tone_not_sufficiently_rejected")
+    return {"algorithm_version": SWEEP_ALGORITHM_VERSION, "passed": not reasons,
+            "rejection_reasons": reasons, "measured_tone_hz": measured,
+            "amplitude_dB": float(20*np.log10(max(target, 1e-15))), "expected_tone_hz": float(tone),
+            "amplitude_estimator": "exact_expected_tone_hann_coefficient",
+            "amplitude_frequency_hz": float(tone),
+            "target_confirmation": target_confirmation,
+            "target_band_peak_amplitude_dB": float(20*np.log10(max(float(spectrum[peak_index]), 1e-15))),
+            "wide_band_peak_hz": float(frequencies[background_index]),
+            "wide_band_peak_amplitude_dB": float(20*np.log10(max(float(spectrum[background_index]), 1e-15))),
+            "previous_tone_hz": float(previous_tone) if previous_tone is not None else None,
+            "target_amplitude_dB": float(20 * np.log10(max(target, 1e-15))),
+            "local_floor_dB": float(20 * np.log10(max(floor, 1e-15))), "target_snr_db": snr,
+            "numerical_amplitude_floor_dB": float(20*np.log10(numerical_floor)),
+            "previous_tone_amplitude_dB": previous_amplitude, "previous_tone_margin_db": previous_margin,
+            "previous_tone_present": bool(previous_present), "previous_tone_snr_db": previous_snr,
+            "previous_local_floor_dB": previous_floor_db,
+            "previous_tone_detection": "exact_tone_with_half_window_support_or_split_candidate",
+            "previous_exact_frequency_present":bool(previous_exact_present),
+            "previous_exact_confirmation": previous_exact_confirmation,
+            "previous_split_evidence":previous_split_evidence,
+            "previous_tone_gate_status": ("applied" if previous_present else
+                                           "not_present_above_floor" if distinct_previous else "not_distinct"),
+            "window_count": n, "fft_length": nfft, "sample_rate_hz": float(rate),
+            "window_duration_s": n / rate, "frequency_error_hz": measured - float(tone)}
 
 # def fft_peak(data_seg, rate, nfft=2048):
 #     """
@@ -160,7 +410,7 @@ class SweepRunner:
     # 报告请求扫描参数；实际硬件载波回读由本机入口另行保存。
     def _print_info(self, freq_list):
         num = len(freq_list)
-        print(f"重复扫频次数: {self.cfg.sweep_repeat}")
+        print("连续循环扫频至手动停止" if self.cfg.continuous else f"重复扫频次数: {self.cfg.sweep_repeat}")
         print(f"扫频范围: {self.cfg.freq_start/1e9:.3f} ~ {self.cfg.freq_stop/1e9:.3f} GHz, 共 {num} 个点")
         print(f"频率步进: {self.cfg.freq_step/1e6:.3f} MHz")
         print(f"基带频率: {self.cfg.tone_start/1e3:.1f} ~ {(self.cfg.tone_start+(num-1)*self.cfg.tone_step)/1e3:.1f} kHz, 步进 {self.cfg.tone_step/1e3:.1f} kHz")
@@ -233,167 +483,182 @@ class SweepRunner:
 
         return frames, latest       
     
-    # 根据 tone 计算当前阶段需要多少点
-    # 周期数 × 采样率 / 单音频率得到阶段长度；tone 越高，采样窗口越短。
     def _calc_samples(self, tone):
-        """
-        例如采样率为 250000 S/s，tone 为 13000 Hz。
-        一个 tone 周期需要：
-        250000 / 13000 ≈ 19.23 点
-        VERIFY 阶段需要 20 个周期：
-        20 × 250000 / 13000 ≈ 384 点
-        MEASURE 阶段需要 80 个周期：
-        80 × 250000 / 13000 ≈ 1538 点
-        """
-        rate = getattr(self.args, "rx_rate_actual", self.args.rate)
-        verify_samples = int(self.cfg.verify_cycles * rate / tone)
-        measure_samples = int(self.cfg.measure_cycles * rate / tone)
-        return verify_samples, measure_samples
+        """周期数与最短真实采样时长双重下限；高单音不再退化成数百点短窗。"""
+        rate = getattr(self.args, "rx_rate_actual", None) or self.args.rate
+        verify = max(math.ceil(self.cfg.verify_cycles * rate / tone),
+                     math.ceil(self.cfg.verify_min_seconds * rate))
+        measure = max(math.ceil(self.cfg.measure_cycles * rate / tone),
+                      math.ceil(self.cfg.measure_min_seconds * rate))
+        return verify, measure
 
-    # 严格小于容差才通过；默认容差 200 Hz，等于 200 Hz 时不通过。
     def _verify_pass(self, peak_freq, tone):
-        # 判断验证是否通过
         return abs(peak_freq - tone) < self.cfg.verify_tolerance_hz
 
-    # 每轮从第一点开始：VERIFY 重试 → MEASURE 记录 → 切到下一点 → 再 VERIFY。
-    # 原控制器无每点硬超时；run_local.py 子类额外提供超时和原始帧检查。
-    def run(self, enable_plot=True):
-        # 先读取实际 RX 采样率，再检查扫频参数是否合法
-        rate = getattr(self.args, "rx_rate_actual", self.args.rate)
-        self.cfg.validate(rate)
-        freq_list = np.linspace(self.cfg.freq_start, self.cfg.freq_stop, self.cfg.num_points)
-        self._print_info(freq_list)
+    def on_quality_attempt(self, record):
+        """记录每次实际处理的窗；子类负责持久化，默认不操作磁盘。"""
+        pass
 
+    def point_deadline_expired(self):
+        """硬件记录子类提供绝对截止时间；离线领域执行可注入独立时间策略。"""
+        return False
+
+    def on_invalid_measurement(self, repeat, point, frequency, tone, quality):
+        pass
+
+    def invalid_quality_details(self):
+        return {}
+
+    def on_round_started(self, repeat):
+        pass
+
+    def on_round_finished(self, repeat, complete):
+        pass
+
+    def run(self, enable_plot=True):
+        rate = getattr(self.args, "rx_rate_actual", None) or self.args.rate
+        self.cfg.validate(rate)
+        frequencies = np.linspace(self.cfg.freq_start, self.cfg.freq_stop, self.cfg.num_points)
+        self._print_info(frequencies)
         if enable_plot and self.drawer:
             self.drawer.setup_plot()
-
-        # 存储所有轮次结果
-        """
-        all_freq: 每轮实际完成测量的载波频率，单位 GHz
-        all_amp: 每轮测得的幅值，单位 dB
-        all_exp_tone: 每轮每个频点期望的 tone, 单位 Hz
-        all_meas_tone: 每轮每个频点实测的 tone, 单位 Hz
-        """
-        all_freq, all_amp, all_exp_tone, all_meas_tone = [], [], [], []
-        last_plot_time = 0.0
-        latest_samples = None
-
-        for sweep_idx in range(self.cfg.sweep_repeat):
-            if self.stop_event.is_set() or (enable_plot and self.drawer and not self.drawer.is_open()):
-                break
-
-            print(f"\n{'='*60}\n开始第 {sweep_idx+1} / {self.cfg.sweep_repeat} 次扫频\n{'='*60}")
-            
-            # 每一轮开始时,初始化当前轮的记录表，并从第 0 个频点开始
-            freq_record, amp_record, exp_tone_record, meas_tone_record = [], [], [], []
-            idx = 0
-            freq = freq_list[idx]
-
-            # 切到当前频点
-            tone = self.cfg.tone_start + idx * self.cfg.tone_step
-            self._set_freq_and_tone(freq, tone)
-            print(f"初始频率：{freq/1e9:.3f} GHz, 基带：{tone/1e3:.1f} kHz")
-
-            # 清空旧数据，创建新的接收缓存，并进入 VERIFY 状态
-            self._clear_queue()
-            rx_buffer = []
-            state = self.VERIFY
-            # 计算验证阶段和测量阶段需要的采样点数
-            verify_samples, measure_samples = self._calc_samples(tone)
-            required = verify_samples
-
-            while not self.stop_event.is_set() and idx < self.cfg.num_points:
-                # 如果图窗被关闭，就退出当前扫频
-                if enable_plot and self.drawer and not self.drawer.is_open():
-                    break
-
-                # 取新数据
-                # 这一步会把队列中目前已有的所有新帧全部取出来
-                new_frames, new_latest = self._fetch_available_frames()
-
-                if new_frames:
-                    # latest_samples 只保存最后一帧，用于实时绘图
-                    latest_samples = new_latest
-                    # new_frames 中所有帧都加入 rx_buffer，用于 VERIFY/MEASURE
-                    for frame in new_frames:
-                        rx_buffer.extend(frame)
-
-                # 实时绘图
-                if enable_plot and self.drawer and latest_samples is not None:
-                    now = time.time()
-                    if now - last_plot_time >= self.drawer.plot_interval:
-                        self.drawer.update_plots(latest_samples)
-                        self.drawer.pause(0.001)
-                        last_plot_time = now
-                # 判断数据是否足够：
-                if len(rx_buffer) < required:
-                    time.sleep(0.001)
-                    continue
-                # 一旦数据够了：从缓存中取出前 required 个点作为当前 VERIFY 
-                # 或 MEASURE 的数据。剩余数据保留
-                data = np.asarray(rx_buffer[:required], dtype=np.complex64)
-                rx_buffer = rx_buffer[required:]
-                # peak_freq, peak_amp = fft_peak(data, rate, nfft=self.cfg.nfft)
-                peak_freq, peak_amp = fft_peak(
-                    data,
-                    rate,
-                    nfft=self.cfg.nfft,
-                    expected_freq=tone,
-                    search_bw=1000.0
-                )
-
-
-                if state == self.VERIFY:
-                    if self._verify_pass(peak_freq, tone):
-                        print(f"[第 {sweep_idx+1} 次] 验证通过: {freq/1e9:.3f} GHz, 期望 {tone:.1f} Hz, 实测 {peak_freq:.1f} Hz")
-                        state = self.MEASURE
-                        # VERIFY 通过后舍弃缓存余量，正式 MEASURE 必须重新收集窗口。
-                        required = measure_samples
-                        rx_buffer = []
-                    else: # 如果验证失败：
-                        print(f"[第 {sweep_idx+1} 次] 验证失败: {freq/1e9:.3f} GHz, 期望 {tone:.1f} Hz, 实测 {peak_freq:.1f} Hz, 重新验证...")
-                        rx_buffer = [] # 清空缓存，重新收集数据，再验证一次。
-                else:  # MEASURE
-                    print(f"[第 {sweep_idx+1} 次] 测量: {freq/1e9:.3f} GHz, 幅值 {peak_amp:.2f} dB, 实测基带 {peak_freq:.1f} Hz")
-                    # 记录请求载波的 GHz 值；实际基带峰频另存 meas_tone_record。
-                    freq_record.append(freq / 1e9)
-                    amp_record.append(peak_amp)
-                    exp_tone_record.append(tone)
-                    meas_tone_record.append(peak_freq)
-                    self.on_measurement(sweep_idx, idx, freq, tone, peak_freq, peak_amp)
-
-                    idx += 1
-                    if idx >= self.cfg.num_points:
-                        print(f"第 {sweep_idx+1} 次扫频完成。")
-                        break
-                    
-                    # 如果还没扫完，就计算下一个频点：
-                    freq = freq_list[idx]
-                    tone = self.cfg.tone_start + idx * self.cfg.tone_step
-                    self._set_freq_and_tone(freq, tone)
-                    print(f"切换到频率 {freq/1e9:.3f} GHz, 基带 {tone/1e3:.1f} kHz")
-                    state = self.VERIFY
-                    verify_samples, measure_samples = self._calc_samples(tone)
-                    required = verify_samples
-                    rx_buffer = []
-                    self._clear_queue()
-
-                time.sleep(0.001)
-
-            # 保存本轮结果
-            all_freq.append(freq_record)
-            all_amp.append(amp_record)
-            all_exp_tone.append(exp_tone_record)
-            all_meas_tone.append(meas_tone_record)
-
-        print("\n所有扫频循环结束。")
-        return {
-            "freq_list": freq_list,
-            "all_freq_records": all_freq,
-            "all_amp_records": all_amp,
-            "all_expected_tone_records": all_exp_tone,
-            "all_measured_tone_records": all_meas_tone,
+        # 从创建起即保存引用；停止/异常时调用者可以封存此前已接受的数据。
+        self.partial_result = {
+            "freq_list": frequencies, "all_freq_records": [], "all_amp_records": [],
+            "all_expected_tone_records": [], "all_measured_tone_records": [],
+            "all_quality_records": [], "algorithm_version": SWEEP_ALGORITHM_VERSION,
+            "sweep_algorithm": sweep_algorithm_policy(self.cfg),
         }
+        self.last_measurement_quality = None
+        last_plot_time = 0.0
+        previous_tone = None
+        for repeat in (count() if self.cfg.continuous else range(self.cfg.sweep_repeat)):
+            if self.stop_event.is_set():
+                break
+            print(f"开始第 {repeat+1} 轮连续扫频" if self.cfg.continuous else f"开始第 {repeat+1} / {self.cfg.sweep_repeat} 次扫频")
+            self.on_round_started(repeat+1)
+            round_frequencies, amplitudes, expected, measured, accepted_quality = [], [], [], [], []
+            for key, rows in (("all_freq_records", round_frequencies), ("all_amp_records", amplitudes),
+                              ("all_expected_tone_records", expected), ("all_measured_tone_records", measured),
+                              ("all_quality_records", accepted_quality)):
+                self.partial_result[key].append(rows)
+            for point, frequency in enumerate(frequencies):
+                if self.stop_event.is_set() or (enable_plot and self.drawer and not self.drawer.is_open()):
+                    break
+                tone = self.cfg.tone_start + point * self.cfg.tone_step
+                self._set_freq_and_tone(frequency, tone)
+                self._clear_queue()
+                verify_samples, measure_samples = self._calc_samples(tone)
+                state, consecutive, attempt = self.VERIFY, 0, 0
+                adaptive_level, level_rejections = 0, 0
+                rx_buffer = np.empty(0, dtype=np.complex64)
+                window_start = 0
+                quality_timeout = None
+                while not self.stop_event.is_set():
+                    if enable_plot and self.drawer and not self.drawer.is_open():
+                        self.stop_event.set()
+                        break
+                    # 每次检查同一频点的绝对截止时间；拒绝/重验不会重置它。
+                    try:
+                        frames, latest = self._fetch_available_frames()
+                    except PointQualityTimeout as exc:
+                        if not self.cfg.skip_invalid_points:raise
+                        quality_timeout=str(exc)
+                        break
+                    if frames:
+                        rx_buffer = np.concatenate((rx_buffer, *frames))
+                    if enable_plot and self.drawer and latest is not None:
+                        now = time.monotonic()
+                        if now - last_plot_time >= self.drawer.plot_interval:
+                            self.drawer.update_plots(latest)
+                            self.drawer.pause(.001)
+                            last_plot_time = now
+                    level_duration = self.cfg.adaptive_window_seconds[adaptive_level]
+                    required = max(verify_samples if state == self.VERIFY else measure_samples,
+                                   math.ceil(level_duration*rate))
+                    if len(rx_buffer) < required:
+                        time.sleep(.001)
+                        continue
+                    # 通过窗顺序消费、不重叠；升级时仅失败窗可扩展。坐标对应保存 NPZ 的 iq。
+                    data, rx_buffer = rx_buffer[:required], rx_buffer[required:]
+                    quality = quality_measurement(data, rate, tone, previous_tone, self.cfg)
+                    attempt += 1
+                    rejections_before = level_rejections
+                    if not quality['passed']:
+                        level_rejections += 1
+                    next_level = adaptive_level
+                    carryover_hold = (not quality['passed']
+                                      and 'previous_tone_not_sufficiently_rejected' in quality['rejection_reasons']
+                                      and (window_start+required)/rate <= self.cfg.adaptive_carryover_hold_seconds)
+                    if (not quality['passed'] and level_rejections >= self.cfg.adaptive_rejections_per_level
+                            and not carryover_hold
+                            and adaptive_level+1 < len(self.cfg.adaptive_window_seconds)):
+                        next_level += 1
+                    deadline_expired = self.point_deadline_expired()
+                    cancelled = self.stop_event.is_set()
+                    record = {**quality, "repeat": repeat+1, "point": point+1,
+                              "requested_carrier_hz": float(frequency),
+                              "state": "VERIFY" if state == self.VERIFY else "MEASURE",
+                              "quality_attempt_index": attempt, "window_start": window_start,
+                              "accepted": state == self.MEASURE and quality["passed"] and not deadline_expired and not cancelled,
+                              "verified_windows_before": consecutive,
+                              "adaptive_level_index":adaptive_level,"adaptive_window_seconds":level_duration,
+                              "level_rejections_before":rejections_before,"level_rejections_after":level_rejections,
+                              "next_adaptive_level_index":next_level,
+                              "retained_prefix_count": (required if next_level != adaptive_level
+                                                        and not deadline_expired and not cancelled else 0),
+                              "carryover_hold":bool(carryover_hold),"point_deadline_expired":bool(deadline_expired),
+                              "stop_requested":bool(cancelled),
+                              "host_processed_monotonic_s": time.monotonic()}
+                    window_start += required
+                    self.on_quality_attempt(record)
+                    if deadline_expired:
+                        if self.cfg.skip_invalid_points:
+                            quality_timeout="Point quality deadline expired during window processing; measurement not accepted"
+                            break
+                        raise TimeoutError("Point quality deadline expired during window processing; measurement not accepted")
+                    if cancelled:
+                        break
+                    if not quality["passed"]:
+                        # 孤立通过不清空本档拒绝累计；失败测量也计入升级，始终重验两窗。
+                        state, consecutive = self.VERIFY, 0
+                        if next_level != adaptive_level:
+                            # 失败窗不作测量，但其真实 IQ 可扩展为下一档更长候选；
+                            # 两个已通过的 VERIFY 与最终 MEASURE 仍各用独立新样本。
+                            rx_buffer = np.concatenate((data, rx_buffer))
+                            window_start -= required
+                            adaptive_level, level_rejections = next_level, 0
+                        print(f"[第 {repeat+1} 次/点 {point+1}] 质量未通过，继续同频点 "
+                              f"{self.cfg.adaptive_window_seconds[adaptive_level]*1000:g} ms 验证: "
+                              + ", ".join(quality["rejection_reasons"]))
+                        continue
+                    if state == self.VERIFY:
+                        consecutive += 1
+                        if consecutive >= self.cfg.verify_consecutive_windows:
+                            state = self.MEASURE
+                        continue
+                    peak_frequency, amplitude = quality["measured_tone_hz"], quality["amplitude_dB"]
+                    round_frequencies.append(float(frequency/1e9))
+                    amplitudes.append(amplitude)
+                    expected.append(float(tone))
+                    measured.append(peak_frequency)
+                    accepted_quality.append(record)
+                    self.last_measurement_quality = record
+                    print(f"[第 {repeat+1} 次/点 {point+1}] 测量通过: {frequency/1e9:.6f} GHz, "
+                          f"{peak_frequency:.1f} Hz, {amplitude:.2f} dB, 完整 {required} 样点")
+                    self.on_measurement(repeat, point, frequency, tone, peak_frequency, amplitude)
+                    break
+                if quality_timeout is not None and not self.stop_event.is_set():
+                    invalid={"measurement_status":"invalid", "accepted":False, "reason_code":"point_quality_timeout",
+                             "reason":quality_timeout, **self.invalid_quality_details()}
+                    round_frequencies.append(float(frequency/1e9));amplitudes.append(None)
+                    expected.append(float(tone));measured.append(None);accepted_quality.append(invalid)
+                    self.on_invalid_measurement(repeat,point,frequency,tone,invalid)
+                previous_tone = tone
+                if self.stop_event.is_set():
+                    break
+            self.on_round_finished(repeat+1, len(amplitudes)==self.cfg.num_points)
+        return self.partial_result
 
 
 # 保留老师的频率两位小数与统计舍入格式；精确频率表由 run_local.py 导出。

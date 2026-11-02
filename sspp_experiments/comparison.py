@@ -7,6 +7,23 @@ import json
 import math
 from pathlib import Path
 
+SWEEP_QUALITY_VERSION = "sspp.sweep.full_window_quality.v2"
+ADAPTIVE_SWEEP_VERSION = "sspp.sweep.adaptive_coherent_quality.v3"
+TARGET_CONFIRMED_SWEEP_VERSION = "sspp.sweep.target_confirmed.v5"
+TARGET_QUALITY_RULES = {
+    "target_candidate_search": "expected_tone_plus_minus_verify_tolerance_hz",
+    "target_presence_method": "exact_tone_with_independent_halves_on_background_dominance",
+    "amplitude_estimator": "exact_expected_tone_hann_coefficient",
+    "rejected_window_policy": "reuse_last_failed_window_only_on_escalation",
+    "previous_tone_detection": "exact_tone_with_half_window_support_or_split_candidate",
+    "target_numerical_floor": "float32_epsilon_times_input_rms",
+}
+LEGACY_SWEEP_VERSION = "legacy.truncated_window_fft.v1"
+SWEEP_QUALITY_FIELDS = ("verify_min_seconds", "measure_min_seconds", "verify_consecutive_windows",
+                        "min_tone_snr_db", "previous_tone_rejection_db")
+ADAPTIVE_QUALITY_FIELDS = ("previous_tone_presence_db", "adaptive_rejections_per_level",
+                           "adaptive_carryover_hold_seconds")
+
 COLORS = ["#087f85", "#d28b32", "#7474bd", "#be6687", "#4c9271", "#527fa2", "#936d47", "#935d78"]
 
 
@@ -19,7 +36,10 @@ def history_category(row, context=None):
     context = context or {}
     key, mode = row.get("key", ""), row.get("mode", "")
     experiment = context.get("experiment", row.get("experiment"))
-    if experiment in ("liquid_temperature_sweep", "liquid_temperature_phase"):
+    if key.startswith("temperature_pressure_runs/") or mode == "serial":
+        category = experiment if experiment in ("temperature_calibration", "temperature_pressure") else row.get("category")
+        return category if category in ("temperature_calibration", "temperature_pressure") else "temperature_pressure"
+    if experiment in ("liquid_temperature_sweep", "liquid_temperature_phase", "temperature_sweep"):
         return experiment
     if key.startswith("teacher_runs/") or mode == "teacher":
         return "teacher_sweep"
@@ -92,6 +112,47 @@ def _text(value):
     return value if isinstance(value, str) and value.strip() else None
 
 
+def _window_levels(value, *, maximum_seconds=1.0):
+    """保留完整、有序窗口策略；缺失或无效策略不得补成当前默认值。"""
+    if (not isinstance(value, (list, tuple)) or not value
+            or not all(finite(v) for v in value)
+            or value[0] < .020 or value[-1] > maximum_seconds
+            or any(a >= b for a, b in zip(value, value[1:]))):
+        return None
+    return [float(v) for v in value]
+
+
+
+def _target_quality_parameters(params, sweep, declared):
+    """v5 snapshots must agree; never repair missing policy from today's defaults."""
+    validators = {
+        "verify_min_seconds": lambda v: v >= .020,
+        "measure_min_seconds": lambda v: v >= .040,
+        "verify_consecutive_windows": lambda v: v >= 2 and v.is_integer(),
+        "min_tone_snr_db": lambda v: v >= 6,
+        "previous_tone_rejection_db": lambda v: v >= 6,
+        "previous_tone_presence_db": lambda v: v >= 6,
+        "adaptive_rejections_per_level": lambda v: v == 2,
+        "adaptive_carryover_hold_seconds": lambda v: 0 <= v <= .5,
+        "verify_tolerance_hz": lambda v: v > 0,
+        "nfft": lambda v: v >= 2 and v.is_integer(),
+    }
+    for key, valid in validators.items():
+        value = _number(sweep.get(key))
+        mirrored = _number(declared.get("nfft_min" if key == "nfft" else key))
+        params[key] = value if value is not None and valid(value) and mirrored == value else None
+    levels = _window_levels(sweep.get("adaptive_window_seconds"), maximum_seconds=2.0)
+    params["adaptive_window_seconds"] = levels if levels is not None and levels == _window_levels(
+        declared.get("adaptive_window_seconds"), maximum_seconds=2.0) else None
+    skip = sweep.get("skip_invalid_points")
+    params["skip_invalid_points"] = skip if isinstance(skip, bool) and declared.get("skip_invalid_points") is skip else None
+    for key, expected in TARGET_QUALITY_RULES.items():
+        params[key] = expected if declared.get(key) == expected else None
+    confirmation = _number(declared.get("target_confirmation_snr_db"))
+    params["target_confirmation_snr_db"] = confirmation if confirmation is not None and confirmation >= 6 and (
+        confirmation == params["min_tone_snr_db"]) else None
+
+
 def _parameters(record):
     m, context = record["_manifest"], record["_context"]
     actual, hardware = m.get("actual_sdr") or {}, m.get("actual_hardware") or {}
@@ -104,9 +165,25 @@ def _parameters(record):
               "tx_antenna": _text(hardware.get("tx_antenna")), "rx_antenna": _text(hardware.get("rx_antenna")),
               "master_clock_rate_hz": _number(hardware.get("master_clock_rate")),
               "sensor": _text(context.get("sensor"))}
-    if record["kind"] in ("material_sweep", "liquid_temperature_sweep"):
+    if record["kind"] in ("material_sweep", "liquid_temperature_sweep", "temperature_sweep"):
+        declared = m.get("sweep_algorithm")
+        # 旧记录未登记版本，仍按旧源码哈希互相比对；不能把缺失字段补成新版默认值。
+        version = LEGACY_SWEEP_VERSION if "sweep_algorithm" not in m else (
+            _text(declared.get("version")) if isinstance(declared, dict) else None)
+        if version not in (LEGACY_SWEEP_VERSION, SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+            version = None
+        params["sweep_algorithm_version"] = version
+        if version in (SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+            for key in SWEEP_QUALITY_FIELDS:
+                params[key] = _number(sweep.get(key))
+        if version in (ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+            for key in ADAPTIVE_QUALITY_FIELDS:
+                params[key] = _number(sweep.get(key))
+            params["adaptive_window_seconds"] = _window_levels(sweep.get("adaptive_window_seconds"))
         for key in ("nfft", "verify_cycles", "measure_cycles", "verify_tolerance_hz", "switch_settle_time"):
             params[key] = _number(sweep.get(key))
+        if version == TARGET_CONFIRMED_SWEEP_VERSION:
+            _target_quality_parameters(params, sweep, declared)
         names = {"logic.py", "sweep_logic.py", "do_sweep.py"}
         hashes = m.get("current_source_hashes") or m.get("source_hashes") or {}
     else:
@@ -133,11 +210,27 @@ def compare_parameters(records, reference_index, report):
               "tx_gain_dB": "实际 TX 增益 dB", "rx_gain_dB": "实际 RX 增益 dB", "tx_amplitude": "数字 TX 幅值",
               "channel": "通道", "tx_antenna": "实际 TX 天线选项", "rx_antenna": "实际 RX 天线选项",
               "master_clock_rate_hz": "主时钟 Hz", "sensor": "人工传感器说明",
-              "nfft": "FFT 点数", "verify_cycles": "验证单音周期数", "measure_cycles": "测量单音周期数",
+              "nfft": "FFT 配置点数（v2/v3/v5 为最低长度）", "verify_cycles": "验证单音周期数", "measure_cycles": "测量单音周期数",
               "verify_tolerance_hz": "峰频验证容差 Hz", "switch_settle_time": "切频等待 s",
-              "carrier_hz": "载波设定 Hz", "tone_hz": "基带单音 Hz"}
+              "carrier_hz": "载波设定 Hz", "tone_hz": "基带单音 Hz",
+              "sweep_algorithm_version": "扫频估计器版本（旧截窗 / 固定全窗 / 自适应相干门槛 / 目标确认）",
+              "verify_min_seconds": "验证最小窗口 s", "measure_min_seconds": "测量最小窗口 s",
+              "verify_consecutive_windows": "连续有效验证窗口数", "min_tone_snr_db": "目标单音最低局部突出度 dB",
+              "previous_tone_rejection_db": "前一单音最低抑制 dB",
+              "previous_tone_presence_db": "前一单音存在判据 dB",
+              "adaptive_window_seconds": "自适应窗口档位 s",
+              "adaptive_rejections_per_level": "每档升级所需拒绝次数",
+              "adaptive_carryover_hold_seconds": "已确认前音调残留的短窗保留时长 s",
+              "skip_invalid_points": "单点质量超时保留缺测后继续",
+              "target_candidate_search": "目标候选搜索规则",
+              "target_presence_method": "目标单音与背景峰占优时的独立半窗确认规则",
+              "amplitude_estimator": "幅值估计器",
+              "rejected_window_policy": "升级窗长时的失败窗口复用规则",
+              "previous_tone_detection": "前一单音的半窗支持或独立候选确认规则",
+              "target_numerical_floor": "目标确认的数值噪声底规则",
+              "target_confirmation_snr_db": "目标完整窗与半窗最低突出度 dB"}
     rows = []
-    for parameter in records[0]["parameters"]:
+    for parameter in dict.fromkeys(key for r in records for key in r["parameters"]):
         values = [r["parameters"].get(parameter) for r in records]
         status = "unknown" if any(v is None for v in values) else ("same" if all(v == values[0] for v in values) else "different")
         blocking = parameter != "sensor"
@@ -155,6 +248,15 @@ def compare_parameters(records, reference_index, report):
     blocking = [r for r in rows if r["blocking"] and r["status"] != "same"]
     if blocking:
         report["warnings"].append("测量参数不同或未知：" + "、".join(r["label"] for r in blocking) + "。仅叠加查看，禁止定量参考差值。")
+    versions = [r["parameters"].get("sweep_algorithm_version") for r in records]
+    if LEGACY_SWEEP_VERSION in versions and any(v not in (None, LEGACY_SWEEP_VERSION) for v in versions):
+        report["warnings"].append("新旧扫频估计器混合：旧记录截取固定 FFT 窗口，新记录使用完整测量窗口与质量门槛；仅叠加查看，不计算定量幅度差。")
+    elif SWEEP_QUALITY_VERSION in versions and ADAPTIVE_SWEEP_VERSION in versions:
+        report["warnings"].append("扫频质量策略版本混合：v2 使用固定完整窗口与前音调频带最大峰，v3 使用自适应窗口与相干存在判据；仅叠加查看，不计算定量幅度差。")
+    if TARGET_CONFIRMED_SWEEP_VERSION in versions and any(v != TARGET_CONFIRMED_SWEEP_VERSION for v in versions):
+        report["warnings"].append("扫频质量策略版本混合或未知：v5 使用目标范围内候选、精确单音及独立半窗确认与精确单音幅值；不能与旧版本计算定量幅度差。")
+    if ADAPTIVE_SWEEP_VERSION in versions or TARGET_CONFIRMED_SWEEP_VERSION in versions:
+        report["warnings"].append("自适应策略一致不代表逐点实采窗口时长一致；弱信号可能使用更长窗口，频率分辨率、噪声水平及通过门槛后的筛选效应可能不同。逐点表保留实采窗长与档位；幅度差仍是未校准的描述性比较。")
     if any(r["parameter"] == "sensor" and r["status"] != "same" for r in rows):
         report["warnings"].append("传感器/机械位置的一致性未得到完整记录；叠加及数字幅度差不能证明材料造成了变化。")
     return not blocking
@@ -169,47 +271,74 @@ def _started(value):
 
 
 def build_comparison(root, keys, reference_key=None):
-    """2–8 条同类型可信记录；返回可 JSON 序列化、DiagnosticPlot 可显示的模型。"""
+    """1–8 条同类型可信记录；单条只分析自身数据，不建立跨记录参考。"""
     root = Path(root).resolve()
-    if not isinstance(keys, (list, tuple)) or not 2 <= len(keys) <= 8 or any(not isinstance(k, str) for k in keys) or len(set(keys)) != len(keys):
-        raise ValueError("请选择 2–8 条不同实验记录")
+    if not isinstance(keys, (list, tuple)) or not 1 <= len(keys) <= 8 or any(not isinstance(k, str) for k in keys) or len(set(keys)) != len(keys):
+        raise ValueError("请选择 1–8 条不同实验记录")
     if reference_key is not None and reference_key not in keys:
         raise ValueError("参考记录必须属于本次选择")
     records = []
     for index, key in enumerate(keys):
         relative = Path(key)
-        if relative.is_absolute() or len(relative.parts) != 2 or relative.parts[0] not in ("runs", "phase_runs", "teacher_runs") or ".." in relative.parts:
+        if relative.is_absolute() or len(relative.parts) != 2 or relative.parts[0] not in ("runs", "phase_runs", "teacher_runs", "temperature_pressure_runs") or ".." in relative.parts:
             raise ValueError("实验记录路径无效")
         run = root / "Data" / relative
         if not run.is_dir() or run.is_symlink() or any(p.is_symlink() for p in run.parents if p.is_relative_to(root)):
             raise ValueError("实验记录不存在或包含符号链接")
-        record = {"key": key, "files": [], "_path": run, "_contents": {}, "color": COLORS[index]}
+        record = {"key": key, "files": [], "_path": run, "_data_root": root / "Data", "_contents": {}, "color": COLORS[index]}
         manifest = read_json_source(record, "feature_report.json" if key.startswith("teacher_runs/") else "manifest.json")
         context = read_json_source(record, "desktop_context.json", False) or read_json_source(record, "web_context.json", False)
         kind = history_category({"key": key}, context)
         record.update(_manifest=manifest, _context=context, kind=kind,
                       label=str(manifest.get("label") or manifest.get("initial_label") or manifest.get("material_input") or relative.name),
                       started_utc=str(manifest.get("started_utc", "")))
+        if kind == "temperature_sweep":
+            condition = context.get("parameters", {}).get("temperature_sweep", {}).get("condition_label")
+            if isinstance(condition, str) and condition.strip():
+                record["label"] += " · " + condition.strip()
         if kind == "teacher_sweep":
             raise ValueError("老师历史扫频缺少统一的 measurements.csv 对比契约；请逐条查看或导出，不能混入新扫频定量对比")
+        if key.startswith("temperature_pressure_runs/"):
+            from .temperature_pressure.comparison import prepare_serial_record
+            prepare_serial_record(record)
+            if context.get("desktop_status", context.get("web_status")) in ("failed", "stop_unconfirmed", "initialization_failed"):
+                raise ValueError(f"记录 {key} 的桌面状态未确认完成")
+            records.append(record)
+            continue
         telemetry = manifest.get("telemetry") or {}
         if (manifest.get("status") not in ("complete", "stopped") or manifest.get("errors") != [] or
                 telemetry.get("tx_end_of_burst_sent") is not True or telemetry.get("workers_stopped") is not True or
                 not (telemetry.get("rx_stop_sent") is True or telemetry.get("rx_stop_command_sent") is True) or
                 context.get("desktop_status", context.get("web_status")) in ("failed", "stop_unconfirmed", "initialization_failed")):
             raise ValueError(f"记录 {key} 未完成、存在错误或缺少完整收发停止证据，不能参与对比")
+        if kind == "temperature_sweep" and (context.get("parameters",{}).get("temperature_sweep") or {}).get("mode")!="manual":
+            thermal = manifest.get("temperature_sweep") or {}
+            if thermal.get("status") != "complete" or not all(thermal.get(name) is True for name in
+                    ("serial_workers_stopped", "serial_closed", "data_files_closed")):
+                raise ValueError(f"记录 {key} 缺少温度采集完整保存与关闭证据，不能参与联测对比")
         record["parameters"] = _parameters(record)
         records.append(record)
     if len({r["kind"] for r in records}) != 1:
         raise ValueError("请选择同一种实验类型；历史幅相与手指位移研究需分别对比")
+    if records[0]['kind']=='temperature_sweep':
+        modes={(r['_context'].get('parameters',{}).get('temperature_sweep') or {}).get('mode','platform') for r in records}
+        if 'continuous' in modes:
+            raise ValueError('连续变温请查看各轮电压／温度与频点敏感性报告；不将不同状态的轮次平均后跨记录相减')
+        if len(modes)>1:raise ValueError('手填平台与历史联测模式请分别对比')
     if reference_key is None:
         reference_key = min(records, key=lambda r: _started(r["started_utc"]))["key"]
     reference_index = list(keys).index(reference_key)
+    single = len(records) == 1
     report = {"schema_version": 1, "status": "ready", "kind": records[0]["kind"], "keys": list(keys),
-              "reference_key": reference_key, "sources": [], "compatibility": [], "warnings": [],
+              "analysis_mode": "single" if single else "combined",
+              "reference_key": None if single else reference_key, "sources": [], "compatibility": [], "warnings": [],
               "quantitative_difference_allowed": False, "charts": [], "metrics": [], "tables": {}}
-    compatible = compare_parameters(records, reference_index, report)
-    if records[0]["kind"] in ("material_sweep", "liquid_temperature_sweep"):
+    serial_kind = records[0]["kind"] in ("temperature_pressure", "temperature_calibration")
+    compatible = False if serial_kind or single else compare_parameters(records, reference_index, report)
+    if serial_kind:
+        from .temperature_pressure.comparison import compare_serial
+        compare_serial(records, report)
+    elif records[0]["kind"] in ("material_sweep", "liquid_temperature_sweep", "temperature_sweep"):
         from .material_sweep.comparison import compare_sweeps
         compare_sweeps(records, reference_index, report, compatible)
     elif records[0]["kind"] == "liquid_temperature_phase":
@@ -217,6 +346,23 @@ def build_comparison(root, keys, reference_key=None):
     else:
         from .finger_displacement.comparison import compare_phase
         compare_phase(records, reference_index, report)
-    report["sources"] = [{k: r[k] for k in ("key", "label", "started_utc", "parameters", "files")} for r in records]
+    if records[0]["kind"] == "temperature_sweep":
+        report["warnings"].append("温度联测按主机接收时间关联；未标定电压不能称为温度，数字幅度差不等于温度灵敏度或独立温度因果。")
+        conditions = []
+        for record in records:
+            metadata = record["_context"].get("parameters", {}).get("temperature_sweep", {})
+            conditions.append({"key": record["key"], "condition_label": metadata.get("condition_label"),
+                               "channel": metadata.get("channel"),
+                               "reference_temperature_c": metadata.get("reference_temperature_c"),
+                               "calibration": metadata.get("calibration")})
+            # 连同温度实收序列与逐点关联结果绑定来源，比较导出保留两路证据。
+            for name in (() if metadata.get("mode")=="manual" else ("temperature_measurements.csv", "temperature/samples.csv", "temperature/manifest.json")):
+                read_source(record, name, required=True)
+        report["tables"]["temperature_conditions"] = conditions
+    if single:
+        report["compatibility"] = []
+        report["quantitative_difference_allowed"] = False
+        report["warnings"].append("单记录分析展示本次保存曲线与统计；不设置跨记录参考，不计算自身差值。")
+    report["sources"] = [{k: r[k] for k in ("key", "label", "started_utc", "parameters", "files", "correction") if k in r} for r in records]
     json.dumps(report, allow_nan=False)
     return report

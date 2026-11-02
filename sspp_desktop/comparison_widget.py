@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from html import escape
 from PySide6 import QtCore, QtWidgets
 
@@ -37,10 +38,23 @@ HEADERS = {
     "amplitude_peak_to_peak_dB": "全程幅度峰峰值 (dB)", "phase_peak_to_peak_deg": "全程相位峰峰值 (°)",
     "time_after_baseline_s": "参考结束后时间 (s)", "stage_label": "实验阶段", "start_sample": "起始样本序号",
     "gap_before": "此前存在缺口",
+    "run_index": "来源编号", "channel": "通道", "point_id": "区间编号",
+    "reference_temperature_c": "人工参考温度 (°C)", "reference_mean_c": "人工参考温度 (°C)",
+    "temperature_min_c": "最低参考温度 (°C)", "temperature_max_c": "最高参考温度 (°C)",
+    "mean_v": "区间平均电压 (V)", "sample_sd_v": "区间样本 SD (V)",
+    "saved_point_count": "已保存区间数", "plotted_point_count": "响应图区间数",
+    "reference_stability": "参考读数状态", "reference_status": "参考读数状态",
+    "reference_stability_status": "参考读数状态",
+    "requires_manual_review": "需人工复核", "quality_flags": "质量标记",
+    "automatic_calibration_activated": "已自动启用标定", "source_key": "来源 key",
+    "run_key": "来源 key", "channels": "通道", "reason": "删除原因", "deleted_utc": "更正时间 (UTC)",
+    "correction_sha256": "更正账本 SHA-256", "excluded_calibration_points": "已删除错误区间数",
 }
 TABLE_NAMES = {"sweep_summary": "扫频均值与波动", "sweep_measurements": "逐点测量", "sweep_difference": "相对参考差值",
                "phase_samples": "幅相样点", "phase_summary": "幅相摘要", "phase_stages": "阶段摘要",
-               "phase_aligned": "对齐幅相样点", "phase_curves": "参考后幅相窗口", "finger_validation": "手指验证摘要"}
+               "phase_aligned": "对齐幅相样点", "phase_curves": "参考后幅相窗口", "finger_validation": "手指验证摘要",
+               "calibration_points": "温标区间与来源", "serial_samples": "原始串口样本",
+               "serial_summary": "串口记录摘要", "excluded_calibration_points": "错误区间删除记录"}
 
 def _text(value):
     if value is None:
@@ -57,6 +71,9 @@ def _text(value):
 class ComparisonDialog(QtWidgets.QDialog):
     reference_requested = QtCore.Signal(str)
     export_requested = QtCore.Signal()
+    figure_export_requested = QtCore.Signal(str)
+    figure_save_as_requested = QtCore.Signal(str)
+    open_figure_directory_requested = QtCore.Signal()
     closed = QtCore.Signal()
 
     def __init__(self, parent=None):
@@ -68,6 +85,9 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.setMinimumSize(850, 650)
         self.report = None
         self.is_closed = False
+        self._busy = True
+        self._blocked = False
+        self.publication_directory = None
         layout = QtWidgets.QVBoxLayout(self)
         top = QtWidgets.QHBoxLayout()
         self.reference_label = QtWidgets.QLabel("参考实验")
@@ -79,7 +99,7 @@ class ComparisonDialog(QtWidgets.QDialog):
         top.addWidget(self.reference, 1)
         self.export_button = QtWidgets.QPushButton("打包导出比较…")
         self.export_button.clicked.connect(self.export_requested)
-        top.addWidget(self.export_button)
+        top.addWidget(self.export_button, 0, QtCore.Qt.AlignmentFlag.AlignRight)
         layout.addLayout(top)
         self.summary = QtWidgets.QLabel("正在比较所选实验…")
         self.summary.setWordWrap(True)
@@ -91,13 +111,29 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.warning.setReadOnly(True)
         self.warning.setMaximumHeight(110)
         self.warning.hide()
+        self.warning_toggle = QtWidgets.QPushButton("查看来源与质量说明")
+        self.warning_toggle.setCheckable(True)
+        self.warning_toggle.toggled.connect(self.warning.setVisible)
+        self.warning_toggle.hide()
+        layout.addWidget(self.warning_toggle, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
         layout.addWidget(self.warning)
         self.tabs = QtWidgets.QTabWidget()
         plots = QtWidgets.QWidget()
         pl = QtWidgets.QVBoxLayout(plots)
         self.chart_choice = QtWidgets.QComboBox()
         self.chart_choice.currentIndexChanged.connect(self._chart_changed)
-        pl.addWidget(self.chart_choice)
+        chart_bar = QtWidgets.QHBoxLayout()
+        chart_bar.addWidget(self.chart_choice, 1)
+        self.figure_export_button = QtWidgets.QPushButton("导出分析图")
+        self.figure_export_button.clicked.connect(self._export_figure)
+        chart_bar.addWidget(self.figure_export_button)
+        self.figure_save_as_button = QtWidgets.QPushButton("另存为…")
+        self.figure_save_as_button.clicked.connect(self._save_figure_as)
+        chart_bar.addWidget(self.figure_save_as_button)
+        self.open_figure_directory_button = QtWidgets.QPushButton("打开图片文件夹")
+        self.open_figure_directory_button.clicked.connect(self.open_figure_directory_requested)
+        chart_bar.addWidget(self.open_figure_directory_button)
+        pl.addLayout(chart_bar)
         self.legend = QtWidgets.QLabel()
         self.legend.setWordWrap(True)
         self.legend.setTextFormat(QtCore.Qt.TextFormat.RichText)
@@ -144,8 +180,11 @@ class ComparisonDialog(QtWidgets.QDialog):
                 table.setItem(r, c, item)
 
     def apply_report(self, report):
+        from .publication import single_record_report
         self.report = report
+        self.publication_directory = None
         sources = report.get("sources", [])
+        single = single_record_report(report)
         self.reference.blockSignals(True)
         self.reference.clear()
         for source in sources:
@@ -154,6 +193,15 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.reference.blockSignals(False)
         allowed = report.get("quantitative_difference_allowed", False)
         kind = report.get("kind")
+        serial = kind in ("temperature_calibration", "temperature_pressure")
+        calibration = kind == "temperature_calibration"
+        self.setWindowTitle(("温标记录分析 · 只读" if calibration else "实验记录分析 · 只读") if single else
+                            ("实验档案组合分析 · 只读" if serial else "实验结果比较 · 只读分析"))
+        self.reference_label.setVisible(not serial and not single)
+        self.reference.setVisible(not serial and not single)
+        self.export_button.setText("导出论文图与数据…" if calibration else
+                                   ("导出分析图与数据…" if single else "打包导出比较…"))
+        self.tabs.setTabText(0, "分析图" if single else ("组合图" if serial else "比较图"))
         note = ("参数与频点条件允许时显示相对参考的幅度差。" if allowed else "此组合仅显示各实验曲线与指标；不生成跨实验定量差值。")
         if kind in ("phase_history", "finger_displacement"):
             note = "时间以各实验静止参考结束为零点；各自相位参考独立，不进行跨实验相位相减或距离模型迁移。"
@@ -161,10 +209,27 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.reference_label.setText("报告排序参考" if phase else "差值参考实验")
         self.reference.setToolTip("各自静止参考；无跨实验相减" if phase else "默认最早实验；扫频幅度差 = 目标 − 参考")
         prefix = "各自静止参考；无跨实验相减。" if phase else "默认参考为最早实验，差值方向为目标 − 参考。"
-        self.summary.setText(f"共 {len(sources)} 条已保存实验 · {prefix}\n{note}")
+        if calibration:
+            excluded = len(report.get("excluded_calibration_points", []))
+            correction = f" · 已排除 {excluded} 个误标区间（原始数据保留）" if excluded else ""
+            self.summary.setText((f"1 条已保存温标记录 · 温标记录分析{correction}\n"
+                                  "按本记录的人工参考温度绘制曲线，保留全部区间均值与样本 SD；未自动启用标定。") if single else
+                                 (f"共 {len(sources)} 条温标记录 · 组合分析{correction}\n"
+                                  "按参考温度汇总为统一曲线，保留全部测量点与样本 SD；来源映射见数据表，多记录汇总不代表单次采集。"))
+        elif serial:
+            self.summary.setText("1 条已保存串口记录 · 实验记录分析\n展示本记录各通道的实收电压与时间。" if single else
+                                 (f"共 {len(sources)} 条串口记录 · 组合分析\n"
+                                  "各记录以自身开始时间叠加，保留通道与来源；不代表同步测量。"))
+        elif single:
+            self.summary.setText("1 条已保存实验 · 实验记录分析\n展示本记录的曲线、测量结果与参数。")
+        else:
+            self.summary.setText(f"共 {len(sources)} 条已保存实验 · {prefix}\n{note}")
         warnings = report.get("warnings", [])
         self.warning.setPlainText("\n".join(str(value) for value in warnings))
-        self.warning.setVisible(bool(warnings))
+        self.warning_toggle.setChecked(False)
+        self.warning_toggle.setVisible(serial and bool(warnings))
+        self.warning_toggle.setText(f"查看来源与质量说明（{len(warnings)} 条）")
+        self.warning.setVisible(bool(warnings) and not serial)
         self.chart_choice.blockSignals(True)
         self.chart_choice.clear()
         for chart in report.get("charts", []):
@@ -199,13 +264,38 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.status.setText("")
 
     def set_busy(self, busy, message="", blocked=False):
-        self.reference.setEnabled(not busy and not blocked and self.report is not None and self.report.get("kind") == "material_sweep")
+        from .publication import single_record_report
+        self._busy, self._blocked = bool(busy), bool(blocked)
+        self.reference.setEnabled(not busy and not blocked and self.report is not None
+                                  and self.report.get("kind") == "material_sweep" and not single_record_report(self.report))
         self.export_button.setEnabled(not busy and not blocked and self.report is not None)
+        self._update_figure_export_enabled()
         if message:
             self.status.setText(message)
 
     def show_error(self, error):
         self.status.setText(str(error))
+
+    def _update_figure_export_enabled(self):
+        chart = self.chart_choice.currentData() or {}
+        enabled = not self._busy and not self._blocked and self.report is not None
+        self.figure_export_button.setEnabled(enabled and bool(chart.get("id")))
+        self.figure_save_as_button.setEnabled(enabled and bool(chart.get("id")))
+        self.open_figure_directory_button.setEnabled(enabled and bool(self.publication_directory))
+
+    def set_publication_directory(self, path):
+        self.publication_directory = str(path) if path else None
+        self._update_figure_export_enabled()
+
+    def _export_figure(self):
+        chart = self.chart_choice.currentData() or {}
+        if self.figure_export_button.isEnabled() and isinstance(chart.get("id"), str):
+            self.figure_export_requested.emit(chart["id"])
+
+    def _save_figure_as(self):
+        chart = self.chart_choice.currentData() or {}
+        if self.figure_save_as_button.isEnabled() and isinstance(chart.get("id"), str):
+            self.figure_save_as_requested.emit(chart["id"])
 
     def _reference_changed(self):
         key = self.reference.currentData()
@@ -214,6 +304,17 @@ class ComparisonDialog(QtWidgets.QDialog):
 
     def _chart_changed(self):
         model = self.chart_choice.currentData() or {}
+        unified_response = False
+        if self.report and self.report.get("kind") == "temperature_calibration":
+            from .publication import CALIBRATION_COLOR, CALIBRATION_MARKER, series_style
+            model = deepcopy(model)
+            unified_response = bool(model.get("publication"))
+            for index, series in enumerate(model.get("series", [])):
+                color, symbol = ((CALIBRATION_COLOR, CALIBRATION_MARKER) if unified_response else series_style(series, index))
+                series["color"] = color
+                series["label"] = "" if unified_response else series.get("publication_label", series.get("label", ""))
+                if unified_response:
+                    series["symbol"] = {"^": "t1", "D": "d", "v": "t", "P": "+", "X": "x", "h": "p"}.get(symbol, symbol)
         self.plot.display(model)
         # Keep provenance labels outside the data region; a short experiment
         # must not disappear beneath a legend over its entire visible trace.
@@ -222,6 +323,8 @@ class ComparisonDialog(QtWidgets.QDialog):
             color = escape(str(series.get("color", "#087f85")), quote=True)
             entries.append(f'<span style="color:{color}">━</span> {escape(str(series.get("label", "")))}')
         self.legend.setText(" &nbsp;&nbsp; ".join(entries))
+        self.legend.setVisible(not unified_response)
+        self._update_figure_export_enabled()
 
     def closeEvent(self, event):
         self.is_closed = True

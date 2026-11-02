@@ -343,6 +343,55 @@ class TemperatureUiTests(unittest.TestCase):
         self.prepare(widget)
         self.assertTrue(widget.start_button.isEnabled())
 
+    def test_valid_voltage_is_visible_after_previous_offscreen_range(self):
+        from sspp_experiments.temperature_pressure.protocol import LineParser
+        parser = LineParser("temperature_v1")
+        points = []
+        # Same shape as the actual 2026-10-31 file: two valid voltages around 4.15/2.72 V.
+        for index in range(12):
+            values, _ = parser.feed(f"{177 + index * 180},849.5,4.152,{216 + index * 180},556.06,2.718\n".encode(),
+                                    host_time_utc="2026-10-31T08:25:10Z", host_elapsed_s=1.7 + index * .18)
+            points.extend(values)
+        widget = self.widget()
+        widget.timer.stop()
+        widget.protocol.setCurrentIndex(1)
+        widget.voltage_plot.setXRange(-1000, -900, padding=0)
+        widget.voltage_plot.setYRange(10, 20, padding=0)
+        widget.adc_plot.setYRange(-10, -5, padding=0)
+        widget._plot_points(points)
+        self.app.processEvents()
+        vx, vy = widget.voltage_plot.viewRange()
+        ax, ay = widget.adc_plot.viewRange()
+        self.assertLessEqual(vx[0], 1.7)
+        self.assertGreaterEqual(vx[1], 3.68)
+        self.assertLess(vy[0], 2.718)
+        self.assertGreater(vy[1], 4.152)
+        self.assertLess(ay[0], 556.06)
+        self.assertGreater(ay[1], 849.5)
+        self.assertIn("CH1 / S6：4.1520 V", widget.voltage_readout.text())
+        self.assertIn("CH2 / S7：2.7180 V", widget.voltage_readout.text())
+        self.assertTrue(widget.lines["S6"][0].isVisible())
+        widget.display_channel.setCurrentIndex(1)
+        self.assertTrue(widget.lines["S6"][0].isVisible())
+        self.assertFalse(widget.lines["S7"][0].isVisible())
+        widget.session.transport_factory.assert_not_called()
+
+    def test_manual_plot_zoom_pauses_follow_and_full_range_recovers(self):
+        widget = self.widget()
+        widget.timer.stop()
+        points = [dict(channel="A2", host_elapsed_s=t, voltage_v=2.5 + .01*t,
+                       adc="", time_segment=0, line_number=i) for i, t in enumerate((1, 2, 3))]
+        widget._plot_points(points)
+        widget.voltage_plot.plotItem.vb.sigRangeChangedManually.emit([True, True])
+        self.assertFalse(widget.auto_follow.isChecked())
+        widget.voltage_plot.setXRange(100, 110, padding=0)
+        widget._plot_points(points)
+        self.assertEqual(widget.voltage_plot.viewRange()[0], [100, 110])
+        widget.full_range_button.click()
+        self.assertTrue(widget.auto_follow.isChecked())
+        self.assertLess(widget.voltage_plot.viewRange()[0][0], 1)
+        self.assertGreater(widget.voltage_plot.viewRange()[0][1], 3)
+
     def test_qt_process_exits_cleanly_without_opening_devices(self):
         program = textwrap.dedent("""
             import tempfile
@@ -367,6 +416,72 @@ class TemperatureUiTests(unittest.TestCase):
         self.assertIn("temperature Qt cleanup passed", result.stdout)
         self.assertNotIn("shared QObject was deleted", result.stderr)
         self.assertNotIn("AttributeError", result.stderr)
+
+    def test_platform_capture_needs_no_room_temperature_or_90c_endpoint(self):
+        widget = self.widget(FakeReader([b"100,600,2.933,140,650,3.177\n"]))
+        widget.set_calibration_mode(True)
+        widget.sample_name.setText("platforms")
+        self.assertFalse(hasattr(widget, "room_temperature"))
+        self.assertFalse(hasattr(widget, "endpoint_button"))
+        self.prepare(widget)
+        widget.start_capture()
+        self.pump(lambda: widget.session.snapshot()["rows"] == 2)
+        widget._poll()
+        self.assertTrue(widget.plateau_controls.begin_button.isEnabled())
+        self.assertIn("ΔV", widget.voltage_readout.text())
+        widget.stop_capture()
+        self.pump(lambda: not widget.session.is_running)
+        widget._poll()
+        manifest=json.loads((widget.session.run_path / "manifest.json").read_text())
+        self.assertEqual(manifest["status"], "complete")
+        self.assertNotIn("temperature_ramp", manifest)
+        self.assertEqual(manifest["temperature_calibration"]["mode"], "platform_intervals")
+        self.assertEqual(manifest["stop_reason"], "operator_stop")
+
+    def test_plateau_controls_remain_enabled_during_capture_and_save_statistics(self):
+        reader=FakeReader([b"100,600,2.900,140,650,3.100\n"])
+        widget=self.widget(reader)
+        widget.set_calibration_mode(True)
+        widget.sample_name.setText("platform_test")
+        self.prepare(widget)
+        widget.start_capture()
+        self.pump(lambda:widget.session.snapshot()["rows"]==2)
+        widget._poll()
+        controls=widget.plateau_controls
+        self.assertFalse(widget.config_group.isEnabled())
+        self.assertTrue(controls.begin_button.isEnabled())
+        controls.source.setText("reference-thermometer-1")
+        controls.voltage_limit.setText("25")
+        controls.begin_button.click()
+        widget._poll()
+        self.assertIsNone(widget.session.snapshot()['plateau'].get('active'))
+        self.assertFalse(controls.feedback.isHidden())
+        self.assertIn('10',controls.feedback.text())
+        controls.voltage_unit.setCurrentIndex(controls.voltage_unit.findData(.001))
+        controls.begin_button.click()
+        self.pump(lambda:widget.session.snapshot()["plateau"].get("active") is not None)
+        widget._poll()
+        self.assertFalse(controls.begin_button.isEnabled())
+        self.assertTrue(controls.reference_button.isEnabled())
+        controls.reference.setText("49.7")
+        controls.reference_button.click()
+        reader.chunks.append(b"200,600,2.920,240,650,3.120\n")
+        self.pump(lambda:widget.session.snapshot()["rows"]==4 and not widget.session.snapshot()["plateau_pending"])
+        widget._poll()
+        controls.end_button.click()
+        self.pump(lambda:len(widget.session.snapshot()["plateau"].get("points",[]))==1)
+        widget._poll()
+        self.assertTrue(widget.session.is_running)
+        self.assertEqual(controls.table.rowCount(),1)
+        self.assertEqual(controls.table.item(0,1).text(),"49.700")
+        saved=json.loads((widget.session.run_path/'calibration_points.json').read_text())
+        self.assertEqual(saved['points'][0]['settings']['voltage_rate_limit_v_per_min'],.025)
+        self.assertIn("参考记录不足",controls.table.item(0,4).text())
+        self.assertTrue(controls.begin_button.isEnabled())
+        widget.stop_capture()
+        self.pump(lambda:not widget.session.is_running)
+        widget._poll()
+        self.assertFalse(controls.begin_button.isEnabled())
 
 
 if __name__ == "__main__":

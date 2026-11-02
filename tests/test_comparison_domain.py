@@ -72,6 +72,175 @@ class ComparisonTests(unittest.TestCase):
         self.sweep("runs/b", ((-37., -25.), (-39., -27.)), started="2026-10-10T02:00:00Z")
         return ["runs/a", "runs/b"]
 
+    def test_temperature_sweeps_keep_category_conditions_and_serial_evidence(self):
+        keys = self.pair()
+        for index, key in enumerate(keys):
+            self.save(key, "desktop_context.json", {"experiment": "temperature_sweep", "parameters": {
+                "temperature_sweep": {"condition_label": f"平台 {index}", "channel": "S6", "calibration": None,
+                                      "reference_temperature_c": None}}})
+            thermal = {"status": "complete", "serial_workers_stopped": True, "serial_closed": True, "data_files_closed": True}
+            manifest = json.loads((self.root / "Data" / key / "manifest.json").read_text())
+            manifest["temperature_sweep"] = thermal
+            self.save(key, "manifest.json", manifest)
+            self.save(key, "temperature/manifest.json", thermal)
+            root = self.root / "Data" / key
+            (root / "temperature/samples.csv").write_text("host_elapsed_s,voltage_v\n0,0.5\n")
+            (root / "temperature_measurements.csv").write_text("repeat,point,voltage_v\n1,1,0.5\n")
+        report = build_comparison(self.root, keys)
+        self.assertEqual(report["kind"], "temperature_sweep")
+        self.assertEqual(report["tables"]["temperature_conditions"][0]["condition_label"], "平台 0")
+        self.assertTrue(any("平台 0" in curve["label"] for chart in report["charts"] for curve in chart["series"]))
+        self.assertTrue(any("未标定电压" in warning for warning in report["warnings"]))
+        self.assertIn("temperature/samples.csv", [entry["relative_path"] for entry in report["sources"][0]["files"]])
+        self.save(keys[1], "desktop_context.json", {"experiment": "material_sweep"})
+        with self.assertRaisesRegex(ValueError, "同一种"):
+            build_comparison(self.root, keys)
+
+    def quality_sweep(self, key, **policy_changes):
+        manifest = self.sweep(key)
+        policy = {"verify_min_seconds": .02, "measure_min_seconds": .04,
+                  "verify_consecutive_windows": 2, "min_tone_snr_db": 6.,
+                  "previous_tone_rejection_db": 6., **policy_changes}
+        manifest["sweep_algorithm"] = {"version": "sspp.sweep.full_window_quality.v2", **policy}
+        manifest["sweep"].update(policy)
+        self.save(key, "manifest.json", manifest)
+        return manifest
+
+    def adaptive_sweep(self, key, **policy_changes):
+        manifest = self.quality_sweep(key)
+        policy = {"previous_tone_presence_db": 6., "adaptive_rejections_per_level": 2,
+                  "adaptive_carryover_hold_seconds": .250,
+                  "adaptive_window_seconds": [.02, .1, .25, .5, 1.], **policy_changes}
+        manifest["sweep"].update(policy)
+        manifest["sweep_algorithm"].update(version="sspp.sweep.adaptive_coherent_quality.v3", **policy)
+        self.save(key, "manifest.json", manifest)
+        return manifest
+
+    def test_new_and_legacy_estimators_only_overlay_in_both_orders(self):
+        self.sweep("runs/old")
+        self.quality_sweep("runs/new")
+        # 故意保留相同源码哈希夹具，确保版本本身能阻止混合定量差值。
+        for keys in (["runs/old", "runs/new"], ["runs/new", "runs/old"]):
+            with self.subTest(keys=keys):
+                report = build_comparison(self.root, keys)
+                self.assertFalse(report["quantitative_difference_allowed"])
+                self.assertEqual(report["tables"]["sweep_difference"]["rows"], [])
+                self.assertTrue(any("新旧扫频估计器混合" in w for w in report["warnings"]))
+                row = next(r for r in report["compatibility"] if r["parameter"] == "sweep_algorithm_version")
+                self.assertEqual(row["status"], "different")
+
+    def test_new_estimator_same_policy_allows_difference(self):
+        self.quality_sweep("runs/new1")
+        self.quality_sweep("runs/new2")
+        report = build_comparison(self.root, ["runs/new1", "runs/new2"])
+        self.assertTrue(report["quantitative_difference_allowed"])
+        self.assertEqual(len(report["tables"]["sweep_difference"]["rows"]), 2)
+
+    def test_new_estimator_different_or_missing_quality_policy_only_overlay(self):
+        self.quality_sweep("runs/new1")
+        baseline = self.quality_sweep("runs/new2")
+        for parameter in ("verify_min_seconds", "measure_min_seconds", "verify_consecutive_windows",
+                          "min_tone_snr_db", "previous_tone_rejection_db"):
+            for missing in (False, True):
+                with self.subTest(parameter=parameter, missing=missing):
+                    manifest = json.loads(json.dumps(baseline))
+                    if missing:
+                        manifest["sweep"].pop(parameter)
+                    else:
+                        manifest["sweep"][parameter] *= 2
+                    self.save("runs/new2", "manifest.json", manifest)
+                    report = build_comparison(self.root, ["runs/new1", "runs/new2"])
+                    self.assertFalse(report["quantitative_difference_allowed"])
+                    self.assertEqual(report["tables"]["sweep_difference"]["rows"], [])
+        baseline["sweep_algorithm"] = None
+        self.save("runs/new2", "manifest.json", baseline)
+        self.assertFalse(build_comparison(self.root, ["runs/new1", "runs/new2"])["quantitative_difference_allowed"])
+
+    def test_adaptive_estimator_same_complete_policy_allows_difference(self):
+        self.adaptive_sweep("runs/a")
+        self.adaptive_sweep("runs/b")
+        report = build_comparison(self.root, ["runs/a", "runs/b"])
+        self.assertTrue(report["quantitative_difference_allowed"])
+        row = next(r for r in report["compatibility"] if r["parameter"] == "adaptive_window_seconds")
+        self.assertEqual(row["values"], [[.02, .1, .25, .5, 1.]] * 2)
+        self.assertEqual(row["status"], "same")
+
+    def test_same_adaptive_policy_retains_different_actual_windows(self):
+        for key, count, duration, level in (("runs/a", 10000, .04, 0), ("runs/b", 250000, 1., 4)):
+            self.adaptive_sweep(key)
+            path = self.root / "Data" / key / "measurements.csv"
+            rows = list(csv.DictReader(io.StringIO(path.read_text())))
+            for row in rows:
+                row.update(accepted_window_count=count, accepted_window_duration_s=duration, adaptive_level_index=level)
+            stream = io.StringIO()
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer.writeheader()
+            writer.writerows(rows)
+            path.write_text(stream.getvalue())
+        report = build_comparison(self.root, ["runs/a", "runs/b"])
+        self.assertTrue(report["quantitative_difference_allowed"])
+        rows = report["tables"]["sweep_measurements"]["rows"]
+        self.assertEqual({(r["key"], r["accepted_window_count"], r["accepted_window_duration_s"], r["adaptive_level_index"]) for r in rows},
+                         {("runs/a", 10000, .04, 0), ("runs/b", 250000, 1., 4)})
+        self.assertTrue(any("实采窗口时长一致" in warning for warning in report["warnings"]))
+
+    def test_adaptive_mixed_versions_only_overlay_in_both_orders(self):
+        self.adaptive_sweep("runs/adaptive")
+        self.quality_sweep("runs/fixed")
+        self.sweep("runs/legacy")
+        for other, warning in (("fixed", "扫频质量策略版本混合"), ("legacy", "新旧扫频估计器混合")):
+            for keys in (["runs/adaptive", f"runs/{other}"], [f"runs/{other}", "runs/adaptive"]):
+                with self.subTest(keys=keys):
+                    report = build_comparison(self.root, keys)
+                    self.assertFalse(report["quantitative_difference_allowed"])
+                    self.assertEqual(report["tables"]["sweep_difference"]["rows"], [])
+                    self.assertTrue(any(warning in text for text in report["warnings"]))
+                    row = next(r for r in report["compatibility"] if r["parameter"] == "adaptive_window_seconds")
+                    self.assertEqual(row["status"], "unknown")
+
+    def test_adaptive_policy_differences_and_missing_values_only_overlay(self):
+        self.adaptive_sweep("runs/a")
+        baseline = self.adaptive_sweep("runs/b")
+        changes = {"previous_tone_presence_db": 9., "adaptive_rejections_per_level": 3,
+                   "adaptive_carryover_hold_seconds": .500,
+                   "adaptive_window_seconds": [.02, .2, .5, 1.]}
+        for parameter, changed in changes.items():
+            for missing in (False, True):
+                with self.subTest(parameter=parameter, missing=missing):
+                    manifest = json.loads(json.dumps(baseline))
+                    if missing:
+                        manifest["sweep"].pop(parameter)
+                    else:
+                        manifest["sweep"][parameter] = changed
+                    self.save("runs/b", "manifest.json", manifest)
+                    for keys in (["runs/a", "runs/b"], ["runs/b", "runs/a"]):
+                        report = build_comparison(self.root, keys)
+                        self.assertFalse(report["quantitative_difference_allowed"])
+                        self.assertEqual(report["tables"]["sweep_difference"]["rows"], [])
+
+    def test_invalid_adaptive_windows_and_unknown_versions_are_not_comparable(self):
+        for levels in (None, [], ".02,.1,.25,.5,1", [.02, .1, .1], [.02, .1, False],
+                       [.02, .1, float("nan")], [.001, .1], [.02, 2.]):
+            with self.subTest(levels=levels):
+                self.adaptive_sweep("runs/a", adaptive_window_seconds=levels)
+                self.adaptive_sweep("runs/b", adaptive_window_seconds=levels)
+                report = build_comparison(self.root, ["runs/a", "runs/b"])
+                self.assertFalse(report["quantitative_difference_allowed"])
+                row = next(r for r in report["compatibility"] if r["parameter"] == "adaptive_window_seconds")
+                self.assertEqual(row["status"], "unknown")
+        for key in ("runs/a", "runs/b"):
+            manifest = self.quality_sweep(key)
+            manifest["sweep_algorithm"]["version"] = "sspp.sweep.unknown.future"
+            self.save(key, "manifest.json", manifest)
+        self.assertFalse(build_comparison(self.root, ["runs/a", "runs/b"])["quantitative_difference_allowed"])
+
+    def test_explicit_legacy_version_does_not_require_new_policy(self):
+        self.sweep("runs/a")
+        manifest = self.sweep("runs/b")
+        manifest["sweep_algorithm"] = {"version": "legacy.truncated_window_fft.v1"}
+        self.save("runs/b", "manifest.json", manifest)
+        self.assertTrue(build_comparison(self.root, ["runs/a", "runs/b"])["quantitative_difference_allowed"])
+
     def test_means_sample_sd_reference_sign_and_privacy(self):
         keys = self.pair()
         report = build_comparison(self.root, keys[::-1])
@@ -136,7 +305,7 @@ class ComparisonTests(unittest.TestCase):
                 self.assertEqual(entry["sha256"], hashlib.sha256(content).hexdigest())
 
     def test_selection_limits_duplicates_and_invalid_reference(self):
-        for keys, reference in (([], None), (["runs/a"], None), (["runs/a"]*2, None),
+        for keys, reference in (([], None), (["runs/a"]*2, None),
                                 ([f"runs/{i}" for i in range(9)], None), (["runs/a", "runs/b"], "runs/c"),
                                 (["runs/a", "../b"], None)):
             with self.subTest(keys=keys, reference=reference), self.assertRaises(ValueError):

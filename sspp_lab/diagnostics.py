@@ -38,8 +38,19 @@ def sampled(x,y,limit=1800):
     indices=sorted(chosen);return np.column_stack((x[indices],y[indices])).tolist()
 
 def series(label,x,y,color=None,errors=None):
-    item={'label':label,'color':color or COLORS[0],'data':sampled(x,y)}
-    if errors is not None:item['errors']=[float(v) if np.isfinite(v) else None for v in errors]
+    item={'label':label,'color':color or COLORS[0]}
+    if errors is None:
+        item['data']=sampled(x,y)
+    else:
+        # Summary points and their SDs are one observation each. Keep every
+        # finite x with its matching error, including missing means as gaps;
+        # independently decimating the means would misassign uncertainties.
+        x=np.asarray(x,dtype=float);y=np.asarray(y,dtype=float);errors=np.asarray(errors,dtype=float)
+        if x.ndim!=1 or y.shape!=x.shape or errors.shape!=x.shape:
+            raise ValueError('均值与误差棒必须逐点对应')
+        finite_x=np.isfinite(x)
+        item['data']=[[float(a),float(b) if np.isfinite(b) else None] for a,b in zip(x[finite_x],y[finite_x])]
+        item['errors']=[float(v) if np.isfinite(v) else None for v in errors[finite_x]]
     return item
 
 def chart(ident,title,xlabel,ylabel,items=None,kind='line',note='',**extra):
@@ -120,20 +131,22 @@ def sweep_charts(run):
     path=run/'measurements.csv'
     if not path.exists() or path.is_symlink():return [],[]
     with path.open() as stream:rows=list(csv.DictReader(stream))
-    required=['repeat','point','requested_carrier_GHz','peak_amplitude_dBFS_est']
+    required=['repeat','point','requested_carrier_GHz']
     clean=[]
     for row in rows:
         try:
             if not all(k in row and math.isfinite(float(row[k])) for k in required):continue
             int(row['repeat']);int(row['point'])
+            if row.get('measurement_status')!='invalid' and not math.isfinite(float(row['peak_amplitude_dBFS_est'])):continue
         except (ValueError,TypeError):continue  # 活跃CSV可能只写完一部分。
         clean.append(row)
     rows=clean
     if not rows:return [],[]
     freqs=sorted({float(r['requested_carrier_GHz']) for r in rows});repeats=sorted({int(r['repeat']) for r in rows})
     matrix=np.full((len(repeats),len(freqs)),np.nan)
-    for row in rows:matrix[repeats.index(int(row['repeat'])),freqs.index(float(row['requested_carrier_GHz']))]=float(row['peak_amplitude_dBFS_est'])
-    counts=np.isfinite(matrix).sum(axis=0);mean=np.nanmean(matrix,axis=0)
+    for row in rows:
+        if row.get('measurement_status')!='invalid':matrix[repeats.index(int(row['repeat'])),freqs.index(float(row['requested_carrier_GHz']))]=float(row['peak_amplitude_dBFS_est'])
+    counts=np.isfinite(matrix).sum(axis=0);mean=np.array([np.mean(matrix[:,i][np.isfinite(matrix[:,i])]) if counts[i] else np.nan for i in range(len(freqs))])
     sd=np.array([np.std(matrix[:,i][np.isfinite(matrix[:,i])],ddof=1) if counts[i]>1 else np.nan for i in range(len(freqs))])
     note='同次扫频的技术重复；均值/样本SD在dB域计算，不能当作独立取放重复或标定S21。'
     plots=[chart('sweep_mean','扫频均值与±1样本SD','载频（GHz）','幅度（dBFS估计）',[

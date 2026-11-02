@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-31",
+  "algorithm": "sspp.sweep.adaptive_coherent_quality.v3",
+  "logic_sha256": "663e0a58d3fb147d63f4388196fa855024531c98f71645e42da9f08f2af2ed21",
+  "tests": {
+    "environment": "rf-gnuradio",
+    "passed": 443,
+    "failed": 0,
+    "final_exit_code": 0,
+    "seconds": 30.451,
+    "initial_run": {
+      "assertions": "443 passed",
+      "exit_code": 139,
+      "failure_phase": "Python finalization / PySide::destroyQCoreApplication",
+      "diagnostic": "EXC_BAD_ACCESS in PySide::destructionVisitor / PyType_IsSubtype",
+      "follow_up": "Repeated complete suite with Python faulthandler enabled; 443 passed and normal exit. No dependency change or claim of eliminating intermittent Qt teardown issue."
+    }
+  },
+  "desktop_check": {
+    "passed": true,
+    "history_count": 67,
+    "hardware_opened": false
+  },
+  "replay_summary": {
+    "v3_outcomes": {
+      "accepted": 111,
+      "insufficient_recorded_iq": 6
+    },
+    "v2_outcomes": {
+      "timeout_proven_by_sample_bound": 3
+    },
+    "synthetic_controls_passed": true
+  },
+  "replay_report": "sweep_adaptive_replay_20261031.json",
+  "noise_control": {
+    "schema": "sspp.independent_adaptive_noise_controls.v1",
+    "source_sha256": "663e0a58d3fb147d63f4388196fa855024531c98f71645e42da9f08f2af2ed21",
+    "script_sha256": "a431306f59bd15264ae53a584005d1f287ab394d8fb5ac3c0a63c21fbf6ef570",
+    "replay_script_sha256": "2cf09bb39695485ec4f63324fb780cf138617e4cdce5e0130ebc2540de3fb93f",
+    "algorithm_version": "sspp.sweep.adaptive_coherent_quality.v3",
+    "method": "Actual SweepRunner.run, two consecutive VERIFY windows then independent MEASURE; ideal sample-time clock, no hardware or CPU time added to clock.",
+    "sample_rate": 250000.0,
+    "seconds_per_seed": 8.0,
+    "complex_noise_component_sd": 0.0003,
+    "expected_tone_hz": 2000.0,
+    "previous_tone_hz": null,
+    "seeds": [
+      0,
+      99
+    ],
+    "trials": 100,
+    "outcomes": {
+      "timeout": 100
+    },
+    "total_attempts": 1414,
+    "single_window_passes": 22,
+    "accepted_noise_sequences": 0,
+    "limitation": "Zero observed full-sequence false acceptances in these deterministic controls is not proof of zero false-positive probability."
+  },
+  "protected_existing_files_unchanged": 2824,
+  "hardware_opened": false,
+  "firmware_flashed": false,
+  "live_validation": "Pending a new user-started experiment; ideal-sample-time replay excludes tuning, USB, storage and scheduling latency.",
+  "review": "Independent negative controls, shifted previous-tone guard, bounded 1s windows, original 8s deadline, stop, partial results and window provenance reviewed."
+}

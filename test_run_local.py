@@ -12,7 +12,7 @@ from queue import Queue
 from types import SimpleNamespace
 import numpy as np
 import pandas as pd
-from sspp_lab.sweep_logic import SweepConfig, fft_peak
+from sspp_lab.sweep_logic import SweepConfig, PointQualityTimeout, fft_peak
 from sspp_lab.hardware import SDRConfig
 import run_local
 
@@ -64,7 +64,12 @@ class RunnerTests(unittest.TestCase):
             q.put((5,np.ones(4,dtype=np.complex64)))
             with self.assertRaisesRegex(RuntimeError,'Discontinuous'): runner._fetch_available_frames()
             runner.deadline=time.monotonic()-1
-            with self.assertRaises(TimeoutError): runner._fetch_available_frames()
+            # 没有验证窗口不能视为弱信号缺测，须中止真实采集。
+            with self.assertRaisesRegex(RuntimeError, 'without sufficient real IQ'):
+                runner._fetch_available_frames()
+            runner.point_attempts = 1
+            with self.assertRaises(PointQualityTimeout):
+                runner._fetch_available_frames()
 
     # 合成 3×12 记录核对导出数量、GHz 精度和图文件实际生成。
     def test_export_has_36_precise_frequency_rows(self):

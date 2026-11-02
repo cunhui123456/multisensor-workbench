@@ -239,12 +239,13 @@ class DesktopUiTests(unittest.TestCase):
                     for widget in window.fields.values():
                         if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
                             widget.setValue(widget.maximum())
-                    # 隐藏的单点/总时限也可能不合法，复位后须可通过完整配置校验。
-                    window.fields["max_seconds"].setValue(10)
+                    # 单点时限复位；扫频没有总时限控件或隐藏预算。
+                    self.assertNotIn("max_seconds", window.fields)
                     window.fields["point_timeout"].setValue(30)
                     window.confirm.setChecked(True)
                     window.reset_button.click()
                     cfg = validate_request(window.config(), require_setup=False)
+                    self.assertIsNone(cfg["max_seconds"])
                     for key, value in DEFAULTS.items():
                         if isinstance(value, (int, float)) and not isinstance(value, bool):
                             self.assertEqual(cfg[key], value)

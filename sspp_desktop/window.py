@@ -21,13 +21,15 @@ from .temperature_widget import TemperaturePressureWidget
 from .analysis_workbench_widget import AnalysisWorkbenchWidget
 from .liquid_temperature_widget import LiquidTemperatureWidget
 from .environment_dialog import EnvironmentDialog
+from .temperature_sweep_widget import TemperatureSweepWidget
+from .serial_archive_widget import SerialArchiveWidget
 
 BUSY = {"starting", "running", "stopping", "saving"}
-STATUS = {"starting": "正在初始化", "running": "正在采集", "stopping": "正在停止", "saving": "正在保存",
+STATUS = {"complete_with_gaps":"已结束（含无效频点）", "starting": "正在初始化", "running": "正在采集", "stopping": "正在停止", "saving": "正在保存",
           "complete": "已完成", "stopped": "已停止并保存", "failed": "实验失败", "initialization_failed": "初始化失败",
           "stop_unconfirmed": "停止状态待确认", "initializing": "初始化中", "failed_or_incomplete": "失败或未完成", "unknown": "未知"}
 GROUPS = {"diagnostic": "接收诊断", "sweep": "扫频分析", "phase": "幅相分析", "quality": "采集质量"}
-CATEGORIES = {"material_sweep": "材料逐点扫频", "finger_displacement": "手指位移",
+CATEGORIES = {"temperature_calibration":"温度标定", "temperature_pressure":"温压采集", "temperature_sweep": "SSPP 温度同步扫频", "material_sweep": "材料逐点扫频", "finger_displacement": "手指位移",
               "phase_history": "历史连续幅相", "teacher_sweep": "老师原版扫频",
               "liquid_temperature_sweep": "液体温度扫频", "liquid_temperature_phase": "液体温度与位移相位"}
 
@@ -35,7 +37,9 @@ EXPERIMENTS = {
     "material": ("材料扫频", "逐点扫频 · 材料响应与轮次比较", {"material_sweep", "teacher_sweep"}),
     "finger": ("手指位移", "连续幅相 · 尺量标定与位移验证", {"finger_displacement", "phase_history"}),
     "liquid": ("液体温度影响", "温度条件 · 扫频响应与位移相位", {"liquid_temperature_sweep", "liquid_temperature_phase"}),
-    "temperature": ("温压采集", "串口采集 · 电压 / ADC 与温压标定", set()),
+    "temperature": ("温压采集", "串口采集 · 电压 / ADC 与温压标定", {"temperature_pressure"}),
+    "temperature_calibration": ("温度标定", "多温度平台 · 区间电压统计与参考温度记录", {"temperature_calibration"}),
+    "temperature_sweep": ("SSPP 温度扫频", "手填温度平台／连续变温循环扫频", {"temperature_sweep"}),
 }
 
 
@@ -69,11 +73,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self._comparison_busy = False
         self.selected_details = None
         self.diagnostic_model = {}
+        self._diagnostic_publication_directories = {}
         self.replay = None
         self.replay_running = False
         self.replay_elapsed = 0.0
         self._replay_tick = time.monotonic()
         self._history_generation = 0
+        self._history_refresh_requested = False
+        self._history_refresh_select_key = None
+        self._history_refresh_revision = 0
         self._live_revision = None
         self._last_preview = 0.0
         self._close_requested = False
@@ -98,6 +106,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer.start()
         self.runner.idle.connect(self._finish_close)
         self.runner.idle.connect(self._refresh_navigation_enabled)
+        self.runner.idle.connect(self._flush_history_refresh)
         self._load_profiles()
         self.refresh_history()
         self._tick()
@@ -134,7 +143,7 @@ class MainWindow(QtWidgets.QMainWindow):
         heading = QtWidgets.QHBoxLayout()
         self.experiment_description = label("", "muted")
         heading.addWidget(self.experiment_description, 1)
-        self.archive_button = QtWidgets.QPushButton("全部实验档案")
+        self.archive_button = QtWidgets.QPushButton("实验档案")
         self.archive_button.setToolTip("查看所有射频实验；温压记录从研究分析的数据源进入。")
         self.archive_button.clicked.connect(self.open_archive)
         heading.addWidget(self.archive_button)
@@ -181,6 +190,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.finger_workspace.export_requested.connect(lambda path: QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(path)))
         self.temperature_workspace = TemperaturePressureWidget(Path(self.service.settings.root))
         self.temperature_tab = self.tabs.addTab(self.temperature_workspace, "温压采集")
+        self.serial_archive_workspace=SerialArchiveWidget()
+        self.serial_archive_tab=self.tabs.addTab(self.serial_archive_workspace,"温压档案详情")
+        self.serial_archive_workspace.calibration_delete_requested.connect(self._delete_calibration_points)
+        self.serial_archive_workspace.calibration_restore_requested.connect(lambda payload: self._delete_calibration_points(payload,restore=True))
         self.temperature_workspace.run_completed.connect(self._temperature_complete)
         self.temperature_workspace.error.connect(self._error)
         self.temperature_workspace.message.connect(self._message)
@@ -205,6 +218,14 @@ class MainWindow(QtWidgets.QMainWindow):
             field.textChanged.connect(self._liquid_conditions_edited)
         self.liquid_workspace.error.connect(self._error)
         self.liquid_workspace.busy_changed.connect(self._temperature_busy_changed)
+        self.temperature_sweep_workspace = TemperatureSweepWidget(Path(self.service.settings.root))
+        self.temperature_sweep_tab = self.tabs.addTab(self.temperature_sweep_workspace, "SSPP 与温度电压")
+        self.temperature_sweep_workspace.set_port(self.temperature_workspace.port.currentData() or "")
+        self.temperature_sweep_workspace.port_changed.connect(self._joint_port_changed)
+        self.temperature_sweep_workspace.configuration_changed.connect(self._joint_conditions_changed)
+        self.temperature_sweep_workspace.prepare_temperature_requested.connect(self._prepare_joint_temperature)
+        self.temperature_sweep_settings = self.temperature_sweep_workspace.take_settings_widget()
+        self.sidebar_config_layout.insertWidget(0, self.temperature_sweep_settings)
         self.tabs.setObjectName("workspaceTabs")
         self.tabs.setUsesScrollButtons(True)
         self.finger_settings = self.finger_workspace.take_settings_widget()
@@ -248,7 +269,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """)
 
     def _environment_target(self, kind=None):
-        kind = kind or ("serial" if self.experiment_id == "temperature" else "usrp")
+        kind = kind or ("serial" if self.experiment_id in ("temperature", "temperature_calibration") else "usrp")
+        if kind == "serial" and self.experiment_id == "temperature_sweep":
+            return {"kind": "serial", "port": self.temperature_sweep_workspace.port.currentData() or "",
+                    "protocol": "temperature_v1"}
         if kind == "serial":
             return {"kind": "serial", "port": self.temperature_workspace.port.currentData() or "",
                     "protocol": self.temperature_workspace.protocol.currentData()}
@@ -265,7 +289,8 @@ class MainWindow(QtWidgets.QMainWindow):
         state = self._environment_snapshot(target["kind"])
         if target["kind"] == "serial":
             return (not self._environment_busy() and state.get("state") == "ready"
-                    and (state.get("target") or {}).get("port") == target["port"])
+                    and (state.get("target") or {}).get("port") == target["port"]
+                    and (self.experiment_id != "temperature_sweep" or (state.get("target") or {}).get("protocol") == "temperature_v1"))
         return (not self._environment_busy() and state.get("state") == "ready"
                 and state.get("target") == target)
 
@@ -277,9 +302,33 @@ class MainWindow(QtWidgets.QMainWindow):
             self.temperature_workspace.confirm.setChecked(False)
         self._temperature_busy_changed(False)
 
+    def _joint_conditions_changed(self):
+        if self.experiment_id == "temperature_sweep" and not self._navigating:
+            self.confirm.setChecked(False)
+            self._mode_changed()
+            self._set_active(False)
+
+    def _joint_port_changed(self, port):
+        serial = self.temperature_workspace
+        index = serial.port.findData(port)
+        if port and index < 0:
+            serial.port.addItem(port, port)
+            index = serial.port.count() - 1
+        serial.port.setCurrentIndex(index)
+        self._invalidate_environment("serial")
+
+    def _prepare_joint_temperature(self):
+        if not self.select_experiment("temperature"):
+            return
+        serial = self.temperature_workspace
+        serial.protocol.setCurrentIndex(serial.protocol.findData("temperature_v1"))
+        self._message("选择温度 v1，验证已有固件；需要更换固件时使用“烧录并验证”。完成后返回 SSPP 温度扫频。")
+
     def _serial_target_changed(self, *_):
         if not self._navigation_ready or self._navigating:
             return
+        if hasattr(self, "temperature_sweep_workspace"):
+            self.temperature_sweep_workspace.set_port(self.temperature_workspace.port.currentData() or "")
         self._invalidate_environment("serial")
 
     def _global_profile_changed(self, *_):
@@ -318,6 +367,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if targets["serial"] is not None:
                 previous = self._environment_target("serial")
                 serial = self.temperature_workspace
+                previous_protocol = serial.protocol.currentData()
                 with QtCore.QSignalBlocker(serial.port), QtCore.QSignalBlocker(serial.protocol):
                     index = serial.port.findData(targets["serial"]["port"])
                     if index < 0:
@@ -325,7 +375,8 @@ class MainWindow(QtWidgets.QMainWindow):
                         index = serial.port.count() - 1
                     serial.port.setCurrentIndex(index)
                     serial.protocol.setCurrentIndex(serial.protocol.findData(targets["serial"]["protocol"]))
-                if previous["protocol"] != targets["serial"]["protocol"]:
+                self.temperature_sweep_workspace.set_port(targets["serial"]["port"])
+                if previous_protocol != targets["serial"]["protocol"]:
                     serial._protocol_changed()
                 if previous != self._environment_target("serial"):
                     self._invalidate_environment("serial")
@@ -398,7 +449,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _navigation_blocked(self):
         return (self._environment_busy() or self._parameter_reset_blocked() or self.temperature_workspace.is_running
                 or self.liquid_workspace.is_busy or self._comparison_busy
-                or "comparison_export" in self.runner.pending)
+                or "comparison_export" in self.runner.pending or "figure_export" in self.runner.pending
+                or "calibration_correction" in self.runner.pending)
 
     def _experiment_changed(self, index):
         if self._navigation_ready and not self._navigating:
@@ -422,9 +474,12 @@ class MainWindow(QtWidgets.QMainWindow):
             draft["values"]["label"] = "finger_session" if key == "finger" else ""
             draft["material_name"] = ""
             draft["liquid_setup"] = None
+            if key == "temperature_sweep":
+                draft["values"].update(freq_start_ghz=5.0, freq_stop_ghz=5.3, points=20)
         self._navigating = True
         try:
             self.experiment_id = key
+            self.temperature_workspace.set_calibration_mode(key == "temperature_calibration")
             with QtCore.QSignalBlocker(self.experiment_nav):
                 self.experiment_nav.setCurrentIndex(list(EXPERIMENTS).index(key))
             self._restore_draft(draft)
@@ -434,7 +489,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.analysis_plot.display({})
             self.diagnostic_model = {}
             self.analysis_title.setText("选择历史记录后加载完整诊断")
-            self.history_scope.setChecked(True)
+            self._update_history_type_options()
             self.history_type.setCurrentIndex(0)
             self.history_status.setCurrentIndex(0)
             self.history_search.clear()
@@ -466,7 +521,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _restore_draft(self, draft):
         for key, value in draft["values"].items():
-            if key == "profile":  # 兼容旧草稿，设备选择始终属于全局。
+            # 旧草稿的设备选择和已移除的扫频时限均不覆盖当前运行规则。
+            if key in ("profile", "max_seconds", "auto_sweep_budget"):
                 continue
             widget = self.fields[key]
             with QtCore.QSignalBlocker(widget):
@@ -489,27 +545,34 @@ class MainWindow(QtWidgets.QMainWindow):
         name, description, _ = EXPERIMENTS[key]
         self.sidebar_title.setText(name + " · 参数设置")
         self.experiment_description.setText(description)
-        self.config_container.setVisible(key != "temperature")
-        self.rf_actions.setVisible(key != "temperature")
-        self.temperature_settings.setVisible(key == "temperature")
+        self.archive_button.setText("实验档案")
+        self.archive_button.setToolTip("查看当前实验的已保存记录；勾选单条分析，或勾选多条同类记录组合分析。")
+        self._update_history_type_options()
+        self.config_container.setVisible(key not in ("temperature", "temperature_calibration"))
+        self.rf_actions.setVisible(key not in ("temperature", "temperature_calibration"))
+        self.temperature_settings.setVisible(key in ("temperature", "temperature_calibration"))
         self.liquid_settings.setVisible(key == "liquid")
         self.finger_settings.setVisible(key == "finger")
+        self.temperature_sweep_settings.setVisible(key == "temperature_sweep")
         self.sidebar_scroll.verticalScrollBar().setValue(0)
         visible = {0, 1, 2, 3, self.analysis_tab}
         if key == "finger":
             visible.add(self.finger_tab)
         elif key == "liquid":
             visible.add(self.liquid_tab)
-        elif key == "temperature":
-            visible = {self.temperature_tab, self.analysis_tab}
+        elif key == "temperature_sweep":
+            visible.add(self.temperature_sweep_tab)
+        elif key in ("temperature", "temperature_calibration"):
+            visible = {self.temperature_tab, self.analysis_tab, 1}
         self.tabs.blockSignals(True)
         for index in range(self.tabs.count()):
             self.tabs.setTabVisible(index, index in visible)
-        self.tabs.setCurrentIndex(self.temperature_tab if key == "temperature" else 0)
+        self.tabs.setCurrentIndex(self.temperature_tab if key in ("temperature", "temperature_calibration") else
+                                  self.temperature_sweep_tab if key == "temperature_sweep" else 0)
         self.tabs.blockSignals(False)
         self.tabs.setTabText(self.temperature_tab, "实时曲线")
         self.tabs.setTabText(self.liquid_tab, "温度记录与比较")
-        self.tabs.setTabText(1, "实验档案与回放")
+        self.tabs.setTabText(1, "实验档案")
         self.tabs.setTabText(2, "曲线诊断")
         self.tabs.setTabText(self.analysis_tab, "研究分析")
         if key == "liquid" and hasattr(self.service, "liquid_history"):
@@ -529,14 +592,16 @@ class MainWindow(QtWidgets.QMainWindow):
                 field.setCurrentIndex(0)
         with QtCore.QSignalBlocker(self.history_search):
             self.history_search.clear()
-        self.history_scope.setChecked(False)
         self._filter_history()
+        self.refresh_history()
         self.tabs.setTabVisible(1, True)
         self.tabs.setCurrentIndex(1)
 
     @staticmethod
     def _job_experiment(job):
         config = (job or {}).get("config", {})
+        if config.get("temperature_sweep"):
+            return "temperature_sweep"
         if config.get("liquid_temperature"):
             return "liquid"
         return {"phase": "finger", "sweep": "material"}.get(config.get("mode"))
@@ -612,9 +677,14 @@ class MainWindow(QtWidgets.QMainWindow):
         for key, name, lo, hi, decimals, step in [
             ("freq_start_ghz", "起点 GHz", .07, 6, 3, .001), ("freq_stop_ghz", "终点 GHz", .07, 6, 3, .001),
             ("points", "频点数", 2, 100, 0, 1), ("repeat", "重复轮数", 1, 20, 0, 1),
-            ("max_seconds", "总时限 s", 10, 3600, 0, 10), ("point_timeout", "单点时限 s", 1, 30, 1, .5),
+            ("point_timeout", "单点时限 s", 1, 30, 1, .5),
             ("tone_start", "首个单音 Hz", 1, 50000, 0, 100), ("tone_step", "单音步进 Hz", 0, 20000, 0, 100)]:
             self._number(sf, key, name, lo, hi, decimals, step)
+        self.sweep_completion_hint = label("按指定轮数完成；也可随时停止并保存。", "muted")
+        self.sweep_completion_hint.setWordWrap(True)
+        sf.addRow(self.sweep_completion_hint)
+        for key in ('points', 'repeat', 'point_timeout'):
+            self.fields[key].valueChanged.connect(self._sweep_parameters_changed)
         cl.addWidget(self.sweep_group)
         advanced = QtWidgets.QGroupBox("高级参数")
         al = QtWidgets.QVBoxLayout(advanced)
@@ -663,6 +733,10 @@ class MainWindow(QtWidgets.QMainWindow):
             form.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         return side
 
+    def _sweep_parameters_changed(self,*_):
+        if getattr(self,'_navigating',False):return
+        if hasattr(self,'confirm'):self.confirm.setChecked(False)
+
     def _combo(self, key, items):
         combo = QtWidgets.QComboBox()
         for title, value in items:
@@ -693,7 +767,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mode.setItemText(1, "液体温度 · 逐点扫频" if liquid and not phase else "材料响应 · 逐点扫频")
         self.phase_group.setVisible(phase)
         self.sweep_group.setVisible(not phase)
-        self.material_workspace.setVisible(not phase and not liquid_page)
+        self.material_workspace.setVisible(not phase and not liquid_page and self.experiment_id != "temperature_sweep")
         self.fields["condition"].setCurrentIndex(self.fields["condition"].findData("finger" if phase else "material"))
         self.fields["label"].setVisible(phase)
         self.session_label.setVisible(phase)
@@ -709,6 +783,17 @@ class MainWindow(QtWidgets.QMainWindow):
             info = self._liquid_setup["liquid_temperature"]
             self.workspace_hint.setText(f"液体温度实验：{info['liquid']} · 开始参考 {info['temperature_c']:g} ℃ · 距离 {info['distance_mm']:g} mm")
             self.start_button.setText("开始液体温度相位实验" if phase else "开始液体温度扫频")
+        self.fields["repeat"].setEnabled(True)
+        self.sweep_completion_hint.setText("按指定轮数完成；也可随时停止并保存。")
+        if self.experiment_id == "temperature_sweep":
+            self.workspace_hint.setText("填写温度平台 → 确认双设备 → 同时记录扫频与电压 → 切换温度后重复")
+            continuous=self.temperature_sweep_workspace.requires_serial
+            self.start_button.setText("开始连续变温循环扫频" if continuous else "开始手填温度平台扫频")
+            self.fields['repeat'].setEnabled(not continuous)
+            self.workspace_hint.setText("持续变温并循环扫频，整轮平均电压关联曲线；点击停止并保存结束" if continuous else "填写本次实测温度；每调整一个温度，单独开始一次实验")
+            if continuous:
+                self.sweep_completion_hint.setText("持续循环扫频，点击“停止并保存”结束。")
+            self.sweep_group.setTitle("SSPP 温度影响 · 扫频计划")
         if hasattr(self, "tabs") and hasattr(self, "finger_tab"):
             self.tabs.setTabEnabled(self.finger_tab, phase and not liquid and not liquid_page)
         if hasattr(self, "live_plots"):
@@ -791,26 +876,21 @@ class MainWindow(QtWidgets.QMainWindow):
         page = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(page)
         top = QtWidgets.QHBoxLayout()
-        top.addWidget(label("已保存实验 · 单行查看详情，勾选同类记录比较", "viewBanner"), 1)
+        top.addWidget(label("已保存实验 · 单行查看详情，勾选记录进行单条分析或多条组合分析", "viewBanner"), 1)
         refresh = QtWidgets.QPushButton("刷新记录")
         refresh.clicked.connect(self.refresh_history)
         top.addWidget(refresh)
         layout.addLayout(top)
         filters = QtWidgets.QHBoxLayout()
         self.history_type = QtWidgets.QComboBox()
-        self.history_type.addItem("全部实验类型", "")
-        for key, name in CATEGORIES.items():
-            self.history_type.addItem(name, key)
         self.history_status = QtWidgets.QComboBox()
         self.history_status.addItem("全部状态", "")
         for key, name in STATUS.items():
             self.history_status.addItem(name, key)
         self.history_search = QtWidgets.QLineEdit()
         self.history_search.setPlaceholderText("搜索名称、传感器或实验 key")
-        self.history_scope = QtWidgets.QCheckBox("仅当前实验")
-        self.history_scope.setChecked(True)
-        self.history_scope.toggled.connect(self._filter_history)
-        filters.addWidget(self.history_scope)
+        self.history_scope_label = label("", "muted")
+        filters.addWidget(self.history_scope_label)
         filters.addWidget(self.history_type)
         filters.addWidget(self.history_status)
         filters.addWidget(self.history_search, 1)
@@ -824,13 +904,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.comparison_clear = QtWidgets.QPushButton("清空勾选")
         self.comparison_clear.clicked.connect(self.clear_comparison_selection)
         selection.addWidget(self.comparison_clear)
-        self.compare_button = QtWidgets.QPushButton("比较所选实验")
+        self.compare_button = QtWidgets.QPushButton("分析所选记录")
         self.compare_button.setObjectName("primary")
         self.compare_button.clicked.connect(self.compare_selected)
         selection.addWidget(self.compare_button)
         layout.addLayout(selection)
         self.history_table = QtWidgets.QTableWidget(0, 6)
-        self.history_table.setHorizontalHeaderLabels(["比较", "开始时间（本机时区）", "实验标签", "类型", "状态", "传感器"])
+        self.history_table.setHorizontalHeaderLabels(["选择", "开始时间（本机时区）", "实验标签", "类型", "状态", "传感器"])
         self.history_table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.history_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.history_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
@@ -842,7 +922,7 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.history_table, 2)
         row = QtWidgets.QGridLayout()
         self.view_history_button = QtWidgets.QPushButton("查看已保存曲线")
-        self.view_history_button.clicked.connect(lambda: self._show_tab(0))
+        self.view_history_button.clicked.connect(self._view_saved_curve)
         row.addWidget(self.view_history_button, 0, 0)
         self.analyze_button = QtWidgets.QPushButton("加载完整诊断")
         self.analyze_button.clicked.connect(self.load_diagnostics)
@@ -924,6 +1004,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot_choice.currentIndexChanged.connect(self._select_plot)
         selectors.addWidget(self.plot_group)
         selectors.addWidget(self.plot_choice, 1)
+        self.diagnostic_figure_export_button = QtWidgets.QPushButton("导出分析图")
+        self.diagnostic_figure_export_button.clicked.connect(self._export_diagnostic_figure)
+        selectors.addWidget(self.diagnostic_figure_export_button)
+        self.diagnostic_figure_directory_button = QtWidgets.QPushButton("打开图片文件夹")
+        self.diagnostic_figure_directory_button.clicked.connect(self._open_diagnostic_figure_directory)
+        selectors.addWidget(self.diagnostic_figure_directory_button)
         refresh = QtWidgets.QPushButton("重新加载")
         refresh.clicked.connect(self.load_diagnostics)
         selectors.addWidget(refresh)
@@ -933,10 +1019,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.quality_facts = label("", "muted")
         self.quality_facts.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(self.quality_facts)
+        self._update_diagnostic_export_controls()
         return page
 
     def config(self):
-        result = {"liquid_temperature": None, "profile": self.profile.currentData()}
+        result = {"liquid_temperature": None, "temperature_sweep": None,
+                  "profile": self.profile.currentData(), "max_seconds": None}
         for key, widget in self.fields.items():
             if isinstance(widget, QtWidgets.QComboBox):
                 result[key] = widget.currentData()
@@ -952,6 +1040,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._liquid_setup:
             result["liquid_temperature"] = dict(self._liquid_setup["liquid_temperature"])
             result["condition"] = "material"
+        if self.experiment_id == "temperature_sweep":
+            result["temperature_sweep"] = self.temperature_sweep_workspace.config()
+            result["mode"] = "sweep"
+            result["label"] = "".join(c if c.isalnum() or c in "_-" else "_"
+                                      for c in result["temperature_sweep"]["condition_label"])[:80].strip("_") or "temperature_sweep"
         return result
 
     def _liquid_conditions_edited(self, *_):
@@ -1003,7 +1096,9 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             if self.experiment_id == "liquid" and not self._liquid_setup:
                 raise ValueError("请先在左侧填写并应用本次液体温度条件。")
-            if self.mode.currentData() == "sweep":
+            if self.experiment_id == "temperature_sweep":
+                self.temperature_sweep_workspace.config()
+            elif self.mode.currentData() == "sweep":
                 self.material_workspace.validate()
             return True
         except ValueError as exc:
@@ -1152,12 +1247,14 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         for key, widget in self.fields.items():
             if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
-                widget.setValue(DEFAULTS[key])
+                defaults = {**DEFAULTS, **({"freq_start_ghz": 5.0, "freq_stop_ghz": 5.3, "points": 20}
+                                          if self.experiment_id == "temperature_sweep" else {})}
+                widget.setValue(defaults[key])
         self.confirm.setChecked(False)
         self._message("当前实验的采集参数及高级参数已恢复默认值，其他实验草稿不变。设备、名称和手指标定记录保留；请重新检查参数并确认接线。")
 
     def start_experiment(self):
-        if self.experiment_id == "temperature":
+        if self.experiment_id in ("temperature", "temperature_calibration"):
             self._message("温压实验请先完成固件验证，再使用左侧“开始记录”。")
             return
         if self._navigation_blocked():
@@ -1170,6 +1267,9 @@ class MainWindow(QtWidgets.QMainWindow):
             return
         if not self._environment_ready("usrp"):
             self._message("请先点击导航最左侧的“初始化实验台”，完成所选设备检查。")
+            return
+        if self.experiment_id == "temperature_sweep" and self.temperature_sweep_workspace.requires_serial and not self._environment_ready("serial"):
+            self._message("请在初始化实验台中同时检查 B210 与温度 USB 串口。")
             return
         if not self.confirm.isChecked():
             self._message("请先确认所选设备接线、线缆固定和初始状态。")
@@ -1208,12 +1308,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _set_active(self, active):
         temperature_active = hasattr(self, "temperature_workspace") and self.temperature_workspace.is_running
-        comparison_work = self._comparison_busy or "comparison_export" in self.runner.pending
+        comparison_work = (self._comparison_busy or "comparison_export" in self.runner.pending
+                           or "figure_export" in self.runner.pending or "calibration_correction" in self.runner.pending)
         liquid_work = hasattr(self, "liquid_workspace") and self.liquid_workspace.is_busy
         initializing = self._environment_busy()
-        ready = self.experiment_id != "temperature" and self._environment_ready("usrp")
+        ready = self.experiment_id not in ("temperature", "temperature_calibration") and self._environment_ready("usrp")
+        if self.experiment_id == "temperature_sweep" and self.temperature_sweep_workspace.requires_serial:
+            ready = ready and self._environment_ready("serial")
         locked = active or initializing
         self.config_container.setEnabled(not locked and not self._close_requested)
+        self.temperature_sweep_workspace.set_external_busy(locked or temperature_active or comparison_work or self._close_requested)
         self.finger_settings.setEnabled(not initializing and not self._close_requested)
         self.temperature_workspace.config_group.setEnabled(not locked and not temperature_active and not self._close_requested)
         serial_state = self._environment_snapshot("serial")
@@ -1260,7 +1364,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.export_button.setEnabled(not active and self.selected_details is not None and "export" not in self.runner.pending and not comparison_work)
         self._update_comparison_controls(active)
         if hasattr(self, "temperature_workspace"):
-            self.temperature_workspace.set_external_busy(locked or self._close_requested)
+            self.temperature_workspace.set_external_busy(locked or comparison_work or liquid_work or self._close_requested)
         if hasattr(self, "analysis_workspace"):
             self.analysis_workspace.set_acquisition_busy(locked or temperature_active or self._close_requested)
         if hasattr(self, "liquid_workspace"):
@@ -1277,7 +1381,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _temperature_complete(self, key):
         # 让当前封存信号处理完成，再刷新新的分析来源。
         QtCore.QTimer.singleShot(0, self.analysis_workspace.refresh_sources)
-        self.statusBar().showMessage(f"温压记录已保存：{key}；可进入研究分析与模型。")
+        self.refresh_history(select_key=key)
+        self.statusBar().showMessage(f"温压记录已保存：{key}；可从当前实验档案查看曲线和标定点。")
 
     def open_workbench(self):
         self.tabs.setCurrentIndex(self.analysis_tab)
@@ -1316,6 +1421,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.viewing_key is None and self.replay is None and job_experiment in (None, self.experiment_id):
             if live.get("revision") != self._live_revision or live.get("revision") is None:
                 self._render_live(live)
+                if self.experiment_id == "temperature_sweep":
+                    self.temperature_sweep_workspace.update_snapshot(live)
                 self._live_revision = live.get("revision")
         text = "\n".join(snapshot.get("logs") or []) if job_experiment in (None, self.experiment_id) else ""
         if self.logs.toPlainText() != text:
@@ -1412,17 +1519,62 @@ class MainWindow(QtWidgets.QMainWindow):
         self.preview_plots.update_preview(None)
         self.view_banner.setText("当前实验 · 实时数据")
         self._render_live({"mode": self.mode.currentData(), "points": []})
-        self._show_tab(0)
+        if self.experiment_id == "temperature_sweep":
+            self.temperature_sweep_workspace.clear()
+            self._show_tab(self.temperature_sweep_tab)
+        elif self.experiment_id in ("temperature","temperature_calibration"):
+            self._show_tab(self.temperature_tab)
+        else:
+            self._show_tab(0)
 
     def refresh_history(self, select_key=None):
-        if hasattr(self, "analysis_workspace") and not self._close_requested:
+        if self._close_requested:
+            return
+        self._history_refresh_requested = True
+        self._history_refresh_revision += 1
+        # Button clicks pass False; ordinary refreshes must not erase a pending
+        # request to select a newly saved record.
+        if isinstance(select_key, str):
+            self._history_refresh_select_key = select_key
+        if hasattr(self, "analysis_workspace"):
             self.analysis_workspace.refresh_sources()
+        self._flush_history_refresh()
+
+    def _flush_history_refresh(self):
+        if self._close_requested:
+            self._history_refresh_requested = False
+            self._history_refresh_select_key = None
+            return
+        if not self._history_refresh_requested or "history" in self.runner.pending:
+            return
+        self._history_refresh_requested = False
+        revision = self._history_refresh_revision
+        select_key = self._history_refresh_select_key
+
         def loaded(rows):
-            self._history_all_rows = rows
-            self._render_history_rows(select_key if isinstance(select_key, str) else self._selected_history_key)
-            if isinstance(select_key, str) and self.history_table.currentRow() >= 0:
-                self._select_history()
-        self._submit("history", self.service.history, loaded)
+            try:
+                if self._close_requested or revision != self._history_refresh_revision:
+                    return
+                self._history_refresh_select_key = None
+                self._history_all_rows = rows
+                self._render_history_rows(select_key if isinstance(select_key, str) else self._selected_history_key)
+                if isinstance(select_key, str) and self.history_table.currentRow() >= 0:
+                    self._select_history()
+            finally:
+                # TaskRunner removes the completed key before invoking callbacks.
+                self._flush_history_refresh()
+
+        def failed(error):
+            try:
+                if not self._close_requested and revision == self._history_refresh_revision:
+                    self._history_refresh_select_key = None
+                    self._error(error)
+            finally:
+                self._flush_history_refresh()
+
+        if not self._submit("history", self.service.history, loaded, failure=failed):
+            # A full analysis queue retries on runner.idle, without polling.
+            self._history_refresh_requested = True
 
     @staticmethod
     def _history_category(row):
@@ -1441,12 +1593,27 @@ class MainWindow(QtWidgets.QMainWindow):
     def _filter_history(self, *_):
         self._render_history_rows(self._selected_history_key)
 
+    def _update_history_type_options(self):
+        """The archive always belongs to the active experiment, including subtypes."""
+        name, _, allowed = EXPERIMENTS[self.experiment_id]
+        selected = self.history_type.currentData()
+        with QtCore.QSignalBlocker(self.history_type):
+            self.history_type.clear()
+            if len(allowed) > 1:
+                self.history_type.addItem("当前实验全部记录", "")
+            for key, title in CATEGORIES.items():
+                if key in allowed:
+                    self.history_type.addItem(title, key)
+            self.history_type.setCurrentIndex(max(0, self.history_type.findData(selected)))
+        self.history_type.setVisible(len(allowed) > 1)
+        self.history_scope_label.setText(f"当前实验：{name}")
+
     def _render_history_rows(self, selected=None):
         category, status = self.history_type.currentData(), self.history_status.currentData()
         query = self.history_search.text().strip().casefold()
         allowed = EXPERIMENTS[self.experiment_id][2]
         self.history_rows = [row for row in self._history_all_rows
-                             if (not self.history_scope.isChecked() or self._history_category(row) in allowed)
+                             if self._history_category(row) in allowed
                              and (not category or self._history_category(row) == category)
                              and (not status or row.get("status") == status)
                              and (not query or query in " ".join(str(row.get(field, "")) for field in ("label", "sensor", "key")).casefold())]
@@ -1455,7 +1622,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if removed:
             self.comparison_keys.intersection_update(visible)
             self._comparison_generation += 1
-            self._message(f"筛选或刷新后已清除 {len(removed)} 条不可见记录的勾选；比较仅使用当前可见的勾选项。")
+            self._message(f"筛选或刷新后已清除 {len(removed)} 条不可见记录的勾选；分析仅使用当前可见的勾选项。")
         self.history_table.blockSignals(True)
         self.history_table.clearSelection()
         self.history_table.setCurrentItem(None)
@@ -1466,7 +1633,7 @@ class MainWindow(QtWidgets.QMainWindow):
             checked.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable | QtCore.Qt.ItemFlag.ItemIsSelectable)
             checked.setCheckState(QtCore.Qt.CheckState.Checked if row["key"] in self.comparison_keys else QtCore.Qt.CheckState.Unchecked)
             checked.setData(QtCore.Qt.ItemDataRole.UserRole, row["key"])
-            checked.setToolTip("勾选 2–8 条同类实验进行只读比较；高亮一行仍可查看详情。")
+            checked.setToolTip("勾选 1–8 条同类实验：单条分析，多条组合分析；高亮一行仍可查看详情。")
             self.history_table.setItem(index, 0, checked)
             values = [self._local_time(row.get("started_utc")), row.get("label", ""), CATEGORIES.get(self._history_category(row), "未知"),
                       STATUS.get(row.get("status"), row.get("status", "")), row.get("sensor", "")]
@@ -1488,6 +1655,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._history_generation += 1
         self._selected_history_key = None
         self.selected_details = None
+        self.tabs.setTabVisible(self.serial_archive_tab,False)
         self._history_buttons(False)
         self.metadata.clear()
         self.file_list.clear()
@@ -1504,16 +1672,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _comparison_blocked(self):
         return ((self.snapshot.get("job") or {}).get("status") in BUSY or self._start_pending
-                or bool(self.snapshot.get("preparing")) or self._close_requested
+                or bool(self.snapshot.get("preparing")) or self._close_requested or self._environment_busy()
+                or (hasattr(self, "temperature_workspace") and self.temperature_workspace.is_running)
+                or (hasattr(self, "liquid_workspace") and self.liquid_workspace.is_busy)
                 or "export" in self.runner.pending or "comparison_export" in self.runner.pending
+                or "figure_export" in self.runner.pending
+                or "calibration_correction" in self.runner.pending
                 or "finger_analysis" in self.runner.pending)
 
     def _update_comparison_controls(self, active=None):
         if not hasattr(self, "compare_button"):
             return
         blocked = self._comparison_blocked() or bool(active)
-        self.comparison_count.setText(f"已勾选 {len(self.comparison_keys)} / 8 条 · 同类至少 2 条")
-        self.compare_button.setEnabled(2 <= len(self.comparison_keys) <= 8 and not blocked and not self._comparison_busy)
+        count = len(self.comparison_keys)
+        self.comparison_count.setText(f"已勾选 {count} / 8 条 · 单条分析，多条组合")
+        self.compare_button.setText("组合分析所选记录" if count > 1 else "分析所选记录")
+        self.compare_button.setToolTip("勾选 1 条记录进行分析，或勾选 2–8 条同类记录组合分析。")
+        self.compare_button.setEnabled(1 <= count <= 8 and not blocked and not self._comparison_busy)
         self.comparison_clear.setEnabled(bool(self.comparison_keys) and not blocked)
         self.history_table.blockSignals(True)
         for row in range(self.history_table.rowCount()):
@@ -1523,7 +1698,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 item.setFlags(flags & ~QtCore.Qt.ItemFlag.ItemIsUserCheckable if blocked else flags | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
         self.history_table.blockSignals(False)
         if self.comparison_dialog is not None and not self.comparison_dialog.is_closed:
-            self.comparison_dialog.set_busy(self._comparison_busy or "comparison_export" in self.runner.pending, blocked=blocked)
+            self.comparison_dialog.set_busy(self._comparison_busy or "comparison_export" in self.runner.pending
+                                            or "figure_export" in self.runner.pending, blocked=blocked)
+        if hasattr(self, "serial_archive_workspace"):
+            self.serial_archive_workspace.set_edit_busy(blocked or self._comparison_busy)
+        self._update_diagnostic_export_controls()
 
     def _comparison_item_changed(self, item):
         if item.column() != 0:
@@ -1533,7 +1712,7 @@ class MainWindow(QtWidgets.QMainWindow):
         rows = {row["key"]: row for row in self.history_rows}
         error = ""
         if self._comparison_blocked():
-            error = "采集或导出处理中，暂不能变更比较勾选。"
+            error = "采集或导出处理中，暂不能变更分析勾选。"
         elif checked:
             category = self._history_category(rows.get(key, {}))
             if category == "teacher_sweep":
@@ -1541,9 +1720,9 @@ class MainWindow(QtWidgets.QMainWindow):
             elif category.startswith("liquid_temperature_"):
                 error = "请进入液体温度影响页比较，那里会检查温度、几何条件与同次相位参考。"
             elif category not in CATEGORIES:
-                error = "此记录类型未知，不能加入比较。"
+                error = "此记录类型未知，不能加入分析。"
             elif len(self.comparison_keys) >= 8 and key not in self.comparison_keys:
-                error = "一次最多比较 8 条实验，请先取消一条勾选。"
+                error = "一次最多分析 8 条实验，请先取消一条勾选。"
             elif any(self._history_category(rows.get(selected, {})) != category for selected in self.comparison_keys):
                 error = "请勾选同一种实验类型；切换类型前可先清空勾选。"
         if error:
@@ -1568,11 +1747,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def compare_selected(self):
         if self._comparison_blocked() or self._comparison_busy:
-            self._message("请等待采集、分析或导出结束，再发起比较。")
+            self._message("请等待采集、分析或导出结束，再分析所选记录。")
             return
         keys = [row["key"] for row in self.history_rows if row["key"] in self.comparison_keys]
-        if not 2 <= len(keys) <= 8:
-            self._message("请先勾选 2–8 条同类实验。")
+        if not 1 <= len(keys) <= 8:
+            self._message("请先勾选 1–8 条同类实验记录。")
             return
         self._request_comparison(keys)
 
@@ -1585,7 +1764,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if dialog is not None:
             dialog.set_busy(True, "正在重新计算参考实验…")
         self._set_active(False)
-        self._message("正在后台读取所选实验并比较参数与结果…")
+        self._message("正在后台读取所选记录并分析参数与结果…" if len(keys) == 1 else
+                      "正在后台读取所选记录并组合分析参数与结果…")
         def completed(report):
             self._comparison_busy = False
             if generation != self._comparison_generation or self._close_requested or (dialog is not None and dialog.is_closed):
@@ -1593,7 +1773,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     dialog.reference.blockSignals(True)
                     dialog.reference.setCurrentIndex(dialog.reference.findData(dialog.report.get("reference_key")))
                     dialog.reference.blockSignals(False)
-                    dialog.status.setText("选择已变更，保留上一次完整比较结果。")
+                    dialog.status.setText("选择已变更，保留上一次完整分析结果。")
                 self._apply_status(self.snapshot)
                 return
             target = dialog
@@ -1604,11 +1784,15 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.comparison_dialog = target
                 target.reference_requested.connect(lambda key: self._request_comparison(list(target.report["keys"]), key, target))
                 target.export_requested.connect(lambda: self._export_comparison(target))
+                target.figure_export_requested.connect(lambda chart_id: self._export_publication_figure(target, chart_id))
+                target.figure_save_as_requested.connect(lambda chart_id: self._export_analysis_figure(target, chart_id))
+                target.open_figure_directory_requested.connect(lambda: self._open_publication_directory(target))
                 target.closed.connect(lambda: self._comparison_closed(target))
             target.apply_report(report)
             target.show()
             target.raise_()
-            self._message("比较已完成；原始实验记录未修改。")
+            self._message("分析已完成；原始实验记录未修改。" if len(keys) == 1 else
+                          "组合分析已完成；原始实验记录未修改。")
             self._apply_status(self.snapshot)
         def failed(error):
             self._comparison_busy = False
@@ -1636,8 +1820,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if self._comparison_blocked() or self._comparison_busy or dialog.is_closed or not dialog.report:
             return
         report = dialog.report
+        serial = report.get("kind") in ("temperature_calibration", "temperature_pressure")
         destination, _ = QtWidgets.QFileDialog.getSaveFileName(
-            dialog, "保存实验比较压缩包", str(Path.home() / "Downloads" / "sspp_comparison.zip"), "ZIP 压缩包 (*.zip)")
+            dialog, "保存论文图与数据" if serial else "保存实验比较压缩包",
+            str(Path.home() / "Downloads" / ("temperature_publication.zip" if serial else "sspp_comparison.zip")),
+            "ZIP 压缩包 (*.zip)")
         if not destination:
             return
         if not destination.lower().endswith(".zip"):
@@ -1657,6 +1844,172 @@ class MainWindow(QtWidgets.QMainWindow):
             self._error(error)
             self._apply_status(self.snapshot)
         if self._submit("comparison_export", lambda: self.service.export_comparison(report, destination), done, failure=failed):
+            self._apply_status(self.snapshot)
+        else:
+            self._update_comparison_controls()
+
+    def _export_publication_figure(self, dialog, chart_id):
+        if self._comparison_blocked() or self._comparison_busy or dialog.is_closed or not dialog.report:
+            return
+        report = dialog.report
+        if not isinstance(chart_id, str) or not any(chart.get("id") == chart_id for chart in report.get("charts", [])):
+            self._message("当前分析图已变化，请重新选择后导出。")
+            return
+        dialog.set_busy(True, "正在后台生成论文图、数据与来源说明…")
+
+        def done(result):
+            message = f"论文图已保存：{result['directory']}"
+            if result.get("warnings"):
+                message += "\n" + "\n".join(str(item) for item in result["warnings"])
+            if not dialog.is_closed and dialog.report is report:
+                dialog.set_publication_directory(result['directory'])
+                dialog.status.setText(message)
+            self._message(message)
+            self._apply_status(self.snapshot)
+
+        def failed(error):
+            if not dialog.is_closed:
+                dialog.show_error(error)
+            self._error(error)
+            self._apply_status(self.snapshot)
+
+        if self._submit("figure_export", lambda: self.service.export_publication_figure(report, chart_id),
+                        done, failure=failed):
+            self._apply_status(self.snapshot)
+        else:
+            self._update_comparison_controls()
+
+    def _open_publication_directory(self, dialog):
+        if self._comparison_blocked() or self._comparison_busy or dialog.is_closed:
+            return
+        directory = getattr(dialog, 'publication_directory', None)
+        if not directory:
+            return
+        if not QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(directory))):
+            self._message("无法打开论文图文件夹：" + str(directory))
+
+    def _export_analysis_figure(self, dialog, chart_id):
+        if self._comparison_blocked() or self._comparison_busy or dialog.is_closed or not dialog.report:
+            return
+        report = dialog.report
+        if not isinstance(chart_id, str) or not any(chart.get("id") == chart_id for chart in report.get("charts", [])):
+            self._message("当前分析图已变化，请重新选择后导出。")
+            return
+        formats = {"PDF 矢量图 (*.pdf)": ".pdf", "SVG 矢量图 (*.svg)": ".svg",
+                   "PNG 位图（600 dpi） (*.png)": ".png"}
+        stem = "".join(character if character.isalnum() or character in "-_" else "_"
+                       for character in chart_id)[:80] or "figure"
+        destination, selected_filter = QtWidgets.QFileDialog.getSaveFileName(
+            dialog, "导出当前分析图", str(Path.home() / "Downloads" / ("analysis_" + stem + ".pdf")),
+            ";;".join(formats), "PDF 矢量图 (*.pdf)")
+        if not destination:
+            return
+        # An explicit supported suffix determines the format; the selected filter
+        # supplies a suffix only when the user entered a filename without one.
+        suffix = Path(destination).suffix.lower()
+        if not suffix:
+            destination += formats.get(selected_filter, ".pdf")
+        elif suffix not in formats.values():
+            self._error("请选择 PDF、SVG 或 PNG 文件扩展名。")
+            return
+        # The modal picker may process a late callback or a window close.
+        if dialog.is_closed or dialog.report is not report or self._comparison_blocked() or self._comparison_busy:
+            return
+        dialog.set_busy(True, "正在后台导出当前分析图…")
+
+        def done(result):
+            message = f"分析图已保存：{result['path']}"
+            if result.get("warnings"):
+                message += "\n" + "\n".join(str(item) for item in result["warnings"])
+            if not dialog.is_closed:
+                dialog.status.setText(message)
+            self._message(message)
+            self._apply_status(self.snapshot)
+
+        def failed(error):
+            if not dialog.is_closed:
+                dialog.show_error(error)
+            self._error(error)
+            self._apply_status(self.snapshot)
+
+        if self._submit("figure_export", lambda: self.service.export_analysis_figure(report, chart_id, destination),
+                        done, failure=failed):
+            self._apply_status(self.snapshot)
+        else:
+            self._update_comparison_controls()
+
+    def _update_diagnostic_export_controls(self):
+        if not hasattr(self, 'diagnostic_figure_export_button'):
+            return
+        chart = self.plot_choice.currentData() or {}
+        key = self.diagnostic_model.get('key')
+        blocked = self._comparison_blocked() or self._comparison_busy
+        self.diagnostic_figure_export_button.setEnabled(
+            not blocked and isinstance(key, str) and bool(key)
+            and isinstance(chart.get('id'), str) and bool(chart['id']))
+        self.diagnostic_figure_directory_button.setEnabled(
+            not blocked and bool(self._diagnostic_publication_directories.get(key)))
+
+    def _export_diagnostic_figure(self):
+        if self._comparison_blocked() or self._comparison_busy:
+            return
+        # The visible diagnostic model owns the source, even when another archive
+        # row has since been highlighted. Capture both IDs before queuing work.
+        key = self.diagnostic_model.get('key')
+        chart_id = (self.plot_choice.currentData() or {}).get('id')
+        if not isinstance(key, str) or not key or not isinstance(chart_id, str) or not chart_id:
+            self._message('请先加载并选择一张已保存记录的诊断图。')
+            return
+
+        def export():
+            report = self.service.publication_analysis(key)
+            return self.service.export_publication_figure(report, chart_id)
+
+        def done(result):
+            self._diagnostic_publication_directories[key] = result['directory']
+            message = f"论文图已保存：{result['directory']}"
+            if result.get('warnings'):
+                message += '\n' + '\n'.join(str(item) for item in result['warnings'])
+            self._message(message)
+            self._apply_status(self.snapshot)
+
+        def failed(error):
+            self._error(error)
+            self._apply_status(self.snapshot)
+
+        self._message('正在后台生成当前诊断图的论文图、数据与来源说明…')
+        if self._submit('figure_export', export, done, failure=failed):
+            self._apply_status(self.snapshot)
+        else:
+            self._update_comparison_controls()
+
+    def _open_diagnostic_figure_directory(self):
+        if self._comparison_blocked() or self._comparison_busy:
+            return
+        directory = self._diagnostic_publication_directories.get(self.diagnostic_model.get('key'))
+        if directory and not QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(str(directory))):
+            self._message('无法打开论文图文件夹：' + str(directory))
+
+    def _delete_calibration_points(self,payload,restore=False):
+        if self._comparison_blocked() or self._comparison_busy:
+            self._message("请等待采集、分析或导出结束再修正标定点。")
+            return
+        key=payload.get('key')
+        if not self.selected_details or key!=self.selected_details['key']:
+            self._message("档案选择已变化，请重新选择标定点。")
+            return
+        self._comparison_generation+=1
+        if self.comparison_dialog is not None and not self.comparison_dialog.is_closed:
+            self.comparison_dialog.close()
+        def completed(result):
+            self._message(f"已{'恢复' if restore else '删除'} {len(result['point_ids'])} 个标定点；原始采样保留，可在档案中恢复。重新组合分析后使用最新结果。")
+            self.refresh_history(select_key=key)
+            self._apply_status(self.snapshot)
+        def failed(error):
+            self._error(error)
+            self._apply_status(self.snapshot)
+        if self._submit('calibration_correction',lambda:self.service.correct_calibration_points(
+                key,payload.get('point_ids'),payload.get('reason'),restore=restore),completed,failure=failed):
             self._apply_status(self.snapshot)
         else:
             self._update_comparison_controls()
@@ -1688,6 +2041,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.history_table.selectRow(index)
                 return
         self.refresh_history(select_key=key)
+
+    def _view_saved_curve(self):
+        if self.selected_details and self.selected_details['key'].startswith('temperature_pressure_runs/'):
+            self._show_tab(self.serial_archive_tab)
+        else:
+            self._show_tab(0)
 
     def _history_buttons(self, enabled):
         for widget in (self.view_history_button, self.analyze_button, self.export_button, self.open_run_button, self.replay_button):
@@ -1725,11 +2084,30 @@ class MainWindow(QtWidgets.QMainWindow):
             self.selected_details = details
             self.metadata.setPlainText(json.dumps(details.get("metadata", {}), ensure_ascii=False, indent=2))
             self.file_list.addItems(details.get("files", []))
-            self.live_plots.update_snapshot(details.get("curve") or {})
+            serial=key.startswith('temperature_pressure_runs/')
+            if serial:
+                self.serial_archive_workspace.display(details)
+                self.tabs.setTabVisible(self.serial_archive_tab,True)
+                self.tabs.setTabText(self.serial_archive_tab,'温度标定档案详情' if details['context']['experiment']=='temperature_calibration' else '温压档案详情')
+            else:
+                self.tabs.setTabVisible(self.serial_archive_tab,False)
+                self.live_plots.update_snapshot(details.get("curve") or {})
+            if details.get("context", {}).get("experiment") == "temperature_sweep" and hasattr(self.service, "temperature_history"):
+                def temperature_loaded(data):
+                    if generation != self._history_generation:
+                        return
+                    self.temperature_sweep_workspace.update_snapshot({
+                        **(details.get("curve") or {}), **data})
+                    self.tabs.setTabVisible(self.temperature_sweep_tab, True)
+                self._submit(f"temperature_history:{generation}", lambda: self.service.temperature_history(key), temperature_loaded)
             self.metrics.setText(f"历史已保存曲线 · {key}")
             self.preview_summary.setText("历史静态记录；点击回放可按时间重现 RX 预览。")
             self._history_buttons(True)
-            self.replay_button.setEnabled(not key.startswith("teacher_runs/"))
+            self.replay_button.setEnabled(not serial and not key.startswith("teacher_runs/"))
+            self.analyze_button.setText('查看标定点／电压' if serial else '加载完整诊断')
+            # Loading the highlighted row must not navigate: checkbox clicks also
+            # select a row, and several records may be checked for comparison.
+            # The explicit saved-curve / diagnostics buttons open the detail page.
             self._apply_status(self.snapshot)
         self._submit(f"details:{generation}", lambda: self.service.details(key), loaded)
 
@@ -1737,6 +2115,9 @@ class MainWindow(QtWidgets.QMainWindow):
         key = self.selected_details.get("key") if self.selected_details else None
         if not key:
             self._message("请先在历史记录中选择实验。")
+            return
+        if key.startswith('temperature_pressure_runs/'):
+            self._show_tab(self.serial_archive_tab)
             return
         self.analysis_title.setText(f"正在读取 {key} 的真实记录…")
         self._show_tab(2)
@@ -1763,6 +2144,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _select_plot(self):
         self.analysis_plot.display(self.plot_choice.currentData() or {})
+        self._update_diagnostic_export_controls()
 
     def export_diagnostics(self):
         key = self.selected_details.get("key") if self.selected_details else None

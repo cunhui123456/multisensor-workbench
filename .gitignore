@@ -11,3 +11,7 @@ local_device.json
 *.egg-info/
 build/
 dist/
+
+# Reproducible publication outputs live locally, separate from acquisition Data.
+Figures/*
+!Figures/README.md

@@ -109,7 +109,8 @@ class LivePlots(QtWidgets.QWidget):
                 self.sweep_items[repeat].setData(
                     numbers([row.get("carrier_hz") for row in rows]) / 1e9,
                     numbers([row.get("amplitude_dB") for row in rows]), connect="finite")
-            self.hint.setText("每完成一个真实测量点立即显示。数字幅度未经绝对功率或 S21 标定。")
+            invalid=sum(r.get('measurement_status')=='invalid' or r.get('amplitude_dB') is None for r in points)
+            self.hint.setText(f"有效测量 {len(points)-invalid} 点；无效 {invalid} 点保持空缺。数字幅度未经绝对功率或 S21 标定。")
 
 
 class PreviewPlots(QtWidgets.QWidget):
@@ -235,7 +236,8 @@ class DiagnosticPlot(QtWidgets.QWidget):
                 else:
                     self.plot.plot(x, y, name=label,
                                    pen=None if kind == "scatter" else pg.mkPen(color, width=1.5),
-                                   symbol="o" if kind == "scatter" else None, symbolSize=4,
+                                   symbol=series.get("symbol", "o" if kind in ("scatter", "errorbar") else None),
+                                   symbolSize=5 if series.get("symbol") else 4,
                                    symbolBrush=color, symbolPen=None, connect="finite")
                 if series.get("errors") is not None:
                     errors = numbers(series["errors"])

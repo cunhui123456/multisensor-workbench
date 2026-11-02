@@ -147,7 +147,7 @@ class LiquidTemperatureMixin:
         files = [{"path": p.name, "bytes": p.stat().st_size, "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
                  for p in sorted(output.iterdir()) if p.is_file()]
         (output / "report_manifest.json").write_bytes(json_bytes({"files": files, "raw_iq_included": False}))
-        return report
+        return self.register_analysis_report(report, code_files=code_names)
 
     def liquid_analyze_phase(self, key, annotations, temperature_tolerance_c=.5):
         from sspp_experiments.liquid_temperature.analysis import analyze_phase

@@ -1,0 +1,4313 @@
+{
+  "method": "Offline, one original RX frame per fetch, 8 s sample-time deadline; original predecessor tone. Not a USB/timing/live RF test. Saved successful traces stop at their original acceptance, so candidate trace exhaustion does not prove live failure.",
+  "baseline": {
+    "path": "/private/tmp/sspp_quality_v4_logic.py",
+    "sha256": "03064925072872468aada59cd98670c9a05ce1b11e78ad756d8a056bbfd20b98",
+    "version": "sspp.sweep.bounded_missing_points.v4"
+  },
+  "candidate": {
+    "path": "/private/tmp/sspp_unlimited_20261102/sspp_experiments/material_sweep/logic.py",
+    "sha256": "beaa57fc81ed20a2e25a2225ca23a5fd25da074292511d72a8cca0276dcf42ec",
+    "version": "sspp.sweep.target_confirmed.v5"
+  },
+  "run": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T044410_639036Z",
+  "points": [
+    {
+      "file": "iq_point_001.npz",
+      "sha256": "188af2bec9869f83c106f773d43b110fe408c38a4c3852c01076e6d4556cb9de",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 2000.0,
+      "previous_tone": null,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "target_tone_below_local_floor_margin": 7,
+          "tone_frequency_out_of_tolerance": 7
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_below_local_floor_margin": 11,
+          "target_tone_not_confirmed_in_both_halves": 11,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_002.npz",
+      "sha256": "c859a6fbd80caf5595636f0a3cf2a46c159a5f0cfb5cbcab2999e59f211066da",
+      "sample_rate": 250000.0,
+      "samples": 2007040,
+      "tone": 3000.0,
+      "previous_tone": 2000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 8,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 8.0,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": true,
+        "error": "sample-time 8-second deadline"
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 13,
+          "target_tone_below_local_floor_margin": 15,
+          "tone_frequency_out_of_tolerance": 1,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 8.0,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": false,
+        "sample_deadline_reached": true,
+        "error": "sample-time 8-second deadline"
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_003.npz",
+      "sha256": "d10ffe5b3bb5694ad78a7bcd5800f1db5ea1420adb7c88d1308de0390162069c",
+      "sample_rate": 250000.0,
+      "samples": 1687552,
+      "tone": 4000.0,
+      "previous_tone": 3000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -103.8675359995836,
+          "target_amplitude_dB": -103.86753735536826,
+          "window_start": 1185000,
+          "window_count": 500000,
+          "window_duration_s": 2.0,
+          "adaptive_level_index": 3,
+          "target_snr_db": 17.75484995459742,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 5
+        },
+        "delivered_seconds": 6.750208,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -103.06865653696109,
+          "target_amplitude_dB": -103.06865653696109,
+          "window_start": 780000,
+          "window_count": 250000,
+          "window_duration_s": 1.0,
+          "adaptive_level_index": 5,
+          "target_snr_db": 15.39726861082135,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 4000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 16,
+        "passed_windows": 6,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "target_tone_below_local_floor_margin": 8
+        },
+        "delivered_seconds": 4.128768,
+        "consumed_seconds": 4.12,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_004.npz",
+      "sha256": "ee8142a8482f793ba8dfe24c46cd077f598567ae1dd3c46b83bdb8995557021e",
+      "sample_rate": 250000.0,
+      "samples": 1941504,
+      "tone": 5000.0,
+      "previous_tone": 4000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -100.49895283474511,
+          "target_amplitude_dB": -100.49895375469,
+          "window_start": 1440000,
+          "window_count": 500000,
+          "window_duration_s": 2.0,
+          "adaptive_level_index": 3,
+          "target_snr_db": 22.160453737862433,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 14,
+        "passed_windows": 7,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 7.766016,
+        "consumed_seconds": 7.76,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -102.04846246999166,
+          "target_amplitude_dB": -102.04846246999166,
+          "window_start": 217500,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 3,
+          "target_snr_db": 12.144777012152144,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 5000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 3,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 1.14688,
+        "consumed_seconds": 1.12,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_005.npz",
+      "sha256": "85b9c203f77e393fe14ce7df8769e385e0e0ddc5e17650e3d1ed0c39960a9cd4",
+      "sample_rate": 250000.0,
+      "samples": 376832,
+      "tone": 6000.0,
+      "previous_tone": 5000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 6000.0,
+          "amplitude_dB": -99.90743914116551,
+          "target_amplitude_dB": -99.90744000054772,
+          "window_start": 310000,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 2,
+          "target_snr_db": 15.114291931267124,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 1.507328,
+        "consumed_seconds": 1.49,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 6000.0,
+          "amplitude_dB": -97.18215779616365,
+          "target_amplitude_dB": -97.18215779616365,
+          "window_start": 92500,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 2,
+          "target_snr_db": 13.889716868835231,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 6000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.47,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_006.npz",
+      "sha256": "2b4180982a25bcd28ebc2ce4cb85f32edb8db053879f331d806605c122b3e13d",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 7000.0,
+      "previous_tone": 6000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -95.79741739732344,
+          "target_amplitude_dB": -95.79741793273199,
+          "window_start": 100000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.238388488080723,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 6,
+          "previous_tone_not_sufficiently_rejected": 5,
+          "target_tone_below_local_floor_margin": 5
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.5,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -96.62576608509102,
+          "target_amplitude_dB": -96.62576608509102,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 10.29694393280904,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 7000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_007.npz",
+      "sha256": "8a27c0d4ff388a8600ed2d93d2bbe7bcd9e298a2425202eb36c53173fdfcfde5",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 8000.0,
+      "previous_tone": 7000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -94.03230724327955,
+          "target_amplitude_dB": -94.03230768022749,
+          "window_start": 100000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.276668611187375,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.5,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -94.74187972784367,
+          "target_amplitude_dB": -94.74187972784367,
+          "window_start": 70000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.149836526820804,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 8000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 9,
+          "tone_frequency_out_of_tolerance": 2
+        },
+        "delivered_seconds": 0.425984,
+        "consumed_seconds": 0.33,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_008.npz",
+      "sha256": "8d0816c3034a765fac38006eaff9827cdc856accca816d5b7cfc5541724fa9f3",
+      "sample_rate": 250000.0,
+      "samples": 40960,
+      "tone": 9000.0,
+      "previous_tone": 8000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -93.85693670578,
+          "target_amplitude_dB": -93.85693713399445,
+          "window_start": 25000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 12.445744545165603,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.16384,
+        "consumed_seconds": 0.14,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -93.85693713399445,
+          "target_amplitude_dB": -93.85693713399445,
+          "window_start": 25000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 12.445744545165603,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 9000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 3,
+          "tone_frequency_out_of_tolerance": 1,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.16384,
+        "consumed_seconds": 0.14,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_009.npz",
+      "sha256": "1b6cc271f2f9590dd6594f4b49008574fc2bf1d7e6e154ec2d13d995e890ead2",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 10000.0,
+      "previous_tone": 9000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 10000.0,
+          "amplitude_dB": -91.51045016524478,
+          "target_amplitude_dB": -91.51045049208594,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 20.988641685655033,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 10000.0,
+          "amplitude_dB": -89.38479163333149,
+          "target_amplitude_dB": -89.38479163333149,
+          "window_start": 50000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 18.446581170590918,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 10000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 11,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.24,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_010.npz",
+      "sha256": "0339d8226fc9c5689f54c8fe8c04aba0e0c9a66dc02017a649324bb1ab349410",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 11000.0,
+      "previous_tone": 10000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 11000.0,
+          "amplitude_dB": -92.45165535868946,
+          "target_amplitude_dB": -92.45165572293736,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.907892505243609,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 8,
+        "passed_windows": 2,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 4,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.29,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_011.npz",
+      "sha256": "8595ba2b547839cedff9f631c0f927570527305696707c45e3f56c25732a7edf",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 12000.0,
+      "previous_tone": 11000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -95.38670244873073,
+          "target_amplitude_dB": -95.38670295941156,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.167052643771974,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -93.30377527564467,
+          "target_amplitude_dB": -93.30377527564467,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.246527729803745,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 12000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 5,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_012.npz",
+      "sha256": "440c7d34bbd7029483bcf577a10a05aee72ca6e60eb5f30abd7f85c20bf8c793",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 13000.0,
+      "previous_tone": 12000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -95.90903208162374,
+          "target_amplitude_dB": -95.90903262395679,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.1071854117755,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 8,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 8
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -93.51608121708159,
+          "target_amplitude_dB": -93.51608121708159,
+          "window_start": 65000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.989750400421944,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 13000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.31,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_013.npz",
+      "sha256": "1df38600442d9903218956017f0e8c177b445afd87b3482ad4bd5095f5fee81e",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 14000.0,
+      "previous_tone": 13000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -95.99328520845462,
+          "target_amplitude_dB": -95.9932857560736,
+          "window_start": 105000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 18.41429467097232,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 14,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 8
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.52,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -93.54321361344574,
+          "target_amplitude_dB": -93.54321361344574,
+          "window_start": 67500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.717691645402027,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 14000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_014.npz",
+      "sha256": "1231a4f1b333836e514862baca6c9a1d9ca8dbfb66478ab94ee3659bcd0b34ab",
+      "sample_rate": 250000.0,
+      "samples": 180224,
+      "tone": 15000.0,
+      "previous_tone": 14000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15000.0,
+          "amplitude_dB": -95.2407834954024,
+          "target_amplitude_dB": -95.24078399757559,
+          "window_start": 155000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.082479596414714,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 16,
+        "passed_windows": 5,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.720896,
+        "consumed_seconds": 0.72,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15000.0,
+          "amplitude_dB": -97.76784165178162,
+          "target_amplitude_dB": -97.76784165178162,
+          "window_start": 77500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.469670096626702,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 15000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 5,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.36,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_015.npz",
+      "sha256": "27b47b4c708bc10b5a2dcf30c26879f2805831b658939e7025193cadc013848b",
+      "sample_rate": 250000.0,
+      "samples": 90112,
+      "tone": 16000.0,
+      "previous_tone": 15000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 16000.0,
+          "amplitude_dB": -100.42185345797067,
+          "target_amplitude_dB": -100.42185436978659,
+          "window_start": 60000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.190837171029704,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 5,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_below_local_floor_margin": 1,
+          "previous_tone_not_sufficiently_rejected": 1,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 16020.0,
+          "amplitude_dB": -102.41112003180857,
+          "target_amplitude_dB": -102.41112003180857,
+          "window_start": 30000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 7.751613746704229,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 16000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 5,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_below_local_floor_margin": 1,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.196608,
+        "consumed_seconds": 0.17,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_016.npz",
+      "sha256": "c5535329ba18b13b41265bf37b74542f88e60d9b16e3efe191707e6768ba38aa",
+      "sample_rate": 250000.0,
+      "samples": 139264,
+      "tone": 17000.0,
+      "previous_tone": 16000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 17000.0,
+          "amplitude_dB": -98.49762127089474,
+          "target_amplitude_dB": -98.49762200152128,
+          "window_start": 110000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.904013727906406,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.54,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 8,
+        "passed_windows": 2,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 4,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 2,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.52,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_017.npz",
+      "sha256": "543fbd02d0313938c9560bf71455dc7551f056809e73e3cfd455dbf1adae152f",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 18000.0,
+      "previous_tone": 17000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 18000.0,
+          "amplitude_dB": -99.80733357816477,
+          "target_amplitude_dB": -99.80733442770088,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.559788613478196,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "previous_tone_not_sufficiently_rejected": 2,
+          "target_tone_below_local_floor_margin": 2
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 11,
+        "passed_windows": 5,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "previous_tone_not_sufficiently_rejected": 3,
+          "target_tone_below_local_floor_margin": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.49,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_018.npz",
+      "sha256": "a69968c863223fdc9350f7d22e42a2acf11ae148673ba9a6786a6c72bff9f56e",
+      "sample_rate": 250000.0,
+      "samples": 65536,
+      "tone": 19000.0,
+      "previous_tone": 18000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -98.75033781290227,
+          "target_amplitude_dB": -98.75033856509842,
+          "window_start": 55000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 10.85595303268722,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.26,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -98.75033856509842,
+          "target_amplitude_dB": -98.75033856509842,
+          "window_start": 55000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 10.85595303268722,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 19000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 9,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 9,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.26,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_019.npz",
+      "sha256": "603c76fd16864a346873bb76381bbd4df487cf2e4b9e9f354623fb3821844abc",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 20000.0,
+      "previous_tone": 19000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -98.1318401683297,
+          "target_amplitude_dB": -98.13184086882745,
+          "window_start": 100000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.606475131918415,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.5,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -94.82789635573852,
+          "target_amplitude_dB": -94.82789635573852,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.977725476391589,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 20000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 9,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_020.npz",
+      "sha256": "35af2da9aea0488c7aebcdaefbc4b849fe56c35516df504d8790ff2a0a137e3b",
+      "sample_rate": 250000.0,
+      "samples": 65536,
+      "tone": 21000.0,
+      "previous_tone": 20000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 21000.0,
+          "amplitude_dB": -96.880072412504,
+          "target_amplitude_dB": -96.88007301898625,
+          "window_start": 55000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.413014579538252,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.26,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 21000.0,
+          "amplitude_dB": -96.88007301898625,
+          "target_amplitude_dB": -96.88007301898625,
+          "window_start": 55000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.413014579538252,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 21000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "tone_frequency_out_of_tolerance": 2
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.26,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_021.npz",
+      "sha256": "a1fbf9081c6f100e810b8b32db1a8515353327b514da43aafe3db1971d36d5f2",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 2000.0,
+      "previous_tone": 21000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 7,
+          "target_tone_below_local_floor_margin": 5
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "target_tone_below_local_floor_margin": 14
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_022.npz",
+      "sha256": "59543c02b1926b08037de6f31fd782b28067f2d2fb1e59692086322ba55541b6",
+      "sample_rate": 250000.0,
+      "samples": 2007040,
+      "tone": 3000.0,
+      "previous_tone": 2000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 10,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 7,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 8.0,
+        "consumed_seconds": 6.84,
+        "trace_exhausted": false,
+        "sample_deadline_reached": true,
+        "error": "sample-time 8-second deadline"
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 17,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 12,
+          "target_tone_below_local_floor_margin": 11
+        },
+        "delivered_seconds": 8.0,
+        "consumed_seconds": 7.52,
+        "trace_exhausted": false,
+        "sample_deadline_reached": true,
+        "error": "sample-time 8-second deadline"
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_023.npz",
+      "sha256": "28835fa4e26b49f6b28486177996d8e2738e2386a9560516e07c16725602a319",
+      "sample_rate": 250000.0,
+      "samples": 1687552,
+      "tone": 4000.0,
+      "previous_tone": 3000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -105.64935530514913,
+          "target_amplitude_dB": -105.64935696964015,
+          "window_start": 1185000,
+          "window_count": 500000,
+          "window_duration_s": 2.0,
+          "adaptive_level_index": 3,
+          "target_snr_db": 16.06726341273793,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 6,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 6.750208,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 12,
+          "target_tone_below_local_floor_margin": 9
+        },
+        "delivered_seconds": 6.750208,
+        "consumed_seconds": 5.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_024.npz",
+      "sha256": "7bfc6d3f86f51de81037e00cf9031f8bd9072bc67d97e9691a325f9cc1840fb2",
+      "sample_rate": 250000.0,
+      "samples": 253952,
+      "tone": 5000.0,
+      "previous_tone": 4000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -100.95775313818979,
+          "target_amplitude_dB": -100.95775410803411,
+          "window_start": 185000,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 2,
+          "target_snr_db": 12.011364411194492,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 1.015808,
+        "consumed_seconds": 0.99,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -101.11091135125483,
+          "target_amplitude_dB": -101.11091135125483,
+          "window_start": 180000,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 3,
+          "target_snr_db": 11.780852189114627,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 5000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.98304,
+        "consumed_seconds": 0.97,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_025.npz",
+      "sha256": "f7c7f9850c05d5d23de70e4590f32102fb893928df255f1ee52a4bfc8f3642af",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 6000.0,
+      "previous_tone": 5000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 6000.0,
+          "amplitude_dB": -97.79466057307503,
+          "target_amplitude_dB": -97.79466124690043,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.335317799435304,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "previous_tone_not_sufficiently_rejected": 3,
+          "target_tone_below_local_floor_margin": 3
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 6000.0,
+          "amplitude_dB": -96.91421409146753,
+          "target_amplitude_dB": -96.91421409146753,
+          "window_start": 92500,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 2,
+          "target_snr_db": 13.180345824930544,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 6000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "previous_tone_not_sufficiently_rejected": 3,
+          "target_tone_below_local_floor_margin": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.47,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_026.npz",
+      "sha256": "7da0d9a4bed0d8c66515ed92b3e02ce0b8c5812272eef1978398d6d28302e36b",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 7000.0,
+      "previous_tone": 6000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -93.99006621606154,
+          "target_amplitude_dB": -93.99006665088953,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.32334195118256,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -92.41260826928524,
+          "target_amplitude_dB": -92.41260826928524,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.222683654243266,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 7000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 5
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_027.npz",
+      "sha256": "8a86b1e4df98cee6c51a305cc73fad120f10280d2c1abd157c7961f6556317d6",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 8000.0,
+      "previous_tone": 7000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -94.73201004406995,
+          "target_amplitude_dB": -94.73201051767334,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.64493812056912,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -93.80676220793647,
+          "target_amplitude_dB": -93.80676220793647,
+          "window_start": 67500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.299545944066406,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 8000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4,
+          "tone_frequency_out_of_tolerance": 2
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_028.npz",
+      "sha256": "b19213a5b34c83e171936bc9c63eca7fb0169f2751d9be7f868f59a5853ee1ad",
+      "sample_rate": 250000.0,
+      "samples": 32768,
+      "tone": 9000.0,
+      "previous_tone": 8000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -91.57252445541957,
+          "target_amplitude_dB": -91.57252478460494,
+          "window_start": 20000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 16.13312029180714,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 5,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 2,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.131072,
+        "consumed_seconds": 0.12,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -91.57252478460494,
+          "target_amplitude_dB": -91.57252478460494,
+          "window_start": 20000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 16.13312029180714,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 9000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 5,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 2,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 2,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.131072,
+        "consumed_seconds": 0.12,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_029.npz",
+      "sha256": "3f2a39ba97f288a16327a2a70694d53b4559333f60f704db05221f1a9a47e34b",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 10000.0,
+      "previous_tone": 9000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 10000.0,
+          "amplitude_dB": -91.29027107932343,
+          "target_amplitude_dB": -91.29027139798362,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 16.473156461715448,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 10000.0,
+          "amplitude_dB": -91.29027139798362,
+          "target_amplitude_dB": -91.29027139798362,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 16.473156461715448,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 10000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 9,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10,
+          "tone_frequency_out_of_tolerance": 4
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_030.npz",
+      "sha256": "1780b2e5add9626b8fd1817e6b4bbfbcd547415ae2155300c22b4a2daa929409",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 11000.0,
+      "previous_tone": 10000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 11000.0,
+          "amplitude_dB": -92.0503431852083,
+          "target_amplitude_dB": -92.05034353300996,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 14.609203629663767,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 11000.0,
+          "amplitude_dB": -92.05034353300996,
+          "target_amplitude_dB": -92.05034353300996,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 14.609203629663767,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 11000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_031.npz",
+      "sha256": "4822574061158509d777634a95f7dcdae6896b552b2a88292182eeb48ae2f3c9",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 12000.0,
+      "previous_tone": 11000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -94.16268519473593,
+          "target_amplitude_dB": -94.1626856382922,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.38473512986743,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -94.1626856382922,
+          "target_amplitude_dB": -94.1626856382922,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.38473512986743,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 12000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_032.npz",
+      "sha256": "740576e1a5a8068af98c00b10ee62dd796813d16a814b4b4d1415bad6da0dec8",
+      "sample_rate": 250000.0,
+      "samples": 114688,
+      "tone": 13000.0,
+      "previous_tone": 12000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -94.26477599952992,
+          "target_amplitude_dB": -94.26477644833015,
+          "window_start": 85000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 18.21221670920427,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 7,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 6
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.44,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -97.08770889562555,
+          "target_amplitude_dB": -97.08770889562555,
+          "window_start": 67500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 11.65370205930357,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 13000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 11,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 7,
+          "tone_frequency_out_of_tolerance": 2
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_033.npz",
+      "sha256": "eebc99cf9b02eec5ab450fa326c9670ae51d8a148500553a059d94e63b753d0d",
+      "sample_rate": 250000.0,
+      "samples": 114688,
+      "tone": 14000.0,
+      "previous_tone": 13000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -97.16304948249297,
+          "target_amplitude_dB": -97.16305010905899,
+          "window_start": 85000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 14.579651457354197,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.44,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -95.9922691094782,
+          "target_amplitude_dB": -95.9922691094782,
+          "window_start": 67500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.644695226814914,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 14000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "tone_frequency_out_of_tolerance": 1,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_034.npz",
+      "sha256": "a9614d527ed633fe88fb50023e2434154d6cb051c9ff3812fa365d8fdf25e2b2",
+      "sample_rate": 250000.0,
+      "samples": 139264,
+      "tone": 15000.0,
+      "previous_tone": 14000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15000.0,
+          "amplitude_dB": -97.38372024344712,
+          "target_amplitude_dB": -97.38372088613562,
+          "window_start": 110000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.58411754609743,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.54,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 6
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.47,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_035.npz",
+      "sha256": "d6d4dad8cffa7fc488911ac202c043b37da7426899b933ac127e441dc4b4a1f4",
+      "sample_rate": 250000.0,
+      "samples": 114688,
+      "tone": 16000.0,
+      "previous_tone": 15000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 16000.0,
+          "amplitude_dB": -99.3226820239139,
+          "target_amplitude_dB": -99.32268282734492,
+          "window_start": 85000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.873763372759127,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 5,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.44,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15920.0,
+          "amplitude_dB": -100.9430653319548,
+          "target_amplitude_dB": -100.9430653319548,
+          "window_start": 62500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 10.100566511797135,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 16000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 5,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 4,
+          "tone_frequency_out_of_tolerance": 1,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.3,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_036.npz",
+      "sha256": "61d374a8ad6b87892644ffdf71b1c958652a46a11237c551eccb6181d50afd01",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 17000.0,
+      "previous_tone": 16000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 17000.0,
+          "amplitude_dB": -99.14958963814965,
+          "target_amplitude_dB": -99.14959042572809,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.881067786808254,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 17000.0,
+          "amplitude_dB": -99.37128005269842,
+          "target_amplitude_dB": -99.37128005269842,
+          "window_start": 92500,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 2,
+          "target_snr_db": 12.737297008936812,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 17000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "tone_frequency_out_of_tolerance": 1,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.47,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_037.npz",
+      "sha256": "8bac139ff7805ade321eda81433c5b5a9023910ddc420c37c39c0d8c82c5c801",
+      "sample_rate": 250000.0,
+      "samples": 139264,
+      "tone": 18000.0,
+      "previous_tone": 17000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 18000.0,
+          "amplitude_dB": -100.86258300443393,
+          "target_amplitude_dB": -100.86258396370887,
+          "window_start": 110000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 11.984173801525396,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.54,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 18000.0,
+          "amplitude_dB": -97.85264409761375,
+          "target_amplitude_dB": -97.85264409761375,
+          "window_start": 80000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 12.369370836053088,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 18000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 5,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.37,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_038.npz",
+      "sha256": "ae7527bc097195008d0db56d9b90c28dfefaf127068911f22f24589cf5305a81",
+      "sample_rate": 250000.0,
+      "samples": 278528,
+      "tone": 19000.0,
+      "previous_tone": 18000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -96.52435053740875,
+          "target_amplitude_dB": -96.5243511195542,
+          "window_start": 210000,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 2,
+          "target_snr_db": 20.675273429453842,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 1.114112,
+        "consumed_seconds": 1.09,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -97.84806124801173,
+          "target_amplitude_dB": -97.84806124801173,
+          "window_start": 67500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 14.706138668251672,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 19000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_039.npz",
+      "sha256": "4c22ce3d77cf8e066c4d016656c0b096a8a052684321b55a51d9e91a2bce98e8",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 20000.0,
+      "previous_tone": 19000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -96.54779651413943,
+          "target_amplitude_dB": -96.54779709785916,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.61217209457367,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 8
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -96.70076458649275,
+          "target_amplitude_dB": -96.70076458649275,
+          "window_start": 65000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.65354602083234,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 20000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 9,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.31,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_040.npz",
+      "sha256": "2a83770e185106777b2d3f301e475a544264fa0d9851ea5dd448454d9a42c616",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 21000.0,
+      "previous_tone": 20000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 21000.0,
+          "amplitude_dB": -94.11639916380365,
+          "target_amplitude_dB": -94.11639960500236,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.82705439126409,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 10,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 8
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.27,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_041.npz",
+      "sha256": "f5847324b54e7323b3c278272fa946ae80f637bb4351437bc2125e1d6f6b707e",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 2000.0,
+      "previous_tone": 21000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 14,
+          "target_tone_below_local_floor_margin": 11
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_042.npz",
+      "sha256": "c24fd444ad0f1bc799c4a63f8c77639a7bd4b82b26cc7245c59675f7608da8dc",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 3000.0,
+      "previous_tone": 2000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 8,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 13,
+          "target_tone_below_local_floor_margin": 10
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_043.npz",
+      "sha256": "9360a939a23734b4bff3ee4fa28d624273431f97f3a5e9b0b51a43d0ba7b4556",
+      "sample_rate": 250000.0,
+      "samples": 1687552,
+      "tone": 4000.0,
+      "previous_tone": 3000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -105.5217077541434,
+          "target_amplitude_dB": -105.52170939435572,
+          "window_start": 1185000,
+          "window_count": 500000,
+          "window_duration_s": 2.0,
+          "adaptive_level_index": 3,
+          "target_snr_db": 16.040033648395564,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 6,
+          "target_tone_below_local_floor_margin": 3
+        },
+        "delivered_seconds": 6.750208,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -107.70646238493245,
+          "target_amplitude_dB": -107.70646238493245,
+          "window_start": 855000,
+          "window_count": 250000,
+          "window_duration_s": 1.0,
+          "adaptive_level_index": 5,
+          "target_snr_db": 10.905569404469123,
+          "target_confirmation": {
+            "required": true,
+            "confirmed": true,
+            "halves": [
+              {
+                "sample_count": 125000,
+                "target_snr_db": 10.629260555251774,
+                "target_amplitude_dB": -105.13522400612982,
+                "local_floor_dB": -115.7644845613816
+              },
+              {
+                "sample_count": 125000,
+                "target_snr_db": 11.472477790116054,
+                "target_amplitude_dB": -103.9392068986121,
+                "local_floor_dB": -115.41168468872814
+              }
+            ]
+          },
+          "amplitude_frequency_hz": 4000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 14,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 4.42368,
+        "consumed_seconds": 4.42,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_044.npz",
+      "sha256": "d793e2d00ff1cc0c52a8ac340c7a4aeedef670f85275ac9190c925838330413d",
+      "sample_rate": 250000.0,
+      "samples": 442368,
+      "tone": 5000.0,
+      "previous_tone": 4000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -100.15680234865529,
+          "target_amplitude_dB": -100.15680323306708,
+          "window_start": 372500,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 2,
+          "target_snr_db": 13.722297661916677,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 5,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 5,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 1.769472,
+        "consumed_seconds": 1.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 5000.0,
+          "amplitude_dB": -101.77543441462387,
+          "target_amplitude_dB": -101.77543441462387,
+          "window_start": 167500,
+          "window_count": 62500,
+          "window_duration_s": 0.25,
+          "adaptive_level_index": 3,
+          "target_snr_db": 11.459107542047377,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 5000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "tone_frequency_out_of_tolerance": 1,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 0.950272,
+        "consumed_seconds": 0.92,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_045.npz",
+      "sha256": "d42d03627a06d712b89d70e99f4201cc8af40587572f9895b86eda0ec221254b",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 6000.0,
+      "previous_tone": 5000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 6000.0,
+          "amplitude_dB": -99.37228910580342,
+          "target_amplitude_dB": -99.37228991383594,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 11.057613591105529,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 2,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.47,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_046.npz",
+      "sha256": "9365481ffe367f9e3cb9b9a735e70461509ce5c49a31334d8092185835bffc0d",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 7000.0,
+      "previous_tone": 6000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -96.37244825829103,
+          "target_amplitude_dB": -96.37244883034477,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.441785755614482,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 5,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 3
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 7000.0,
+          "amplitude_dB": -96.03222602004257,
+          "target_amplitude_dB": -96.03222602004257,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 2,
+          "target_snr_db": 14.682511442418267,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 7000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 4,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_047.npz",
+      "sha256": "577c77e089de543545f18cfb5ae37f8ddc137641eeb56b43700109eff4d8919b",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 8000.0,
+      "previous_tone": 7000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -94.2363457712827,
+          "target_amplitude_dB": -94.23634621861653,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.154517466841593,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 11,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 7,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 7
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 8000.0,
+          "amplitude_dB": -93.76395344848356,
+          "target_amplitude_dB": -93.76395344848356,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.650462093438197,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 8000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 8,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_048.npz",
+      "sha256": "78c9ba62898b3c7484e6673f37187d500c66e070b898492679bf33d994627d76",
+      "sample_rate": 250000.0,
+      "samples": 90112,
+      "tone": 9000.0,
+      "previous_tone": 8000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -93.60153057118468,
+          "target_amplitude_dB": -93.60153098699075,
+          "window_start": 65000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.27888273956293,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "previous_tone_not_sufficiently_rejected": 2,
+          "target_tone_below_local_floor_margin": 2
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.36,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 9000.0,
+          "amplitude_dB": -92.80026499019144,
+          "target_amplitude_dB": -92.80026499019144,
+          "window_start": 47500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 14.78193753735029,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 9000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 4,
+          "previous_tone_not_sufficiently_rejected": 3,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 3
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.24,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_049.npz",
+      "sha256": "a57d9a879ebbf89bfa86db0e5d6b34102c06ee2f256f37cbbfd4bdba028eaec7",
+      "sample_rate": 250000.0,
+      "samples": 65536,
+      "tone": 10000.0,
+      "previous_tone": 9000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 10000.0,
+          "amplitude_dB": -92.82073660222028,
+          "target_amplitude_dB": -92.82073698227944,
+          "window_start": 55000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 17.491583280535334,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 12,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.26,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 7,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "target_tone_below_local_floor_margin": 5,
+          "previous_tone_not_sufficiently_rejected": 5
+        },
+        "delivered_seconds": 0.262144,
+        "consumed_seconds": 0.24,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_050.npz",
+      "sha256": "8ae8735f33e611cc915703b1b9e3304e6a8daa9c9a1d3a19cd6d6a90fc532d38",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 11000.0,
+      "previous_tone": 10000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 11000.0,
+          "amplitude_dB": -93.73246930814888,
+          "target_amplitude_dB": -93.73246973027108,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 13.088002894146571,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "previous_tone_not_sufficiently_rejected": 10,
+          "target_tone_below_local_floor_margin": 9
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 11,
+        "passed_windows": 2,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 9,
+          "previous_tone_not_sufficiently_rejected": 8,
+          "target_tone_below_local_floor_margin": 8,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.29,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_051.npz",
+      "sha256": "7688a48b82185399eceebb60e34731a71a14b9351adc43052f3764d70f435aad",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 12000.0,
+      "previous_tone": 11000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -93.67920692350486,
+          "target_amplitude_dB": -93.67920734304596,
+          "window_start": 105000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 19.25235556945317,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 14,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 11,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.52,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 12000.0,
+          "amplitude_dB": -93.36392602382804,
+          "target_amplitude_dB": -93.36392602382804,
+          "window_start": 75000,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.401383221733084,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 12000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 14,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 11,
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.35,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_052.npz",
+      "sha256": "78d9a07de3cab3665b3b7593c1e26d01f1418d093b4a6d873f39e69e2c043be8",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 13000.0,
+      "previous_tone": 12000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -95.62864394037396,
+          "target_amplitude_dB": -95.62864446547934,
+          "window_start": 100000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.768582365528786,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 6,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 5
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.5,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 13000.0,
+          "amplitude_dB": -95.35282357489919,
+          "target_amplitude_dB": -95.35282357489919,
+          "window_start": 82500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.830046826933092,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 13000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 11,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 7,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.38,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_053.npz",
+      "sha256": "fdd835249fc583e71754d352a3df5c7851f815d989dcc618945a64dd0639fd8f",
+      "sample_rate": 250000.0,
+      "samples": 139264,
+      "tone": 14000.0,
+      "previous_tone": 13000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -97.18238112539481,
+          "target_amplitude_dB": -97.18238175335692,
+          "window_start": 110000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.820614849469072,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 15,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 11,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.557056,
+        "consumed_seconds": 0.54,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 14000.0,
+          "amplitude_dB": -100.27237313508203,
+          "target_amplitude_dB": -100.27237313508203,
+          "window_start": 77500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 10.718414945859688,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 14000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 9,
+          "tone_frequency_out_of_tolerance": 3
+        },
+        "delivered_seconds": 0.425984,
+        "consumed_seconds": 0.36,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_054.npz",
+      "sha256": "8e79f4af44af247e17c9d870a060d7e98ffffc8a1c27121bf9428cfea2956441",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 15000.0,
+      "previous_tone": 14000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15000.0,
+          "amplitude_dB": -96.5270029439953,
+          "target_amplitude_dB": -96.52700352631908,
+          "window_start": 90000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 16.54683432519214,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 2
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.46,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 15000.0,
+          "amplitude_dB": -96.06500376960898,
+          "target_amplitude_dB": -96.06500376960898,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.347028568989188,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 15000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 6,
+          "tone_frequency_out_of_tolerance": 1,
+          "previous_tone_not_sufficiently_rejected": 4
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_055.npz",
+      "sha256": "dca2a68d9ff0c18b7cf371ac1ebdf70dbeaec41bcb798493b830a865162bd371",
+      "sample_rate": 250000.0,
+      "samples": 114688,
+      "tone": 16000.0,
+      "previous_tone": 15000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 16000.0,
+          "amplitude_dB": -101.14775463853871,
+          "target_amplitude_dB": -101.14775562983237,
+          "window_start": 85000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 10.541959756946992,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 2
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.44,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 16000.0,
+          "amplitude_dB": -100.71412385318442,
+          "target_amplitude_dB": -100.71412385318442,
+          "window_start": 67500,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 2,
+          "target_snr_db": 12.45675376825657,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 16000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 7,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 4,
+          "target_tone_below_local_floor_margin": 3
+        },
+        "delivered_seconds": 0.393216,
+        "consumed_seconds": 0.37,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_056.npz",
+      "sha256": "c3370f8c2199d3babcf1fa8cb8f5667205bae46fa5f70e9aad69e04d32080cf4",
+      "sample_rate": 250000.0,
+      "samples": 114688,
+      "tone": 17000.0,
+      "previous_tone": 16000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 17000.0,
+          "amplitude_dB": -99.27498971867941,
+          "target_amplitude_dB": -99.27499051771053,
+          "window_start": 85000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 13.690574045077096,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 6,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 3,
+          "target_tone_below_local_floor_margin": 3,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.44,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 7,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 5,
+          "target_tone_below_local_floor_margin": 7,
+          "previous_tone_not_sufficiently_rejected": 2,
+          "tone_frequency_out_of_tolerance": 1
+        },
+        "delivered_seconds": 0.458752,
+        "consumed_seconds": 0.22,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_057.npz",
+      "sha256": "e50d55c08ccf3b97d5591b0c5f4726c83dff1a9e3e410cc900320048f3cbfff6",
+      "sample_rate": 250000.0,
+      "samples": 81920,
+      "tone": 18000.0,
+      "previous_tone": 17000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 18000.0,
+          "amplitude_dB": -101.0084155932556,
+          "target_amplitude_dB": -101.00841656877307,
+          "window_start": 70000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 7.364013705221108,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 15,
+        "passed_windows": 4,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 8,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 11
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.32,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 10,
+        "passed_windows": 1,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 9,
+          "previous_tone_not_sufficiently_rejected": 7
+        },
+        "delivered_seconds": 0.32768,
+        "consumed_seconds": 0.27,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_058.npz",
+      "sha256": "b697adacce2bd6a9989a7f58c4ee6d05dc4137c1060dbab5c40279b5fb57c258",
+      "sample_rate": 250000.0,
+      "samples": 122880,
+      "tone": 19000.0,
+      "previous_tone": 18000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -95.68048016934128,
+          "target_amplitude_dB": -95.68048069758994,
+          "window_start": 95000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 18.0888242204607,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 8,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 5,
+          "previous_tone_not_sufficiently_rejected": 4,
+          "target_tone_below_local_floor_margin": 4
+        },
+        "delivered_seconds": 0.49152,
+        "consumed_seconds": 0.48,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 19000.0,
+          "amplitude_dB": -95.78477823969315,
+          "target_amplitude_dB": -95.78477823969315,
+          "window_start": 72500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.79904003476603,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 19000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 6,
+          "previous_tone_not_sufficiently_rejected": 5,
+          "target_tone_below_local_floor_margin": 5
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.34,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_059.npz",
+      "sha256": "806e0e01b48f5818bf2a75602b681c7129f57eeecf786c941872d640fcd5f49e",
+      "sample_rate": 250000.0,
+      "samples": 131072,
+      "tone": 20000.0,
+      "previous_tone": 19000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -95.88720808207106,
+          "target_amplitude_dB": -95.8872086230424,
+          "window_start": 100000,
+          "window_count": 25000,
+          "window_duration_s": 0.1,
+          "adaptive_level_index": 1,
+          "target_snr_db": 17.800693349614136,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 10,
+          "previous_tone_not_sufficiently_rejected": 9
+        },
+        "delivered_seconds": 0.524288,
+        "consumed_seconds": 0.5,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 20000.0,
+          "amplitude_dB": -94.36515250689418,
+          "target_amplitude_dB": -94.36515250689418,
+          "window_start": 77500,
+          "window_count": 12500,
+          "window_duration_s": 0.05,
+          "adaptive_level_index": 1,
+          "target_snr_db": 15.440206258036177,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 20000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 10,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 7,
+          "target_tone_below_local_floor_margin": 6,
+          "previous_tone_not_sufficiently_rejected": 6
+        },
+        "delivered_seconds": 0.360448,
+        "consumed_seconds": 0.36,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_060.npz",
+      "sha256": "3a92abb599b75741b9b00d589e8a99b22957672e9e9b8fb19fef13d5588caa75",
+      "sample_rate": 250000.0,
+      "samples": 73728,
+      "tone": 21000.0,
+      "previous_tone": 20000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 21000.0,
+          "amplitude_dB": -94.50821115272262,
+          "target_amplitude_dB": -94.50821161427912,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.529932021020434,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 10,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 10
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 21000.0,
+          "amplitude_dB": -94.50821161427912,
+          "target_amplitude_dB": -94.50821161427912,
+          "window_start": 60000,
+          "window_count": 10000,
+          "window_duration_s": 0.04,
+          "adaptive_level_index": 0,
+          "target_snr_db": 15.529932021020434,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 21000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 13,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "target_tone_below_local_floor_margin": 8,
+          "previous_tone_not_sufficiently_rejected": 10,
+          "tone_frequency_out_of_tolerance": 2
+        },
+        "delivered_seconds": 0.294912,
+        "consumed_seconds": 0.28,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    },
+    {
+      "file": "iq_point_061.npz",
+      "sha256": "11ac9ea7f750f326c8c495d6a4a9718da0a559e23dcd78ee1cb61bff62e55b9e",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 2000.0,
+      "previous_tone": 21000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 9,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 2,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 13,
+          "tone_frequency_out_of_tolerance": 2,
+          "target_tone_below_local_floor_margin": 11
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_062.npz",
+      "sha256": "f9ed2a8b7ee71d7e6f84ee420014f755bee0ea5a6de9d416ff3bda7d44177dad",
+      "sample_rate": 250000.0,
+      "samples": 1998848,
+      "tone": 3000.0,
+      "previous_tone": 2000.0,
+      "historically_accepted": false,
+      "baseline": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 9,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 8,
+          "target_tone_below_local_floor_margin": 6
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": false,
+        "measurement": null,
+        "accepted_windows_nonoverlapping": null,
+        "quality_attempts": 15,
+        "passed_windows": 0,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 12,
+          "target_tone_below_local_floor_margin": 13,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 7.995392,
+        "consumed_seconds": 7.92,
+        "trace_exhausted": true,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": null
+    },
+    {
+      "file": "iq_point_063.npz",
+      "sha256": "b1ef40916811a0cb81b53b17f45eddf957e08868f303b025f6535b833cd9ca11",
+      "sample_rate": 250000.0,
+      "samples": 1687552,
+      "tone": 4000.0,
+      "previous_tone": 3000.0,
+      "historically_accepted": true,
+      "baseline": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -107.19490286063701,
+          "target_amplitude_dB": -107.19490484929005,
+          "window_start": 1185000,
+          "window_count": 500000,
+          "window_duration_s": 2.0,
+          "adaptive_level_index": 3,
+          "target_snr_db": 14.539226015251517,
+          "target_confirmation": null,
+          "amplitude_frequency_hz": null
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 9,
+        "passed_windows": 3,
+        "rejection_counts": {
+          "tone_frequency_out_of_tolerance": 6,
+          "target_tone_below_local_floor_margin": 4,
+          "previous_tone_not_sufficiently_rejected": 1
+        },
+        "delivered_seconds": 6.750208,
+        "consumed_seconds": 6.74,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate": {
+        "accepted": true,
+        "measurement": {
+          "measured_tone_hz": 4000.0,
+          "amplitude_dB": -105.94616459358397,
+          "target_amplitude_dB": -105.94616459358397,
+          "window_start": 1105000,
+          "window_count": 250000,
+          "window_duration_s": 1.0,
+          "adaptive_level_index": 5,
+          "target_snr_db": 12.717048893483799,
+          "target_confirmation": {
+            "required": false,
+            "confirmed": null,
+            "halves": []
+          },
+          "amplitude_frequency_hz": 4000.0
+        },
+        "accepted_windows_nonoverlapping": true,
+        "quality_attempts": 17,
+        "passed_windows": 7,
+        "rejection_counts": {
+          "target_tone_not_confirmed_in_both_halves": 10,
+          "tone_frequency_out_of_tolerance": 4,
+          "target_tone_below_local_floor_margin": 9
+        },
+        "delivered_seconds": 5.439488,
+        "consumed_seconds": 5.42,
+        "trace_exhausted": false,
+        "sample_deadline_reached": false,
+        "error": null
+      },
+      "candidate_same_logged_window_pass": true
+    }
+  ],
+  "noise": [
+    {
+      "kind": "white",
+      "sample_rate": 20000.0,
+      "seconds_per_seed": 8,
+      "seeds": 100,
+      "first_rng_seed": 510200,
+      "baseline_accepted_seeds": [],
+      "candidate_accepted_seeds": []
+    },
+    {
+      "kind": "colored",
+      "sample_rate": 20000.0,
+      "seconds_per_seed": 8,
+      "seeds": 100,
+      "first_rng_seed": 510200,
+      "baseline_accepted_seeds": [],
+      "candidate_accepted_seeds": []
+    },
+    {
+      "kind": "white",
+      "sample_rate": 250000.0,
+      "seconds_per_seed": 8,
+      "seeds": 32,
+      "first_rng_seed": 510200,
+      "baseline_accepted_seeds": [],
+      "candidate_accepted_seeds": []
+    }
+  ],
+  "synthetic_windows": [
+    {
+      "duration": 0.02,
+      "sample_rate": 250000.0,
+      "case": "background_dominates",
+      "expected_candidate_pass": true,
+      "baseline_pass": false,
+      "candidate_pass": true,
+      "candidate_reasons": [],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.02,
+      "sample_rate": 250000.0,
+      "case": "previous_persistent",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.02,
+      "sample_rate": 250000.0,
+      "case": "previous_first_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.02,
+      "sample_rate": 250000.0,
+      "case": "previous_second_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.02,
+      "sample_rate": 250000.0,
+      "case": "wrong_tone_only",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "target_tone_not_confirmed_in_both_halves",
+        "target_tone_below_local_floor_margin"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.1,
+      "sample_rate": 250000.0,
+      "case": "background_dominates",
+      "expected_candidate_pass": true,
+      "baseline_pass": false,
+      "candidate_pass": true,
+      "candidate_reasons": [],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.1,
+      "sample_rate": 250000.0,
+      "case": "previous_persistent",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.1,
+      "sample_rate": 250000.0,
+      "case": "previous_first_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.1,
+      "sample_rate": 250000.0,
+      "case": "previous_second_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 0.1,
+      "sample_rate": 250000.0,
+      "case": "wrong_tone_only",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "target_tone_not_confirmed_in_both_halves",
+        "target_tone_below_local_floor_margin"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 1.0,
+      "sample_rate": 250000.0,
+      "case": "background_dominates",
+      "expected_candidate_pass": true,
+      "baseline_pass": false,
+      "candidate_pass": true,
+      "candidate_reasons": [],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 1.0,
+      "sample_rate": 250000.0,
+      "case": "previous_persistent",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 1.0,
+      "sample_rate": 250000.0,
+      "case": "previous_first_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 1.0,
+      "sample_rate": 250000.0,
+      "case": "previous_second_half",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "previous_tone_not_sufficiently_rejected"
+      ],
+      "expected_result_observed": true
+    },
+    {
+      "duration": 1.0,
+      "sample_rate": 250000.0,
+      "case": "wrong_tone_only",
+      "expected_candidate_pass": false,
+      "baseline_pass": false,
+      "candidate_pass": false,
+      "candidate_reasons": [
+        "target_tone_not_confirmed_in_both_halves",
+        "target_tone_below_local_floor_margin"
+      ],
+      "expected_result_observed": true
+    }
+  ],
+  "summary": {
+    "historically_invalid": {
+      "count": 8,
+      "baseline_accepted": 0,
+      "candidate_accepted": 0,
+      "candidate_same_logged_window_pass": 0,
+      "candidate_trace_exhausted_unaccepted": 6
+    },
+    "historically_valid": {
+      "count": 55,
+      "baseline_accepted": 55,
+      "candidate_accepted": 44,
+      "candidate_same_logged_window_pass": 55,
+      "candidate_trace_exhausted_unaccepted": 11
+    }
+  }
+}

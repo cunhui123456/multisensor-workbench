@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-10-31T16:36:59.402498+08:00",
+  "device": "macbook-pro-m5max-64g",
+  "tests": {
+    "unittest_discover": 414,
+    "passed": 414,
+    "failures": 0,
+    "skipped": 0
+  },
+  "environment_check": {
+    "environment": "rf-gnuradio",
+    "history_count": 45,
+    "hardware_opened": false
+  },
+  "historical_voltage_replay": {
+    "run": "20261031T082508_370073Z",
+    "rows": 1698,
+    "S6_voltage_range": [
+      4.149,
+      4.156
+    ],
+    "S7_voltage_range": [
+      2.712,
+      2.722
+    ],
+    "source_unchanged": true
+  },
+  "physical_joint_acquisition": false,
+  "firmware_uploaded": false,
+  "native_uploader": "/opt/homebrew/bin/avrdude",
+  "native_architecture": "arm64",
+  "notes": [
+    "UI visual QA uses historical voltage only; no new RF data",
+    "RF amplitude is not calibrated S21",
+    "Host time association is not hardware synchronization"
+  ]
+}

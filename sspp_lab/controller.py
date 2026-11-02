@@ -16,12 +16,14 @@ import threading
 import time
 import uuid
 
+from sspp_experiments.material_sweep.budget import budget_info
+
 ROOT=Path(__file__).resolve().parent.parent
 DEFAULTS={'mode':'sweep','condition':'empty','label':'empty_baseline','sensor':'',
-          'freq_start_ghz':2.4,'freq_stop_ghz':3.0,'points':12,'repeat':3,
+          'freq_start_ghz':2.4,'freq_stop_ghz':3.0,'points':20,'repeat':3,
           'carrier_ghz':2.4,'rate':250000,'tone':10000,'tone_start':2000,'tone_step':1000,
-          'amplitude':.3,'tx_gain':20,'rx_gain':30,'duration':120,'max_seconds':90,
-          'point_timeout':8,'setup_confirmed':False,'liquid_temperature':None}
+          'amplitude':.3,'tx_gain':20,'rx_gain':30,'duration':120,'max_seconds':None,
+          'point_timeout':8,'setup_confirmed':False,'liquid_temperature':None,'temperature_sweep':None}
 
 class LabError(Exception):
     def __init__(self,message,status=400):
@@ -41,10 +43,18 @@ def validate_request(value,require_setup=True):
     if not isinstance(value,dict): raise LabError('实验配置必须是对象')
     if set(value)-set(DEFAULTS)-{'profile'}: raise LabError('存在未知实验参数')
     cfg={**DEFAULTS,**value}
+    # 兼容旧草稿/API 字段，但不让历史总时限重新启用自动停止。
+    cfg['max_seconds']=None
     if cfg['liquid_temperature'] is not None:
         from sspp_experiments.liquid_temperature.metadata import validate_metadata
         try: cfg['liquid_temperature']=validate_metadata(cfg['liquid_temperature'])
         except ValueError as exc: raise LabError(str(exc)) from exc
+    if cfg['temperature_sweep'] is not None:
+        from sspp_experiments.temperature_sweep.metadata import validate_config
+        if cfg['mode'] != 'sweep' or cfg['liquid_temperature'] is not None:
+            raise LabError('SSPP 温度联测必须使用独立扫频实验')
+        try: cfg['temperature_sweep']=validate_config(cfg['temperature_sweep'])
+        except (TypeError, ValueError) as exc: raise LabError(str(exc)) from exc
     if cfg['mode'] not in ('sweep','phase'): raise LabError('请选择扫频或连续幅相')
     if cfg['condition'] not in ('empty','finger','material'): raise LabError('实验条件无效')
     for key in ['label','sensor']:
@@ -54,7 +64,7 @@ def validate_request(value,require_setup=True):
     bounds={'freq_start_ghz':(.07,6.),'freq_stop_ghz':(.07,6.),'carrier_ghz':(.07,6.),
             'rate':(200000,2000000),'tone':(1,50000),'tone_start':(1,50000),
             'tone_step':(0,20000),'amplitude':(.001,.3),'tx_gain':(0,30),'rx_gain':(0,76),
-            'duration':(10,180),'max_seconds':(10,3600),'point_timeout':(1,30),
+            'duration':(10,180),'point_timeout':(1,30),
             'points':(2,100),'repeat':(1,20)}
     for key,(lower,upper) in bounds.items():
         number=cfg[key]
@@ -66,7 +76,6 @@ def validate_request(value,require_setup=True):
         cfg[key]=int(cfg[key])
     if cfg['mode']=='sweep' and cfg['freq_start_ghz']>=cfg['freq_stop_ghz']:
         raise LabError('扫频终点必须高于起点')
-    if cfg['point_timeout']>cfg['max_seconds']: raise LabError('单点时限不能超过总时限')
     highest=cfg['tone_start']+(cfg['points']-1)*cfg['tone_step']
     if cfg['tone']>=cfg['rate']/2 or (cfg['mode']=='sweep' and highest>=cfg['rate']/2):
         raise LabError('基带单音超出采样率允许范围')
@@ -145,12 +154,14 @@ class LabController:
         if cfg['mode']=='sweep':
             args+=['--headless','--label',cfg['label'],'--freq-start',str(cfg['freq_start_ghz']*1e9),
                    '--freq-stop',str(cfg['freq_stop_ghz']*1e9),'--points',str(cfg['points']),
-                   '--repeat',str(cfg['repeat']),'--max-seconds',str(cfg['max_seconds']),
+                   '--repeat',str(cfg['repeat']),
                    '--point-timeout',str(cfg['point_timeout']),'--tone-start',str(cfg['tone_start']),
                    '--tone-step',str(cfg['tone_step'])]
         else:
             args+=['--initial-label',cfg['label'],'--carrier',str(cfg['carrier_ghz']*1e9),
                    '--duration',str(cfg['duration']),'--tone',str(cfg['tone'])]
+        if cfg.get('temperature_sweep') is not None:
+            args += ['--temperature-config', json.dumps(cfg['temperature_sweep'], ensure_ascii=False, allow_nan=False)]
         return args
 
     def preflight(self,request):
@@ -162,7 +173,10 @@ class LabController:
                                   cwd=self.root,capture_output=True,text=True,timeout=20,env=self.child_env())
         except subprocess.TimeoutExpired: raise LabError('配置检查超时；未启动实验',503)
         if result.returncode: raise LabError(self.public_log(result.stderr[-1500:] or result.stdout[-1500:]))
-        return {'valid':True,'summary':self.public_log(result.stdout.strip()),'hardware_opened':False}
+        budget=budget_info(cfg)
+        summary=self.public_log(result.stdout.strip())
+        if budget:summary+='\n'+budget['summary']+('\n提示：'+budget['warning'] if budget.get('warning') else '')
+        return {'valid':True,'summary':summary,'budget':budget,'hardware_opened':False}
 
     def start(self,request):
         # 仅短时间持锁；预检和进程检查不能让 GUI 的内存快照等待几十秒。
@@ -206,11 +220,11 @@ class LabController:
         started=time.monotonic()
         while proc.poll() is None:
             elapsed=time.monotonic()-started
-            budget=job['config']['duration'] if job['config']['mode']=='phase' else job['config']['max_seconds']
             reason=None
             with self.lock:
                 if not job.get('hardware_ready') and elapsed>30: reason='设备初始化超过 30 秒，已请求中止'
-                elif elapsed>budget+45: reason='实验超过总进程时限，已请求中止'
+                elif job['config']['mode']=='phase' and elapsed>job['config']['duration']+45:
+                    reason='实验超过总进程时限，已请求中止'
                 if reason:
                     job['errors'].append(reason);job['status']='stopping';job['timeout_requested']=True
             if reason:
@@ -220,7 +234,8 @@ class LabController:
     def _end_process(self,proc,job,send_initial=True):
         if proc.poll() is not None:return
         if send_initial:proc.send_signal(signal.SIGINT)
-        try:proc.wait(timeout=8);return
+        wait_s=60 if (job.get("config",{}).get("temperature_sweep") or {}).get("mode")=="continuous" else 8
+        try:proc.wait(timeout=wait_s);return
         except subprocess.TimeoutExpired:pass
         if proc.poll() is not None:return
         proc.send_signal(signal.SIGTERM)
@@ -252,7 +267,7 @@ class LabController:
                 except ValueError: event=None
                 with self.lock:
                     # 高频显示批次直接进入内存，不重复保存为冗长控制日志。
-                    if isinstance(event,dict) and event.get('event') in ('TRACE','PREVIEW'):
+                    if isinstance(event,dict) and event.get('event') in ('TRACE','PREVIEW','TEMP_SAMPLE'):
                         self._handle_event(event,job)
                         continue
                     self.logs.append(self.public_log(line))
@@ -282,7 +297,8 @@ class LabController:
                             if kind=='LIVE': job['live']=event
                             if kind=='MEASUREMENT': self.points.append(event);job['status']='running'
                             if kind in ('MARK_ACCEPTED','CONDITION_READY'): self.events.append(event);self._save_context(job)
-                            if kind=='RF_STOPPED': job['status']='saving'
+                            if kind in ('RF_STOPPED','STOP_STATUS'): job['status']='saving'
+                            if kind=='STOP_STATUS': job['stop_status']=event
                             self._handle_event(event,job)
                     if 'RX/TX stopped; saving results.' in line: job['status']='saving'
             code=proc.wait()
@@ -298,11 +314,22 @@ class LabController:
                     for error in manifest.get('errors',[]):
                         error=self.public_log(str(error))
                         if error not in job['errors']:job['errors'].append(error)
-                if job['rf_stopped'] and code==0 and manifest and manifest.get('status')=='complete': job['status']='complete'
+                temperature_complete=True
+                if (job.get('config',{}).get('temperature_sweep') or {}).get('mode')!='manual' and job.get('config',{}).get('temperature_sweep') and manifest and manifest.get('status') in ('complete','complete_with_gaps'):
+                    thermal=manifest.get('temperature_sweep') or {}
+                    temperature_complete=(thermal.get('status')=='complete' and all(thermal.get(name) is True for name in
+                        ('serial_workers_stopped','serial_closed','data_files_closed')))
+                    if not temperature_complete:
+                        job['errors'].append('温度采集未取得完整保存与关闭证据，不能标记联测完成')
+                if job['rf_stopped'] and code==0 and manifest and manifest.get('status') in ('complete','complete_with_gaps') and temperature_complete: job['status']=manifest['status']
                 elif job['rf_stopped']:
                     expected_interrupt=all(e.startswith('Interrupted by signal ') for e in job['errors'])
                     job['status']='stopped' if job.get('stop_requested') and expected_interrupt else 'failed'
-                elif not job.get('hardware_ready') and manifest and manifest.get('status')=='initializing':
+                elif manifest and manifest.get('telemetry',{}).get('rf_start_attempted') is False:
+                    job['status']='initialization_failed';job['acquisition_started']=False
+                    job['errors'].append('采集准备未完成，未启动射频收发')
+                elif (not job.get('hardware_ready') and manifest and manifest.get('status')=='initializing'
+                      and manifest.get('telemetry',{}).get('rf_start_attempted') is not True):
                     # 未到 HARDWARE_READY，执行路径尚未创建/启动收发线程。
                     job['status']='initialization_failed';job['acquisition_started']=False
                     job['errors'].append('设备初始化未完成，未开始实验采集')
@@ -371,7 +398,7 @@ class LabController:
 
     def run_path(self,key):
         # 只接受指定类型及真实目录名；禁止 ../、绝对路径和符号链接绕过。
-        if not isinstance(key,str) or not re.fullmatch(r'(runs|phase_runs|teacher_runs)/[A-Za-z0-9_-]+',key): raise LabError('实验编号无效',404)
+        if not isinstance(key,str) or not re.fullmatch(r'(runs|phase_runs|teacher_runs|temperature_pressure_runs)/[A-Za-z0-9_-]+',key): raise LabError('实验编号无效',404)
         target=self.root/'Data'/key
         try: target.resolve().relative_to((self.root/'Data').resolve())
         except ValueError: raise LabError('实验路径无效',404)
@@ -389,7 +416,7 @@ class LabController:
                 context=read_json(folder/'desktop_context.json',{}) or read_json(folder/'web_context.json',{})
                 context_status=context.get('desktop_status',context.get('web_status'))
                 out.append({'key':kind+'/'+folder.name,'mode':{'runs':'sweep','phase_runs':'phase','teacher_runs':'teacher'}[kind],
-                            'started_utc':m.get('started_utc',''),'status':context_status if context_status in ('complete','stopped','failed','stop_unconfirmed','initialization_failed') else m.get('status','unknown'),
+                            'started_utc':m.get('started_utc',''),'status':context_status if context_status in ('complete','complete_with_gaps','stopped','failed','stop_unconfirmed','initialization_failed') else m.get('status','unknown'),
                             'label':m.get('label') or m.get('initial_label') or m.get('material_input') or folder.name,
                             'sensor':context.get('sensor',''),'source':'desktop' if context.get('source')=='local_desktop_manual_experiment' else ('web' if context else 'legacy')})
         return sorted(out,key=lambda x:x['started_utc'],reverse=True)
@@ -399,11 +426,11 @@ class LabController:
         m=read_json(path/('feature_report.json' if key.startswith('teacher_runs/') else 'manifest.json'),{})
         # 只展示实验元数据；设备身份不进入界面，错误文字单独脱敏。
         allowed={'status','label','initial_label','material_input','started_utc','ended_utc','stop_reason',
-                 'telemetry','quality','baseline','events','condition_summary','processed_windows','processed_samples',
+                 'telemetry','quality','warnings','baseline','events','condition_summary','processed_windows','processed_samples',
                  'raw_bytes','method','measurement','limitations','experiment_scope',
-                 'timestamp_continuity','timestamp_failure_file'}
+                 'timestamp_continuity','timestamp_failure_file','temperature_sweep'}
         exports=[p.name for p in path.iterdir() if p.is_file() and not p.is_symlink() and
-                 (p.suffix in ('.png','.pdf','.csv','.xlsx','.npz','.cf32') or p.name in ('events.json','condition_summary.json','web_context.json','desktop_context.json','amplitude_phase.jsonl','rx_frames.jsonl','baseline.json','diagnostic_figures.json','rx_timestamp_failure.json'))]
+                 (p.suffix in ('.png','.pdf','.csv','.xlsx','.npz','.cf32') or p.name in ('events.json','condition_summary.json','web_context.json','desktop_context.json','amplitude_phase.jsonl','rx_frames.jsonl','baseline.json','diagnostic_figures.json','rx_timestamp_failure.json','sweep_quality.jsonl','sweep_invalid_points.jsonl'))]
         figure_index=read_json(path/'diagnostic_figures.json',{}) or {}
         figures=[{k:v for k,v in item.items() if k in ('file','title','group')} for item in figure_index.get('plots',[]) if isinstance(item,dict)]
         metadata={k:v for k,v in m.items() if k in allowed}
@@ -441,7 +468,7 @@ class LabController:
         table=path/'measurements.csv'
         if table.exists():
             with table.open() as source:
-                points=[{'carrier_hz':float(r['requested_carrier_GHz'])*1e9,'amplitude_dB':float(r['peak_amplitude_dBFS_est']),
+                points=[{'carrier_hz':float(r['requested_carrier_GHz'])*1e9,'amplitude_dB':None if r.get('measurement_status')=='invalid' else float(r['peak_amplitude_dBFS_est']),
                          'repeat':int(r['repeat']),'point':int(r['point'])} for r in csv.DictReader(source)]
             return {'mode':'sweep','points':points}
         return {'mode':None,'points':[]}

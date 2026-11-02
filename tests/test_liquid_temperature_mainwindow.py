@@ -146,7 +146,9 @@ class LiquidTemperatureMainWindowTests(unittest.TestCase):
             row.update(category=history_category(row), status="complete", started_utc="2026-10-27T00:00:00Z")
         self.assertEqual([row["category"] for row in rows],
                          ["liquid_temperature_phase", "liquid_temperature_sweep", "finger_displacement"])
+        self.assertTrue(self.window.select_experiment("liquid"))
         self.window.open_archive()
+        self.pump(lambda: not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
         self.window._history_all_rows = rows
         self.window.history_type.setCurrentIndex(self.window.history_type.findData("liquid_temperature_phase"))
         self.window._render_history_rows()

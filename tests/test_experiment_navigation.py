@@ -83,9 +83,9 @@ class ExperimentNavigationTests(unittest.TestCase):
         self.assertEqual(window.experiment_nav.currentIndex(), 0)
         self.assertEqual(window.config()["mode"], "sweep")
         self.assertEqual([window.experiment_nav.tabData(i) for i in range(window.experiment_nav.count())],
-                         ["material", "finger", "liquid", "temperature"])
+                         ["material", "finger", "liquid", "temperature", "temperature_calibration", "temperature_sweep"])
         self.assertEqual([window.experiment_nav.tabText(i) for i in range(window.experiment_nav.count())],
-                         ["材料扫频", "手指位移", "液体温度影响", "温压采集"])
+                         ["材料扫频", "手指位移", "液体温度影响", "温压采集", "温度标定", "SSPP 温度扫频"])
         self.assertLess(window.experiment_nav.mapTo(window, QtCore.QPoint()).y(),
                         window.sidebar.mapTo(window, QtCore.QPoint()).y())
         self.assertGreater(window.experiment_nav.width(), window.sidebar.width())
@@ -150,19 +150,24 @@ class ExperimentNavigationTests(unittest.TestCase):
         self.assertEqual(widget.sample_name.text(), "serial_sample")
         self.assertFalse(widget.confirm.isChecked())
 
-    def test_current_experiment_history_scope_and_explicit_global_archive(self):
+    def test_archive_always_scoped_to_current_experiment(self):
         expected = {"material": {"material_sweep", "teacher_sweep"},
                     "finger": {"finger_displacement", "phase_history"},
                     "liquid": {"liquid_temperature_sweep", "liquid_temperature_phase"},
-                    "temperature": set()}
+                    "temperature": set(), "temperature_calibration": set(), "temperature_sweep": set()}
         for key, categories in expected.items():
             with self.subTest(experiment=key):
                 self.select(key)
-                self.assertTrue(self.window.history_scope.isChecked())
+                self.assertFalse(hasattr(self.window, "history_scope"))
                 self.assertEqual({r["category"] for r in self.window.history_rows}, categories)
                 self.window.open_archive()
-                self.assertFalse(self.window.history_scope.isChecked())
-                self.assertEqual(len(self.window.history_rows), len(self.service.rows))
+                self.pump(lambda: 'history' not in self.window.runner.pending)
+                self.assertEqual({r['category'] for r in self.window.history_rows}, categories)
+                allowed = {self.window.history_type.itemData(i) for i in range(self.window.history_type.count())}
+                from sspp_desktop.window import EXPERIMENTS
+                self.assertLessEqual(allowed - {''}, EXPERIMENTS[key][2])
+                self.assertEqual(self.window.archive_button.text(), '实验档案')
+                self.assertEqual(self.window.tabs.tabText(1), '实验档案')
                 self.assertIs(self.window.tabs.currentWidget(), self.window.history_table.parentWidget())
 
     def test_rf_busy_navigation_rejects_direct_handler_and_tab_change(self):
@@ -324,6 +329,24 @@ class ExperimentNavigationTests(unittest.TestCase):
         window.start_experiment()
         self.assertIsNone(self.service.started)
         self.assertIn("应用", window.notice.text())
+
+    def test_temperature_calibration_is_serial_only_and_reuses_verified_temperature_workflow(self):
+        self.select("temperature_calibration")
+        workspace = self.window.temperature_workspace
+        self.assertTrue(workspace.calibration_mode)
+        self.assertEqual(workspace.protocol.currentData(), "temperature_v1")
+        self.assertFalse(workspace.protocol.isEnabled())
+        self.assertFalse(self.window.rf_actions.isVisible())
+        self.assertTrue(self.window.temperature_settings.isVisible())
+        self.assertTrue(workspace.plateau_controls.isVisible())
+        self.assertFalse(hasattr(workspace,"ramp_group"))
+        self.assertFalse(hasattr(workspace,"endpoint_button"))
+        self.assertEqual(self.window._environment_target()["kind"], "serial")
+        self.assertEqual(self.window.tabs.currentIndex(), self.window.temperature_tab)
+        self.select("temperature")
+        self.assertFalse(workspace.calibration_mode)
+        self.assertFalse(workspace.plateau_controls.isVisible())
+        self.assertTrue(workspace.protocol.isEnabled())
 
 
 if __name__ == "__main__":

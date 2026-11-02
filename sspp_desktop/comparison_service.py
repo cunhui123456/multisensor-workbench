@@ -2,7 +2,6 @@
 from contextlib import contextmanager
 from copy import deepcopy
 import csv
-from datetime import datetime, timezone
 import hashlib
 import io
 import json
@@ -17,14 +16,8 @@ import zipfile
 
 from sspp_lab.controller import LabError, read_json
 from sspp_experiments.comparison import history_category as result_category
+from .figure_archive import FigureArchiveMixin, json_bytes, report_digest
 
-
-def json_bytes(value):
-    return (json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + "\n").encode("utf-8")
-
-
-def report_digest(report):
-    return hashlib.sha256(json_bytes(report)).hexdigest()
 
 
 def csv_bytes(rows, columns=None):
@@ -39,7 +32,7 @@ def csv_bytes(rows, columns=None):
     return stream.getvalue().encode("utf-8-sig")
 
 
-class ComparisonMixin:
+class ComparisonMixin(FigureArchiveMixin):
     def history(self):
         rows = super().history()
         for row in rows:
@@ -72,27 +65,16 @@ class ComparisonMixin:
                 report = build_comparison(self.root, keys, reference_key)
             except (ValueError, OSError, KeyError) as error:
                 raise LabError(self.public_log(str(error))) from error
-            report["created_utc"] = datetime.now(timezone.utc).isoformat()
-            report["comparison_id"] = uuid.uuid4().hex
             code_files = ["sspp_experiments/comparison.py", "sspp_experiments/material_sweep/comparison.py",
-                          "sspp_experiments/finger_displacement/comparison.py", "sspp_desktop/comparison_service.py",
+                          "sspp_experiments/finger_displacement/comparison.py", "sspp_experiments/temperature_pressure/comparison.py",
+                          "sspp_experiments/temperature_pressure/corrections.py",
+                          "sspp_desktop/comparison_service.py", "sspp_desktop/publication.py",
                           "sspp_desktop/comparison_export.py", "sspp_lab/dsp.py"]
-            report["analysis_code"] = [
-                {"path": name, "sha256": hashlib.sha256((self.root / name).read_bytes()).hexdigest()}
-                for name in code_files if (self.root / name).is_file()
-            ]
-            # 只保存少量摘要；禁止导出已经被界面修改的报告，且不重复缓存大型序列。
-            with self.lock:
-                digests = getattr(self, "_comparison_digests", {})
-                digests[report["comparison_id"]] = report_digest(report)
-                while len(digests) > 16:
-                    digests.pop(next(iter(digests)))
-                self._comparison_digests = digests
-            return report
+            return self.register_analysis_report(report, code_files)
 
     def _comparison_source_files(self, report):
         sources = report.get("sources", [])
-        if not 2 <= len(sources) <= 8:
+        if not 1 <= len(sources) <= 8:
             raise LabError("对比报告来源数量无效，请重新比较")
         result, seen = [], set()
         for source in sources:
@@ -117,6 +99,37 @@ class ComparisonMixin:
                 if digest != entry["sha256"] or path.stat().st_size != entry["bytes"]:
                     raise LabError("实验文件在比较后已改变，请重新比较再导出")
                 result.append((path, name, entry))
+            if 'diagnostic_dependencies' in source:
+                from .publication_analysis import diagnostic_dependency_snapshot
+                dependency = source['diagnostic_dependencies']
+                if diagnostic_dependency_snapshot(run, dependency.get('mode')) != dependency:
+                    raise LabError('诊断依赖文件在分析后已改变，请重新分析再导出')
+            correction = source.get('correction')
+            if correction is not None:
+                expected_path = 'corrections/' + source['key'] + '.json'
+                if (not source['key'].startswith('temperature_pressure_runs/')
+                        or correction.get('relative_path') != expected_path
+                        or type(correction.get('present')) is not bool):
+                    raise LabError('温标更正账本路径或状态无效，请重新比较')
+                data_root = self.root / 'Data'
+                path = data_root / expected_path
+                if (path.is_symlink() or any(p.is_symlink() for p in path.parents if p.is_relative_to(data_root))
+                        or not path.resolve().is_relative_to(data_root.resolve())):
+                    raise LabError('温标更正账本路径已变化，请重新比较')
+                if not correction['present']:
+                    if path.exists():
+                        raise LabError('温标更正账本在比较后已改变，请重新比较再导出')
+                    continue
+                if not path.is_file():
+                    raise LabError('温标更正账本在比较后已改变，请重新比较再导出')
+                with path.open('rb') as content:
+                    digest = hashlib.file_digest(content, 'sha256').hexdigest()
+                if digest != correction['sha256'] or path.stat().st_size != correction['bytes']:
+                    raise LabError('温标更正账本在比较后已改变，请重新比较再导出')
+                if expected_path in seen:
+                    raise LabError('温标更正账本来源重复')
+                seen.add(expected_path)
+                result.append((path, expected_path, correction))
         return result
 
     def _verify_comparison_code(self, report):
@@ -142,11 +155,7 @@ class ComparisonMixin:
         temporary = target.parent / ("." + target.name + "." + uuid.uuid4().hex + ".tmp")
         with self._comparison_operation():
             try:
-                expected = getattr(self, "_comparison_digests", {}).get(report.get("comparison_id"))
-                if not expected or report_digest(report) != expected:
-                    raise LabError("对比报告已更改或已过期，请重新比较再导出")
-                self._verify_comparison_code(report)
-                files = self._comparison_source_files(report)
+                _, files = self._verify_analysis_report(report)
                 with tempfile.TemporaryDirectory(prefix="sspp-comparison-") as scratch:
                     scratch = Path(scratch)
                     report_path = scratch / "comparison.json"
@@ -157,9 +166,18 @@ class ComparisonMixin:
                     if process.returncode:
                         raise LabError("对比图表生成失败，原目标文件未覆盖：" + self.public_log(process.stderr[-1200:]))
                     figures = sorted(scratch.glob("comparison_*.png")) + [scratch / "comparison_report.pdf"]
+                    if report.get("kind") == "temperature_calibration":
+                        channels = sorted({item.get("publication", {}).get("channel") for item in report.get("charts", [])
+                                           if item.get("publication", {}).get("kind") == "calibration_response"})
+                        if not channels or any(not isinstance(c, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,31}", c) for c in channels):
+                            raise LabError("温标发表图缺少有效通道元数据")
+                        names = ["publication_figure"] + ["publication_" + channel for channel in channels]
+                        figures += [scratch / (name + extension) for name in names for extension in (".pdf", ".svg", ".png")]
+                        figures.append(scratch / "caption.txt")
                     if not figures or any(not p.is_file() or p.stat().st_size == 0 for p in figures):
                         raise LabError("对比图表生成不完整，未导出")
                     index = {"schema_version": 1, "kind": "experiment_comparison",
+                             "analysis_mode": report.get("analysis_mode", "single" if len(report['sources']) == 1 else "combined"),
                              "created_utc": report["created_utc"], "comparison_id": report["comparison_id"],
                              "reference_key": report["reference_key"], "source_keys": [s["key"] for s in report["sources"]],
                              "raw_iq_included": False, "files": []}
@@ -177,12 +195,15 @@ class ComparisonMixin:
                             rows = table["rows"] if isinstance(table, dict) else table
                             columns = table.get("columns") if isinstance(table, dict) else None
                             put("tables/" + name + ".csv", csv_bytes(rows, columns))
-                        text = ("SSPP 实验结果对比包\n\ncomparison.json：对比设置、参考、计算结果、参数一致性和源文件哈希。\n"
-                                "parameters.json：各实验参数与一致性检查。\nmetrics.csv / tables/：实际参与比较的数值表。\n"
-                                "figures/：重要图表 PNG 与多页 PDF。\nsources/：对应源结果、参数与基线；不含原始 IQ。\n"
+                        single = report.get('analysis_mode') == 'single'
+                        text = (("SSPP 单记录分析包\n\ncomparison.json：本次记录的曲线、统计、参数和源文件哈希；无跨记录参考或自身差值。\n" if single else
+                                 "SSPP 实验结果对比包\n\ncomparison.json：对比设置、参考、计算结果、参数一致性和源文件哈希。\n") +
+                                "parameters.json：记录参数及适用的一致性检查。\nmetrics.csv / tables/：实际参与分析的数值表。\n"
+                                "figures/：图表 PNG 与多页 PDF；温标分析另含独立发表级 PDF/SVG/600 dpi PNG 和英文图注。\nsources/：对应源结果、参数与基线；不含原始 IQ。\n"
                                 "bundle_manifest.json：每个包内文件大小与 SHA-256。\n\n"
                                 "扫频差值为目标减参考的数字幅度变化，不是标定 S21，也不能单独证明材料因果。\n"
-                                "连续幅相以各自基线和时间起点展示响应，不跨实验相减绝对相位或复用毫米模型。\n\n"
+                                "连续幅相以各自基线和时间起点展示响应，不跨实验相减绝对相位或复用毫米模型。\n"
+                                "温标按真实参考温度与区间电压统计分来源展示，重叠点不合并，区间 SD 不是温度不确定度，不自动激活校准。\n\n"
                                 + "\n".join("- " + str(w) for w in report.get("warnings", [])) + "\n")
                         put("README.txt", text.encode("utf-8"))
                         for path in figures:
@@ -204,7 +225,7 @@ class ComparisonMixin:
                     with zipfile.ZipFile(temporary) as archive:
                         if archive.testzip() is not None:
                             raise LabError("对比压缩包校验失败，原目标文件未覆盖")
-                    self._verify_comparison_code(report)
+                    self._verify_analysis_report(report)
                     with temporary.open("rb") as content:
                         digest = hashlib.file_digest(content, "sha256").hexdigest()
                     size = temporary.stat().st_size

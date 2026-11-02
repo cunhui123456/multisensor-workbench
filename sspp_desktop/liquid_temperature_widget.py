@@ -4,9 +4,10 @@ from __future__ import annotations
 from copy import deepcopy
 import json
 import math
+from pathlib import Path
 import uuid
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from .plots import DiagnosticPlot
 from .qt_cleanup import close_plot_widgets
@@ -27,6 +28,8 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
         self.current_mode = None
         self.annotations = []
         self.report_path = None
+        self._publication_report = None
+        self._figure_directory = None
         self._external_busy = False
         self._closing = False
         self._dirty = False
@@ -227,6 +230,18 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
         self.export_button.clicked.connect(self.export_report)
         top.addWidget(self.export_button)
         layout.addLayout(top)
+        figure_actions = QtWidgets.QHBoxLayout()
+        self.figure_export_button = QtWidgets.QPushButton("导出分析图")
+        self.figure_export_button.setToolTip("保存当前图的 PDF、SVG、600 dpi PNG、绘图数据和图注到项目 Figures/liquid_temperature")
+        self.figure_export_button.clicked.connect(self.export_figure)
+        self.figure_save_as_button = QtWidgets.QPushButton("另存为…")
+        self.figure_save_as_button.clicked.connect(self.save_figure_as)
+        self.figure_folder_button = QtWidgets.QPushButton("打开图片文件夹")
+        self.figure_folder_button.clicked.connect(self.open_figure_directory)
+        for button in (self.figure_export_button, self.figure_save_as_button, self.figure_folder_button):
+            figure_actions.addWidget(button)
+        figure_actions.addStretch(1)
+        layout.addLayout(figure_actions)
         results = QtWidgets.QTabWidget()
         self.plot = DiagnosticPlot()
         results.addTab(self.plot, "图形")
@@ -269,6 +284,12 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
         self.end_temperature.setEnabled(idle and self.current_mode == "sweep")
         self.phase_group.setEnabled(idle and self.current_mode == "phase")
         self.export_button.setEnabled(idle and bool(self.report_path))
+        self.chart_choice.setEnabled(idle)
+        chart = self.chart_choice.currentData() or {}
+        figure_ready = bool(self._publication_report and chart.get("id"))
+        self.figure_export_button.setEnabled(idle and figure_ready)
+        self.figure_save_as_button.setEnabled(idle and figure_ready)
+        self.figure_folder_button.setEnabled(idle and bool(self._figure_directory))
 
     def prepare(self):
         if self.is_busy or self._external_busy or self._closing:
@@ -329,6 +350,8 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
         self.annotations = deepcopy(result.get("annotations", []))
         self._dirty = False
         self.report_path = None
+        self._publication_report = None
+        self._figure_directory = None
         self.loaded_label.setText("当前记录：" + self.current_key + "；相位区间单位为本次记录的硬件时间秒。")
         end = result.get("temperature_end_c", result.get("metadata", {}).get("temperature_end_c"))
         self.end_temperature.setText("" if end is None else str(end))
@@ -403,7 +426,15 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
 
     def _saved(self, result):
         self._dirty = False
-        self.status.setText("标注已保存；原始采集数据保持不变。")
+        # The visible result may have used the previous interval/temperature
+        # annotations. Keep its preview, but require a new analysis for export.
+        self.report_path = None
+        self._publication_report = None
+        self._figure_directory = None
+        self.status.setText("标注已保存；请重新分析后导出。原始采集数据保持不变。")
+        if self.chart_choice.count():
+            self.report_summary.setText("标注已更新；当前图为上次分析预览，请重新分析后导出。")
+        self._update_enabled()
 
     def analyze_phase(self):
         if not self.current_key or self.current_mode != "phase":
@@ -440,6 +471,8 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
 
     def _show_report(self, report, show_tab=True):
         self.report_path = report.get("export_path")
+        self._publication_report = deepcopy(report) if report.get("comparison_id") else None
+        self._figure_directory = None
         status = {"ready": "分析完成", "partial": "部分区间有效", "rejected": "未通过质量或设计检查"}.get(report.get("status"), "报告已生成")
         errors, warnings = report.get("errors", []), report.get("warnings", [])
         self.report_summary.setText("\n".join([status, *map(str, errors), *map(str, warnings)]))
@@ -470,6 +503,54 @@ class LiquidTemperatureWidget(QtWidgets.QWidget):
 
     def _chart_changed(self):
         self.plot.display(self.chart_choice.currentData() or {})
+        self._update_enabled()
+
+    def _figure_selection(self):
+        if self.is_busy or self._external_busy or self._closing or not self._publication_report:
+            return None
+        chart_id = (self.chart_choice.currentData() or {}).get("id")
+        if not chart_id or not any(chart.get("id") == chart_id for chart in self._publication_report.get("charts", [])):
+            return None
+        return deepcopy(self._publication_report), chart_id
+
+    def _figure_saved(self, report_id, result):
+        if self._closing or not self._publication_report or self._publication_report.get("comparison_id") != report_id:
+            return
+        self._figure_directory = result.get("directory") or str(Path(result["path"]).parent)
+        self.status.setText("分析图已保存：" + str(result["path"]))
+
+    def export_figure(self):
+        selection = self._figure_selection()
+        if selection is None:
+            return
+        report, chart_id = selection
+        self._submit("liquid_figure", lambda: self.service.export_publication_figure(report, chart_id),
+                     lambda result: self._figure_saved(report["comparison_id"], result))
+
+    def save_figure_as(self):
+        selection = self._figure_selection()
+        if selection is None:
+            return
+        report, chart_id = selection
+        destination, chosen_filter = QtWidgets.QFileDialog.getSaveFileName(
+            self, "另存为分析图", chart_id + ".pdf", "矢量 PDF (*.pdf);;矢量 SVG (*.svg);;高清 PNG (*.png)")
+        if not destination:
+            return
+        current = self._figure_selection()
+        if current is None or current[0]["comparison_id"] != report["comparison_id"] or current[1] != chart_id:
+            return
+        suffix = Path(destination).suffix.lower()
+        if not suffix:
+            destination += ".svg" if "*.svg" in chosen_filter else ".png" if "*.png" in chosen_filter else ".pdf"
+        elif suffix not in (".pdf", ".svg", ".png"):
+            self._fail("分析图仅支持 PDF、SVG 或 PNG 格式。")
+            return
+        self._submit("liquid_figure", lambda: self.service.export_analysis_figure(report, chart_id, destination),
+                     lambda result: self._figure_saved(report["comparison_id"], result))
+
+    def open_figure_directory(self):
+        if self._figure_directory and not self.is_busy and not self._external_busy and not self._closing:
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(self._figure_directory))
 
     def export_report(self):
         if not self.report_path:

@@ -9,6 +9,7 @@ from sspp_experiments.temperature_pressure import CaptureConfig, PROTOCOLS, Seri
 from .plots import COLORS, make_plot
 from .qt_cleanup import close_plot_widgets
 from .serial_ports import arduino_serial_ports
+from .plateau_widget import PlateauWidget
 from sspp_experiments.temperature_pressure.firmware import PreparationSession
 
 
@@ -34,7 +35,9 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         self._external_busy = False
         self._environment_required = False
         self._environment_ready = False
+        self._plot_points_cache = []
         self.lines = {}
+        self.calibration_mode = False
         layout = QtWidgets.QVBoxLayout(self)
         title = QtWidgets.QLabel("温压传感器 · 固件准备与实时采集")
         title.setStyleSheet("font-size: 18px; font-weight: 600; color: #087f85")
@@ -131,6 +134,10 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         buttons.addWidget(self.start_button)
         buttons.addWidget(self.stop_button)
         settings_layout.addLayout(buttons)
+        self.plateau_controls = PlateauWidget()
+        self.plateau_controls.hide()
+        self.plateau_controls.requested.connect(self._plateau_requested)
+        settings_layout.addWidget(self.plateau_controls)
         settings_layout.addStretch()
         self._settings_scroll = QtWidgets.QScrollArea()
         self._settings_scroll.setWidgetResizable(True)
@@ -144,17 +151,48 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         self.status = QtWidgets.QLabel("未开始；请先完成设备与固件准备。")
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
+        self.voltage_readout = QtWidgets.QLabel("尚无电压读数；有效数据到达后显示最新值。")
+        self.voltage_readout.setWordWrap(True)
+        self.voltage_readout.setStyleSheet("font-size: 15px; font-weight: 600; color: #087f85")
+        layout.addWidget(self.voltage_readout)
+        plot_tools = QtWidgets.QHBoxLayout()
+        self.auto_follow = QtWidgets.QCheckBox("自动跟随实时数据")
+        self.auto_follow.setChecked(True)
+        self.auto_follow.setToolTip("随有效样本自动调整坐标范围。拖动或滚轮缩放会暂停跟随，原始数据仍继续保存。")
+        self.auto_follow.toggled.connect(self._follow_changed)
+        plot_tools.addWidget(self.auto_follow)
+        self.display_channel = QtWidgets.QComboBox()
+        self.display_channel.addItem("显示全部通道", "all")
+        self.display_channel.addItem("只看 CH1 · S6", "S6")
+        self.display_channel.addItem("只看 CH2 · S7", "S7")
+        self.display_channel.setToolTip("选择单通道可放大观察电压细微变化；所有通道继续采集和保存。")
+        self.display_channel.currentIndexChanged.connect(lambda *_: self._plot_points(self._plot_points_cache))
+        plot_tools.addWidget(self.display_channel)
+        plot_tools.addStretch()
+        self.full_range_button = QtWidgets.QPushButton("恢复全图")
+        self.full_range_button.clicked.connect(self._restore_plot_range)
+        plot_tools.addWidget(self.full_range_button)
+        layout.addLayout(plot_tools)
         self.voltage_plot = make_plot("串口名义电压", "主机接收经过时间（s）", "电压（V）")
         self.voltage_plot.addLegend(offset=(12, 12))
         self.adc_plot = make_plot("固件平均 ADC", "主机接收经过时间（s）", "ADC 码值")
         self.adc_plot.setXLink(self.voltage_plot)
         self.adc_plot.addLegend(offset=(12, 12))
+        for plot in (self.voltage_plot, self.adc_plot):
+            plot.plotItem.vb.sigRangeChangedManually.connect(lambda *_: self.auto_follow.setChecked(False))
         self.plot_panel = QtWidgets.QWidget()
         plot_layout = QtWidgets.QHBoxLayout(self.plot_panel)
         plot_layout.setContentsMargins(0, 0, 0, 0)
         plot_layout.addWidget(self.voltage_plot, 1)
         plot_layout.addWidget(self.adc_plot, 1)
         layout.addWidget(self.plot_panel, 1)
+        self.plateau_results = QtWidgets.QGroupBox("标定区间与稳定性复核")
+        result_layout = QtWidgets.QVBoxLayout(self.plateau_results)
+        for control in (self.plateau_controls.status, self.plateau_controls.table):
+            self.plateau_controls.layout().removeWidget(control)
+            result_layout.addWidget(control)
+        self.plateau_results.hide()
+        layout.addWidget(self.plateau_results)
         self.event_text = QtWidgets.QPlainTextEdit()
         self.event_text.setReadOnly(True)
         self.event_text.setMaximumHeight(130)
@@ -165,6 +203,9 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         self.timer.setInterval(100)
         self.timer.timeout.connect(self._poll)
         self.timer.start()
+        self._settings_focus_timer = QtCore.QTimer(self)
+        self._settings_focus_timer.setSingleShot(True)
+        self._settings_focus_timer.timeout.connect(self._show_recording_settings)
         self.port.currentIndexChanged.connect(self._target_changed)
         self.protocol.currentIndexChanged.connect(self._protocol_changed)
         self.protocol.currentIndexChanged.connect(self._target_changed)
@@ -175,6 +216,28 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         self._protocol_changed()
         self.refresh_ports()
         self._update_start_enabled()
+
+    def set_calibration_mode(self, enabled):
+        self.calibration_mode = bool(enabled)
+        self.plateau_controls.setVisible(enabled)
+        self.plateau_results.setVisible(enabled)
+        self.event_text.setMaximumHeight(80 if enabled else 130)
+        if enabled:
+            self.protocol.setCurrentIndex(self.protocol.findData("temperature_v1"))
+        self.protocol.setEnabled(not enabled)
+        self.adc_plot.setTitle("相对初始电压变化" if enabled else "固件平均 ADC")
+        self.adc_plot.setLabel("left", "ΔV（V）" if enabled else "ADC 码值")
+        self._plot_points_cache = []
+        for pair in self.lines.values():
+            for line in pair:
+                line.setData([], [])
+
+    def _plateau_requested(self, operation, values):
+        try:
+            self.session.plateau_command(operation, **values)
+            self.plateau_controls.update_state(self.session.snapshot().get("plateau",{}), True, True)
+        except ValueError as exc:
+            self.plateau_controls.show_error(str(exc))
 
     def take_settings_widget(self):
         """取出配置及开始/停止控件，供全局侧栏重新父级；不会操作串口。"""
@@ -323,6 +386,8 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
         if self.channel.text() in ("A2", "A1 / S6,S7"):
             self.channel.setText("A1 / S6,S7" if temperature else "A2")
         self.adc_plot.setVisible(temperature)
+        self.display_channel.setVisible(temperature)
+        self.display_channel.setCurrentIndex(0)
         self.wiring_note.setText("接线：A1 · S6 / S7，轮流采样。" if temperature else "接线：A2 · 原程序选通支路。")
 
     def _fail(self, message):
@@ -339,7 +404,8 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
             config = CaptureConfig(port=self.port.currentData() or "", protocol=self.protocol.currentData(),
                                    sample_name=self.sample_name.text().strip(), channel=self.channel.text().strip(),
                                    notes=self.notes.text().strip(),
-                                   preparation=self.preparation.snapshot()["result"])
+                                   preparation=self.preparation.snapshot()["result"],
+                                   temperature_calibration=self.calibration_mode)
             config.validate()
         except ValueError as exc:
             self._fail(str(exc))
@@ -352,15 +418,21 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
             return
         self._published_key = None
         self._operation = "capture"
+        self.plateau_controls.clear_error()
         self._last_rows = -1
+        self._plot_points_cache = []
+        self.voltage_readout.setText("等待本次采集的首个有效电压；上一轮读数已清空。")
         for pair in self.lines.values():
             for line in pair:
                 line.setData([], [])
+        self._restore_plot_range()
         self.config_group.setEnabled(False)
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.status.setText("正在打开所选串口并建立记录：" + key)
         self._was_running = True
+        if self.calibration_mode:
+            self._settings_focus_timer.start(0)
         self.workflow_status.setText("③ 记录实时曲线 · 保存原始字节、电压与 ADC")
         self.message.emit("")
         self.capture_state_changed.emit(True)
@@ -393,13 +465,39 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
                 self.adc_plot.setXLink(None)
         return prepared and captured
 
+    def _follow_changed(self, enabled):
+        if enabled:
+            self._fit_plot_range()
+
+    def _fit_plot_range(self):
+        # 上次拖动、滚轮或隐藏页面可能留下不包含数据的范围，显式恢复双轴。
+        # X 由电压图主控，ADC 保持链接；Y 各自按可见通道缩放。
+        self.voltage_plot.enableAutoRange(x=True, y=True)
+        self.adc_plot.enableAutoRange(y=True)
+        self.voltage_plot.plotItem.vb.updateAutoRange()
+        self.adc_plot.plotItem.vb.updateAutoRange()
+
+    def _restore_plot_range(self, *_):
+        self.auto_follow.setChecked(True)
+        self._fit_plot_range()
+
     def _plot_points(self, points):
+        self._plot_points_cache = list(points)
         channels = sorted({row["channel"] for row in points})
+        chosen = self.display_channel.currentData()
+        readouts = []
+        for channel, pair in self.lines.items():
+            visible = channel in channels and chosen in ("all", channel)
+            for line in pair:
+                line.setVisible(visible)
         for i, channel in enumerate(channels):
             if channel not in self.lines:
                 pen = pg.mkPen(COLORS[i % len(COLORS)], width=1.5)
-                self.lines[channel] = (self.voltage_plot.plot(pen=pen, name=channel, connect="finite"),
+                self.lines[channel] = (self.voltage_plot.plot(pen=pen, name=channel, symbol="o", symbolSize=3,
+                                                            symbolBrush=COLORS[i % len(COLORS)], symbolPen=None, connect="finite"),
                                        self.adc_plot.plot(pen=pen, name=channel, connect="finite"))
+            for line in self.lines[channel]:
+                line.setVisible(chosen in ("all", channel))
             selected = [row for row in points if row["channel"] == channel]
             times, voltage, adc = [], [], []
             previous = None
@@ -410,20 +508,44 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
                     adc.append(float("nan"))
                 times.append(row["host_elapsed_s"])
                 voltage.append(row["voltage_v"])
-                adc.append(float("nan") if row["adc"] == "" else row["adc"])
+                adc.append(row.get("delta_voltage_v", float("nan")) if self.calibration_mode
+                           else float("nan") if row["adc"] == "" else row["adc"])
                 previous = row
             self.lines[channel][0].setData(times, voltage)
             self.lines[channel][1].setData(times, adc)
+            latest = selected[-1]
+            label = {"S6": "CH1 / S6", "S7": "CH2 / S7"}.get(channel, channel)
+            text = f"{label}：{latest['voltage_v']:.4f} V"
+            if self.calibration_mode and "delta_voltage_v" in latest:
+                text += f"　ΔV {latest['delta_voltage_v']:+.4f} V"
+                rate = latest.get("voltage_rate_v_per_min")
+                text += f"　变化速率 {rate:+.5f} V/min" if rate is not None else "　变化速率：等待至少5秒数据"
+            readouts.append(text)
+        if readouts:
+            elapsed = max(row["host_elapsed_s"] for row in points)
+            self.voltage_readout.setText("　 |　 ".join(readouts) + f"　·　最后样本 {elapsed:.2f} s（未标定）")
+        elif not self._operation:
+            self.voltage_readout.setText("尚无电压读数；有效数据到达后显示最新值。")
+        if self.auto_follow.isChecked():
+            self._fit_plot_range()
 
     def _show_recording_settings(self):
         parent = self.settings_widget.parentWidget()
         while parent is not None:
             if isinstance(parent, QtWidgets.QScrollArea):
-                parent.ensureWidgetVisible(self.start_button, 0, 12)
+                if self.calibration_mode and self._operation == "capture":
+                    top = self.plateau_controls.mapTo(parent.widget(), QtCore.QPoint(0, 0)).y()
+                    parent.verticalScrollBar().setValue(top)
+                else:
+                    parent.ensureWidgetVisible(self.start_button, 0, 12)
                 break
             parent = parent.parentWidget()
 
     def _poll(self):
+        snap = self.session.snapshot()
+        self.plateau_controls.update_state(snap.get("plateau",{}), self.calibration_mode and
+                                          self._operation == "capture" and snap.get("status")=="running"
+                                          and bool(snap.get("rows")) and self.stop_button.isEnabled(), snap.get("plateau_pending",False))
         prepared = self.preparation.snapshot()
         if self._operation == "preparation":
             message = prepared.get("message", "正在准备固件…")
@@ -441,7 +563,7 @@ class TemperaturePressureWidget(QtWidgets.QWidget):
                 self.workflow_status.setText("② 固件数据已验证 → ③ 填写样品并开始记录")
                 self.preparation_status.setText(self._preparation_display)
                 self.message.emit("")
-                QtCore.QTimer.singleShot(0, self._show_recording_settings)
+                self._settings_focus_timer.start(0)
             else:
                 self.workflow_status.setText("② 固件准备未完成 · 检查下方日志后重试")
                 if prepared.get("status") == "failed":

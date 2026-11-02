@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import struct
 import sys
 import tempfile
 import threading
@@ -13,7 +14,8 @@ from unittest.mock import Mock, patch
 
 from sspp_experiments.temperature_pressure.firmware import (
     APPLICATION_BYTES, FLASH_BYTES, SIGNATURE, PreparationCancelled, PreparationSession,
-    firmware_bundle, is_usb_serial_port, _hex_memory,
+    firmware_bundle, is_usb_serial_port, _hex_memory, validate_avrdude_toolchain,
+    avrdude_candidates, _macho_cpu_types,
 )
 
 REPO = Path(__file__).resolve().parents[1]
@@ -54,8 +56,17 @@ class PreparationTests(unittest.TestCase):
         self.reader = Reader(pressure())
         self.factory = Mock(return_value=self.reader)
         self.commands = []
+        for target, value in (("platform.system", "Darwin"), ("platform.machine", "arm64")):
+            mocked = patch("sspp_experiments.temperature_pressure.firmware." + target, return_value=value)
+            mocked.start()
+            self.addCleanup(mocked.stop)
+        self.uploader = self.root / "avrdude"
+        self.uploader.write_bytes(b"\xcf\xfa\xed\xfe" + struct.pack("<I", 0x0100000C) + b"\0" * 24)
+        self.uploader.chmod(0o755)
+        self.uploader_config = self.root / "avrdude.conf"
+        self.uploader_config.write_text("# fake native uploader configuration\n")
         self.session = PreparationSession(self.root, transport_factory=self.factory,
-                                          toolchain={"executable": "/fake/avrdude", "config": "/fake/avrdude.conf"},
+                                          toolchain={"executable": str(self.uploader), "config": str(self.uploader_config)},
                                           verify_timeout_s=.12)
         self.session._run_command = self.command
         self.addCleanup(lambda: self.session.stop())
@@ -282,21 +293,61 @@ class PreparationTests(unittest.TestCase):
         self.assertIn("No space", evidence["log_errors"][0])
         self.assertTrue(any("verification completed" in line for line in snapshot["log"]))
 
-    def test_unusable_tool_candidate_falls_back_before_device_access(self):
-        candidates = [{"executable": "/old/avrdude", "config": "/old/avrdude.conf"},
-                      {"executable": "/native/avrdude", "config": "/native/avrdude.conf"}]
+    def test_native_tool_failure_stops_without_trying_alternative_or_device(self):
+        candidates = [dict(self.session.toolchain),
+                      {"executable": "/intel/avrdude", "config": "/intel/avrdude.conf"}]
+        attempted = []
         def execute(args, **options):
-            if args[0] == "/old/avrdude":
-                raise OSError(86, "Bad CPU type in executable")
-            return self.command(args, **options)
+            attempted.append(args)
+            raise RuntimeError("native installation unavailable")
         self.session.toolchain = None
         self.session._run_command = execute
         with patch("sspp_experiments.temperature_pressure.firmware.avrdude_candidates", return_value=candidates):
             self.session.start("/dev/cu.usbserialFAKE", "pressure_v1")
             snapshot = self.finish()
-        self.assertEqual(snapshot["status"], "ready", snapshot)
-        self.assertEqual(snapshot["result"]["toolchain"], candidates[1])
-        self.assertTrue(all(command[0] == "/native/avrdude" for command, _ in self.commands))
+        self.assertEqual(snapshot["status"], "failed", snapshot)
+        self.assertEqual(len(attempted), 1)
+        self.assertEqual(attempted[0][0], str(self.uploader))
+        self.factory.assert_not_called()
+
+    def test_explicit_intel_toolchain_is_rejected_without_starting_it(self):
+        self.uploader.write_bytes(b"\xcf\xfa\xed\xfe" + struct.pack("<I", 0x01000007) + b"\0" * 24)
+        self.session._run_command = Mock()
+        self.session.start("/dev/cu.usbserialFAKE", "temperature_v1")
+        snapshot = self.finish()
+        self.assertEqual(snapshot["status"], "failed")
+        self.assertIn("启动前拒绝", snapshot["message"])
+        self.session._run_command.assert_not_called()
+        self.factory.assert_not_called()
+        self.assertFalse((self.session.path / "flash_before.bin").exists())
+
+    def test_static_native_architecture_and_universal_binary_detection(self):
+        self.assertEqual(validate_avrdude_toolchain(self.session.toolchain), self.session.toolchain)
+        header = b"\xca\xfe\xba\xbe" + struct.pack(">I", 2)
+        table = b"".join(struct.pack(">IIIII", cpu, 0, 0, 0, 0) for cpu in (0x01000007, 0x0100000C))
+        self.uploader.write_bytes(header + table)
+        self.assertEqual(_macho_cpu_types(self.uploader), {0x01000007, 0x0100000C})
+        self.assertEqual(validate_avrdude_toolchain(self.session.toolchain), self.session.toolchain)
+        self.uploader.write_text("#!/bin/sh\nexec /intel/avrdude\n")
+        with self.assertRaisesRegex(RuntimeError, "启动前拒绝"):
+            validate_avrdude_toolchain(self.session.toolchain)
+        self.uploader.write_bytes(header + table[:10])
+        self.assertEqual(_macho_cpu_types(self.uploader), set())
+
+    def test_discovery_prefers_native_homebrew_without_executing_candidates(self):
+        checked = []
+        def validate(tool):
+            checked.append(tool["executable"])
+            if tool["executable"] != "/opt/homebrew/bin/avrdude":
+                raise RuntimeError("not native")
+            return tool
+        with patch("sspp_experiments.temperature_pressure.firmware.validate_avrdude_toolchain", side_effect=validate), \
+             patch("sspp_experiments.temperature_pressure.firmware.subprocess.Popen") as spawn:
+            candidates = avrdude_candidates()
+        self.assertEqual(candidates, [{"executable": "/opt/homebrew/bin/avrdude", "config": "/opt/homebrew/etc/avrdude.conf"}])
+        self.assertEqual(checked[0], "/opt/homebrew/bin/avrdude")
+        self.assertFalse(any("Arduino15" in path for path in checked))
+        spawn.assert_not_called()
 
     def test_bundle_source_hash_and_bootloader_boundaries_are_checked(self):
         for protocol in ("pressure_v1", "temperature_v1"):

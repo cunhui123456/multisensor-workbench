@@ -13,10 +13,13 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import select
 import shutil
 import signal
 import subprocess
+import struct
+import sys
 import threading
 import time
 
@@ -98,16 +101,53 @@ def firmware_bundle(root, protocol):
     return {**entry, "path": str(image), "application_bytes": len(memory)}
 
 
+def _macho_cpu_types(path):
+    """Read Mach-O headers without executing the uploader or invoking Rosetta."""
+    with Path(path).open("rb") as source:
+        header = source.read(32)
+        magic = header[:4]
+        thin = {b"\xcf\xfa\xed\xfe": "<", b"\xfe\xed\xfa\xcf": ">",
+                b"\xce\xfa\xed\xfe": "<", b"\xfe\xed\xfa\xce": ">"}
+        if magic in thin and len(header) == 32:
+            return {struct.unpack(thin[magic] + "I", header[4:8])[0]}
+        fat = {b"\xca\xfe\xba\xbe": (">", 20), b"\xbe\xba\xfe\xca": ("<", 20),
+               b"\xca\xfe\xba\xbf": (">", 32), b"\xbf\xba\xfe\xca": ("<", 32)}
+        if magic not in fat or len(header) < 8:
+            return set()
+        endian, record_size = fat[magic]
+        count = struct.unpack(endian + "I", header[4:8])[0]
+        if not 1 <= count <= 64:
+            return set()
+        source.seek(8)
+        table = source.read(record_size * count)
+        if len(table) != record_size * count:
+            return set()
+        return {struct.unpack(endian + "I", table[i * record_size:i * record_size + 4])[0]
+                for i in range(count)}
+
+
+def validate_avrdude_toolchain(tool):
+    """Reject incompatible explicit paths before starting any avrdude process."""
+    machine = platform.machine().lower()
+    native_cpu = {"arm64": 0x0100000C, "aarch64": 0x0100000C,
+                  "x86_64": 0x01000007, "amd64": 0x01000007}.get(machine)
+    if platform.system() != "Darwin" or native_cpu is None:
+        raise RuntimeError("此烧录流程需要已核验架构的原生 macOS avrdude；请在本机 Mac 配置后重试。")
+    executable = Path(tool.get("executable", ""))
+    config = Path(tool.get("config", ""))
+    if not executable.is_file() or not os.access(executable, os.X_OK) or not config.is_file():
+        raise RuntimeError("原生 avrdude 工具或配置不存在／不可执行；请检查 /opt/homebrew/bin/avrdude 和 /opt/homebrew/etc/avrdude.conf。")
+    if native_cpu not in _macho_cpu_types(executable):
+        raise RuntimeError(f"avrdude 不是当前 Mac 的原生 {machine} 可执行文件，已在启动前拒绝；"
+                           "请使用 /opt/homebrew/bin/avrdude，不尝试 Intel 兼容运行。")
+    return {"executable": str(executable), "config": str(config)}
+
+
 def avrdude_candidates():
-    """Inspect existing files only; installation is a separate maintenance action."""
-    # Reuse Arduino's own uploader first. A native installed alternative is
-    # only used when the bundled executable cannot run on this Mac.
-    candidates = []
-    packages = Path.home() / "Library" / "Arduino15" / "packages" / "arduino" / "tools" / "avrdude"
-    for version in sorted(packages.glob("*"), reverse=True):
-        candidates.append((version / "bin" / "avrdude", version / "etc" / "avrdude.conf"))
-    candidates.append((Path("/opt/homebrew/bin/avrdude"), Path("/opt/homebrew/etc/avrdude.conf")))
-    import sys
+    """Prefer native Homebrew and inspect architecture without running candidates."""
+    # Arduino15's bundled uploader may be Intel-only. The native Homebrew
+    # installation is the first choice; never launch an Intel candidate to test it.
+    candidates = [(Path("/opt/homebrew/bin/avrdude"), Path("/opt/homebrew/etc/avrdude.conf"))]
     candidates.append((Path(sys.prefix) / "bin" / "avrdude", Path(sys.prefix) / "etc" / "avrdude.conf"))
     path = shutil.which("avrdude")
     if path:
@@ -118,16 +158,21 @@ def avrdude_candidates():
     result, seen = [], set()
     for executable, config in candidates:
         pair = (str(executable.resolve()), str(config.resolve()))
-        if pair not in seen and executable.is_file() and config.is_file():
-            result.append({"executable": str(executable), "config": str(config)})
-            seen.add(pair)
+        if pair in seen:
+            continue
+        seen.add(pair)
+        try:
+            result.append(validate_avrdude_toolchain({"executable": str(executable), "config": str(config)}))
+        except (OSError, RuntimeError):
+            continue
     if result:
         return result
-    raise RuntimeError("未找到可用的 avrdude 烧录工具及配置；可先选择“验证已有固件”，或安装适合此 Mac 的 AVR 工具后重试。")
+    raise RuntimeError("未找到匹配本机架构的原生 avrdude 及配置；请安装或修复 /opt/homebrew/bin/avrdude。"
+                       "未启动 Intel 工具；也可先选择“验证已有固件”。")
 
 
 def discover_avrdude():
-    """First installed candidate; preparation additionally checks executability."""
+    """First statically verified native candidate, normally Homebrew."""
     return avrdude_candidates()[0]
 
 
@@ -420,28 +465,14 @@ class PreparationSession:
             if upload:
                 bundle = firmware_bundle(self.root, protocol)
                 evidence["requested_firmware"] = {key: value for key, value in bundle.items() if key != "path"}
-                candidates = [self.toolchain] if self.toolchain else avrdude_candidates()
-                self._phase("checking", "检查配套固件校验和及本机烧录工具。")
-                failures = []
-                base = None
-                for tool in candidates:
-                    self._check_cancelled()
-                    self._check_log_health()
-                    candidate = [tool["executable"], "-C", tool["config"]]
-                    try:
-                        self._run_command(candidate + ["-h"], timeout_s=10)
-                    except PreparationCancelled:
-                        raise
-                    except (OSError, RuntimeError, TimeoutError) as exc:
-                        failures.append(str(exc))
-                        self._log("此烧录工具不可用，检查下一个已安装候选：" + str(exc))
-                        continue
-                    base = candidate
-                    evidence["toolchain"] = dict(tool)
-                    break
+                tool = validate_avrdude_toolchain(self.toolchain) if self.toolchain else discover_avrdude()
+                self._phase("checking", "检查配套固件校验和及原生 macOS 烧录工具：" + tool["executable"])
+                self._check_cancelled()
                 self._check_log_health()
-                if base is None:
-                    raise RuntimeError("没有可启动的 AVR 烧录工具：" + "；".join(failures))
+                base = [tool["executable"], "-C", tool["config"]]
+                evidence["toolchain"] = dict(tool)
+                self._run_command(base + ["-h"], timeout_s=10)
+                self._check_log_health()
                 self._check_cancelled()
                 # avrdude enforces the selected part without -F. Independently read
                 # its signature as well as all flash before allowing any write.
