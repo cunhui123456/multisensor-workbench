@@ -12,7 +12,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-SWEEP_ALGORITHM_VERSION = "sspp.sweep.target_confirmed.v5"
+SWEEP_ALGORITHM_VERSION = "sspp.sweep.target_confirmed.v8"
+WEAK_POINT_EVIDENCE_MIN_SECONDS = 1.0
+WEAK_POINT_BUDGET_POLICY = "one_extension_after_qualified_long_verify_before_base_deadline"
+FAILED_POINT_WINDOW_POLICY = "next_level_after_long_verified_window_on_timeout"
 
 
 class PointQualityTimeout(TimeoutError):
@@ -71,9 +74,11 @@ class SweepConfig:
     min_tone_snr_db: float = 6.0
     previous_tone_rejection_db: float = 6.0
     previous_tone_presence_db: float = 6.0
-    adaptive_window_seconds: tuple = (.020, .050, .100, .250, .500, 1.000, 2.000)
+    adaptive_window_seconds: tuple = (.020, .100, 1.000, 2.000)
     adaptive_rejections_per_level: int = 2
     adaptive_carryover_hold_seconds: float = .250
+    reuse_previous_round_window: bool = True
+    weak_point_extra_seconds: float = 8.0
     switch_settle_time: float = 0.1
     save_dir: str = "./Data"
     save_filename: str = "Sweep_data.xlsx"
@@ -90,6 +95,13 @@ class SweepConfig:
 
     # 以接收采样率检查最高基带单音，防止落到 Nyquist 范围之外。
     def validate(self, sdr_rate):
+        if type(self.reuse_previous_round_window) is not bool:
+            raise ValueError("reuse_previous_round_window 必须为布尔值")
+        if (not isinstance(self.weak_point_extra_seconds, (int, float))
+                or isinstance(self.weak_point_extra_seconds, bool)
+                or not math.isfinite(self.weak_point_extra_seconds)
+                or not 0 <= self.weak_point_extra_seconds <= 30):
+            raise ValueError("weak_point_extra_seconds 必须为 0–30 秒的有限数值，不能为布尔值")
         values = (sdr_rate, self.verify_min_seconds, self.measure_min_seconds,
                   self.min_tone_snr_db, self.previous_tone_rejection_db,
                   self.previous_tone_presence_db, self.adaptive_carryover_hold_seconds,
@@ -176,8 +188,17 @@ def sweep_algorithm_policy(cfg):
             "previous_tone_presence_db": cfg.previous_tone_presence_db,
             "adaptive_window_seconds": list(cfg.adaptive_window_seconds),
             "adaptive_rejections_per_level": cfg.adaptive_rejections_per_level,
+            "reuse_previous_round_window": cfg.reuse_previous_round_window,
+            "previous_round_window_policy": (
+                "previous_round_success_or_qualified_weak_confirmation_level_only"
+                if cfg.reuse_previous_round_window else "disabled"),
+            "weak_point_extra_seconds": cfg.weak_point_extra_seconds,
+            "weak_point_evidence_min_seconds": WEAK_POINT_EVIDENCE_MIN_SECONDS,
+            "weak_point_budget_policy": WEAK_POINT_BUDGET_POLICY,
+            "failed_point_window_policy": FAILED_POINT_WINDOW_POLICY,
+            "escalation_budget_policy": "require_remaining_time_for_independent_verification_and_measurement_with_rejected_prefix",
             "rejected_window_policy": "reuse_last_failed_window_only_on_escalation",
-            "skip_invalid_points":cfg.skip_invalid_points, "point_budget_policy":"unchanged absolute deadline; invalid points remain missing; no reset or interpolation",
+            "skip_invalid_points":cfg.skip_invalid_points, "point_budget_policy":"fixed base deadline plus at most one configured evidence-qualified weak-point extension; no retry reset or interpolation",
             "adaptive_carryover_hold_seconds": cfg.adaptive_carryover_hold_seconds,
             "previous_tone_detection": "exact_tone_with_half_window_support_or_split_candidate",
             "verify_tolerance_hz": cfg.verify_tolerance_hz,
@@ -189,7 +210,7 @@ def sweep_algorithm_policy(cfg):
             "target_numerical_floor": "float32_epsilon_times_input_rms",
             "noise_floor_bandwidth_hz": 1000.0,
             "snr_definition": "exact expected-tone Hann coefficient versus median local FFT-bin amplitude; engineering prominence, not calibrated physical SNR",
-            "retry_policy": "on escalation retain only the last failed window as prefix; accepted VERIFY and MEASURE windows never overlap; two cumulative rejected windows at a level advance duration; evidenced previous-tone rejection during initial carryover hold delays escalation only; isolated passes do not reset rejection count; rejected MEASURE returns to two-window VERIFY; original point deadline never reset"}
+            "retry_policy": "on escalation retain only the last failed window as prefix; accepted VERIFY and MEASURE windows never overlap; two cumulative rejected windows at a level advance duration; evidenced previous-tone rejection during initial carryover hold delays escalation only; isolated passes do not reset rejection count; rejected MEASURE returns to two-window VERIFY; base deadline never reset; at most one evidence-qualified extension recorded separately"}
 
 
 def _split_previous_candidate(data, rate, previous_tone, target_tone, cfg):
@@ -503,6 +524,55 @@ class SweepRunner:
         """硬件记录子类提供绝对截止时间；离线领域执行可注入独立时间策略。"""
         return False
 
+    def remaining_point_seconds(self):
+        """实采子类返回原绝对截止时间的剩余秒数；None 表示离线未设置预算。"""
+        return None
+
+    def _window_counts(self, adaptive_level, verify_samples, measure_samples, rate):
+        count = math.ceil(self.cfg.adaptive_window_seconds[adaptive_level] * rate)
+        return max(verify_samples, count), max(measure_samples, count)
+
+    def _window_chain_samples_needed(self, adaptive_level, verify_samples, measure_samples,
+                                     rate, *, verified_windows=0, available_samples=0):
+        """独立验证链还缺多少新样本；仅未消费缓存/当前失败前缀可计入已有样本。"""
+        verify_count, measure_count = self._window_counts(
+            adaptive_level, verify_samples, measure_samples, rate)
+        remaining_verify = max(0, self.cfg.verify_consecutive_windows - verified_windows)
+        return max(0, remaining_verify * verify_count + measure_count - available_samples)
+
+    def _remaining_point_budget(self):
+        remaining = self.remaining_point_seconds()
+        if remaining is None:
+            return None
+        if isinstance(remaining, bool) or not math.isfinite(remaining):
+            raise ValueError("单点剩余预算必须为有限秒数或 None")
+        return max(0., float(remaining))
+
+    def on_point_progress(self, record):
+        """当前尚待完成的状态；硬件子类用于解释超时，不能据此接受测量。"""
+        pass
+
+    def _report_point_progress(self, state, consecutive, adaptive_level,
+                               verify_samples, measure_samples, buffered_samples, rate,
+                               schedule=None):
+        verify_count, measure_count = self._window_counts(
+            adaptive_level, verify_samples, measure_samples, rate)
+        pending = verify_count if state == self.VERIFY else measure_count
+        self.on_point_progress({
+            **(schedule or {}),
+            "state": "VERIFY" if state == self.VERIFY else "MEASURE",
+            "verified_windows": consecutive,
+            "required_verified_windows": self.cfg.verify_consecutive_windows,
+            "pending_window_count": pending,
+            "pending_window_seconds": pending / rate,
+            "buffered_sample_count": buffered_samples,
+            "adaptive_level_index": adaptive_level,
+            "completion_samples_needed": self._window_chain_samples_needed(
+                adaptive_level, verify_samples, measure_samples, rate,
+                verified_windows=(consecutive if state == self.VERIFY else self.cfg.verify_consecutive_windows),
+                available_samples=buffered_samples),
+        })
+
     def on_invalid_measurement(self, repeat, point, frequency, tone, quality):
         pass
 
@@ -532,11 +602,14 @@ class SweepRunner:
         self.last_measurement_quality = None
         last_plot_time = 0.0
         previous_tone = None
+        # 只在本次 run 内保存紧邻上一轮的窗长证据；不缓存 IQ、幅值或已通过验证。
+        previous_window_hints = {}
         for repeat in (count() if self.cfg.continuous else range(self.cfg.sweep_repeat)):
             if self.stop_event.is_set():
                 break
             print(f"开始第 {repeat+1} 轮连续扫频" if self.cfg.continuous else f"开始第 {repeat+1} / {self.cfg.sweep_repeat} 次扫频")
             self.on_round_started(repeat+1)
+            round_window_hints = {}
             round_frequencies, amplitudes, expected, measured, accepted_quality = [], [], [], [], []
             for key, rows in (("all_freq_records", round_frequencies), ("all_amp_records", amplitudes),
                               ("all_expected_tone_records", expected), ("all_measured_tone_records", measured),
@@ -551,13 +624,49 @@ class SweepRunner:
                 verify_samples, measure_samples = self._calc_samples(tone)
                 state, consecutive, attempt = self.VERIFY, 0, 0
                 adaptive_level, level_rejections = 0, 0
+                point_key = (float(frequency), float(tone))
+                hint = (previous_window_hints.get(point_key)
+                        if self.cfg.reuse_previous_round_window else None)
+                point_schedule = {
+                    "window_source": "default", "window_hint_source_round": None,
+                    "window_hint_source_kind": None, "window_hint_source_attempt": None,
+                    "window_hint_source_state": None, "window_hint_observed_level_index": None,
+                    "window_hint_observed_window_seconds": None,
+                    "point_initial_budget_required_seconds": None,
+                    "point_initial_budget_available_seconds": None,
+                    "last_escalation_budget": None,
+                }
+                if hint is not None and hint["round"] == repeat:
+                    hint_level = hint["adaptive_level_index"]
+                    needed_seconds = self._window_chain_samples_needed(
+                        hint_level, verify_samples, measure_samples, rate) / rate
+                    available_seconds = self._remaining_point_budget()
+                    fits_budget = available_seconds is None or needed_seconds <= available_seconds
+                    adaptive_level = hint_level if fits_budget else 0
+                    point_schedule.update(
+                        window_source=hint["source"] if fits_budget else "budget_fallback",
+                        window_hint_source_round=hint["round"],
+                        window_hint_source_kind=hint["source"],
+                        window_hint_source_attempt=hint["source_attempt"],
+                        window_hint_source_state=hint["source_state"],
+                        window_hint_observed_level_index=hint["observed_level_index"],
+                        window_hint_observed_window_seconds=hint["observed_window_seconds"],
+                        point_initial_budget_required_seconds=needed_seconds,
+                        point_initial_budget_available_seconds=available_seconds)
+                point_schedule.update(
+                    point_initial_level_index=adaptive_level,
+                    point_initial_window_seconds=self.cfg.adaptive_window_seconds[adaptive_level])
                 rx_buffer = np.empty(0, dtype=np.complex64)
                 window_start = 0
                 quality_timeout = None
+                best_weak_confirmation = None
                 while not self.stop_event.is_set():
                     if enable_plot and self.drawer and not self.drawer.is_open():
                         self.stop_event.set()
                         break
+                    self._report_point_progress(state, consecutive, adaptive_level,
+                                                verify_samples, measure_samples, len(rx_buffer), rate,
+                                                schedule=point_schedule)
                     # 每次检查同一频点的绝对截止时间；拒绝/重验不会重置它。
                     try:
                         frames, latest = self._fetch_available_frames()
@@ -587,16 +696,39 @@ class SweepRunner:
                     if not quality['passed']:
                         level_rejections += 1
                     next_level = adaptive_level
+                    escalation_budget = {
+                        "escalation_candidate_level_index": None,
+                        "escalation_minimum_new_samples": None,
+                        "escalation_minimum_new_seconds": None,
+                        "escalation_available_seconds": None,
+                        "escalation_blocked_reason": None,
+                    }
                     carryover_hold = (not quality['passed']
                                       and 'previous_tone_not_sufficiently_rejected' in quality['rejection_reasons']
                                       and (window_start+required)/rate <= self.cfg.adaptive_carryover_hold_seconds)
                     if (not quality['passed'] and level_rejections >= self.cfg.adaptive_rejections_per_level
                             and not carryover_hold
                             and adaptive_level+1 < len(self.cfg.adaptive_window_seconds)):
-                        next_level += 1
+                        candidate_level = adaptive_level + 1
+                        needed_samples = self._window_chain_samples_needed(
+                            candidate_level, verify_samples, measure_samples, rate,
+                            available_samples=required + len(rx_buffer))
+                        available_seconds = self._remaining_point_budget()
+                        blocked = available_seconds is not None and needed_samples / rate > available_seconds
+                        escalation_budget.update(
+                            escalation_candidate_level_index=candidate_level,
+                            escalation_minimum_new_samples=needed_samples,
+                            escalation_minimum_new_seconds=needed_samples / rate,
+                            escalation_available_seconds=available_seconds,
+                            escalation_blocked_reason="insufficient_remaining_point_budget" if blocked else None)
+                        point_schedule["last_escalation_budget"] = {
+                            **escalation_budget, "quality_attempt_index": attempt}
+                        if not blocked:
+                            next_level = candidate_level
                     deadline_expired = self.point_deadline_expired()
                     cancelled = self.stop_event.is_set()
-                    record = {**quality, "repeat": repeat+1, "point": point+1,
+                    record = {**quality, **point_schedule, **escalation_budget,
+                              "repeat": repeat+1, "point": point+1,
                               "requested_carrier_hz": float(frequency),
                               "state": "VERIFY" if state == self.VERIFY else "MEASURE",
                               "quality_attempt_index": attempt, "window_start": window_start,
@@ -613,6 +745,9 @@ class SweepRunner:
                     window_start += required
                     self.on_quality_attempt(record)
                     if deadline_expired:
+                        self._report_point_progress(state, consecutive, adaptive_level,
+                                                    verify_samples, measure_samples, len(rx_buffer), rate,
+                                                    schedule=point_schedule)
                         if self.cfg.skip_invalid_points:
                             quality_timeout="Point quality deadline expired during window processing; measurement not accepted"
                             break
@@ -620,7 +755,7 @@ class SweepRunner:
                     if cancelled:
                         break
                     if not quality["passed"]:
-                        # 孤立通过不清空本档拒绝累计；失败测量也计入升级，始终重验两窗。
+                        # 精简阶梯减少探索耗时；每档仍累计两次拒绝，失败测量后重验两窗。
                         state, consecutive = self.VERIFY, 0
                         if next_level != adaptive_level:
                             # 失败窗不作测量，但其真实 IQ 可扩展为下一档更长候选；
@@ -633,6 +768,14 @@ class SweepRunner:
                               + ", ".join(quality["rejection_reasons"]))
                         continue
                     if state == self.VERIFY:
+                        # 只有本点已通过的完整长 VERIFY 窗能提示下一轮；当前通过状态不传递。
+                        if (quality["window_duration_s"] >= WEAK_POINT_EVIDENCE_MIN_SECONDS
+                                and (best_weak_confirmation is None
+                                     or adaptive_level >= best_weak_confirmation["observed_level_index"])):
+                            best_weak_confirmation = {
+                                "round": repeat+1, "source_attempt": attempt,
+                                "source_state": "VERIFY", "observed_level_index": adaptive_level,
+                                "observed_window_seconds": quality["window_duration_s"]}
                         consecutive += 1
                         if consecutive >= self.cfg.verify_consecutive_windows:
                             state = self.MEASURE
@@ -644,11 +787,26 @@ class SweepRunner:
                     measured.append(peak_frequency)
                     accepted_quality.append(record)
                     self.last_measurement_quality = record
+                    if self.cfg.reuse_previous_round_window:
+                        round_window_hints[point_key] = {
+                            "round": repeat+1, "adaptive_level_index": adaptive_level,
+                            "adaptive_window_seconds": level_duration,
+                            "source": "previous_round_success", "source_attempt": attempt,
+                            "source_state": "MEASURE", "observed_level_index": adaptive_level,
+                            "observed_window_seconds": quality["window_duration_s"]}
                     print(f"[第 {repeat+1} 次/点 {point+1}] 测量通过: {frequency/1e9:.6f} GHz, "
                           f"{peak_frequency:.1f} Hz, {amplitude:.2f} dB, 完整 {required} 样点")
                     self.on_measurement(repeat, point, frequency, tone, peak_frequency, amplitude)
                     break
                 if quality_timeout is not None and not self.stop_event.is_set():
+                    round_window_hints.pop(point_key, None)
+                    if self.cfg.reuse_previous_round_window and best_weak_confirmation is not None:
+                        hint_level = min(best_weak_confirmation["observed_level_index"]+1,
+                                         len(self.cfg.adaptive_window_seconds)-1)
+                        round_window_hints[point_key] = {
+                            **best_weak_confirmation, "source": "previous_round_weak_confirmation",
+                            "adaptive_level_index": hint_level,
+                            "adaptive_window_seconds": self.cfg.adaptive_window_seconds[hint_level]}
                     invalid={"measurement_status":"invalid", "accepted":False, "reason_code":"point_quality_timeout",
                              "reason":quality_timeout, **self.invalid_quality_details()}
                     round_frequencies.append(float(frequency/1e9));amplitudes.append(None)
@@ -658,6 +816,7 @@ class SweepRunner:
                 if self.stop_event.is_set():
                     break
             self.on_round_finished(repeat+1, len(amplitudes)==self.cfg.num_points)
+            previous_window_hints = round_window_hints
         return self.partial_result
 
 

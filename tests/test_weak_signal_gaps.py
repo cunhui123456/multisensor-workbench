@@ -105,7 +105,10 @@ class WeakGapTests(unittest.TestCase):
    if not source.is_file():self.skipTest('saved diagnostic IQ not installed')
    before=hashlib.sha256(source.read_bytes()).hexdigest()
    iq=np.load(source)['iq']
-   cfg=SweepConfig(num_points=2,sweep_repeat=1,tone_start=target-1000,tone_step=1000,skip_invalid_points=True)
+   # Keep the historical seven-level schedule's original outcome contract.
+   # V6 recovery on these same immutable sources is tested independently.
+   cfg=SweepConfig(num_points=2,sweep_repeat=1,tone_start=target-1000,tone_step=1000,skip_invalid_points=True,
+                   adaptive_window_seconds=(.02,.05,.1,.25,.5,1.,2.))
    runner=Replay([warmup(target-1000),iq],cfg);result=self.run_replay(runner)
    self.assertLessEqual(runner.clock-runner.started,8)
    self.assertEqual(result['all_amp_records'][0][1] is not None,valid)

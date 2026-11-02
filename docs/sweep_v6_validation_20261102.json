@@ -1,0 +1,456 @@
+{
+  "schema": "sspp.sweep.offline_validation.v1",
+  "created_utc": "2026-11-02T09:35:49.369426+00:00",
+  "algorithm_version": "sspp.sweep.target_confirmed.v6",
+  "source_code_file": "sspp_experiments/material_sweep/logic.py",
+  "source_code_sha256": "9a3433a77fa7cc816d7212fdcb934a3173264db174dd3746059760e78909032c",
+  "baseline_code_sha256": "beaa57fc81ed20a2e25a2225ca23a5fd25da074292511d72a8cca0276dcf42ec",
+  "policy": {
+    "window_seconds": [
+      0.02,
+      0.1,
+      1.0,
+      2.0
+    ],
+    "rejections_per_level": 2,
+    "previous_tone_initial_hold_seconds": 0.25,
+    "verify_consecutive_windows": 2,
+    "independent_measurement_required": true,
+    "unchanged_quality_margin_db": 6.0,
+    "point_deadline_seconds": 8.0,
+    "overall_acquisition_limit_added": false,
+    "warm_start": false
+  },
+  "method": "Offline chronological original-frame replay with an absolute eight-second sample budget. Code does not open hardware or modify source Data. Successful VERIFY windows and MEASURE do not overlap; only a failed window can prefix a longer candidate.",
+  "selection": "B retains the 1 s middle level and original two-rejection escalation, preserves the historical 19 kHz and synthetic late-target successes, recovers three current failed traces, and passes the declared negative controls. First-failure/hybrid regress 19 kHz; initial four-level candidate regresses late-target success; A recovers only one current failed trace. No timing-offset search or threshold change.",
+  "candidate_summary": [
+    {
+      "policy": "v5_baseline",
+      "levels_s": [
+        0.02,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "rejections_per_level": 2,
+      "current_failed_points_accepted": 0,
+      "historical_cases": {
+        "38000": {
+          "accepted": false,
+          "measurement_end_s": null
+        },
+        "19000": {
+          "accepted": true,
+          "measurement_end_s": 3.92
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    },
+    {
+      "policy": "v6_first_failure",
+      "levels_s": [
+        0.02,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "rejections_per_level": 1,
+      "current_failed_points_accepted": 2,
+      "historical_cases": {
+        "38000": {
+          "accepted": true,
+          "measurement_end_s": 6.0
+        },
+        "19000": {
+          "accepted": false,
+          "measurement_end_s": null
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    },
+    {
+      "policy": "v6_four_levels",
+      "levels_s": [
+        0.02,
+        0.1,
+        0.5,
+        2.0
+      ],
+      "rejections_per_level": 2,
+      "current_failed_points_accepted": 3,
+      "historical_cases": {
+        "38000": {
+          "accepted": false,
+          "measurement_end_s": null
+        },
+        "19000": {
+          "accepted": true,
+          "measurement_end_s": 7.22
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    },
+    {
+      "policy": "v6_previous_only",
+      "levels_s": [
+        0.02,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "rejections_per_level": 1,
+      "current_failed_points_accepted": 2,
+      "historical_cases": {
+        "38000": {
+          "accepted": true,
+          "measurement_end_s": 6.0
+        },
+        "19000": {
+          "accepted": false,
+          "measurement_end_s": null
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    },
+    {
+      "policy": "v6_five_levels_a",
+      "levels_s": [
+        0.02,
+        0.1,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "rejections_per_level": 2,
+      "current_failed_points_accepted": 1,
+      "historical_cases": {
+        "38000": {
+          "accepted": false,
+          "measurement_end_s": null
+        },
+        "19000": {
+          "accepted": true,
+          "measurement_end_s": 4.22
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    },
+    {
+      "policy": "v6_four_levels_b",
+      "levels_s": [
+        0.02,
+        0.1,
+        1.0,
+        2.0
+      ],
+      "rejections_per_level": 2,
+      "current_failed_points_accepted": 3,
+      "historical_cases": {
+        "38000": {
+          "accepted": true,
+          "measurement_end_s": 3.12
+        },
+        "19000": {
+          "accepted": true,
+          "measurement_end_s": 3.22
+        }
+      },
+      "noise_sequences": 80,
+      "noise_false_acceptances": 0
+    }
+  ],
+  "final_actual_source_validation": {
+    "real_records": [
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_008.npz",
+        "sha256": "83e99c882037fa8bb8d0e45aa942520ce37dc7f0fdef4566df5d7ee824ab85d3",
+        "point": 8,
+        "previously_accepted": true,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "classification": "insufficient_saved_trace",
+        "accepted_windows_nonoverlapping": null,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": true
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_009.npz",
+        "sha256": "9e1b8cc6a734dbf18a05bf8389ee671376bfcb9a3e280c7d35314d93378d0d62",
+        "point": 9,
+        "previously_accepted": false,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "classification": "not_accepted_in_8s_trace",
+        "accepted_windows_nonoverlapping": null,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_010.npz",
+        "sha256": "3b1c04181f5a45f8da4ac9ec7e4f248e577aff729def38abc5060643b18b8174",
+        "point": 10,
+        "previously_accepted": false,
+        "accepted": true,
+        "measurement_end_sample_time_s": 3.12,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_011.npz",
+        "sha256": "de84ca9b7a156d160f84e1d99a2575727bbf5f548f677df3778268a0deebac3f",
+        "point": 11,
+        "previously_accepted": true,
+        "accepted": true,
+        "measurement_end_sample_time_s": 3.12,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": true
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_028.npz",
+        "sha256": "91df83d8ef9fbb08b688e73a925ed2fbfdbdd60521be842b9366f2a724656288",
+        "point": 28,
+        "previously_accepted": true,
+        "accepted": true,
+        "measurement_end_sample_time_s": 0.1,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": true
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_029.npz",
+        "sha256": "457cd17a44dda2362039d9c69e883b9f4babf86292a22ffbb72b686013177aef",
+        "point": 29,
+        "previously_accepted": false,
+        "accepted": true,
+        "measurement_end_sample_time_s": 7.16,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_030.npz",
+        "sha256": "82443082b1377ecd84700a4c456e3fdcb06c105d3ea6ed27578b7620dedcc5ce",
+        "point": 30,
+        "previously_accepted": false,
+        "accepted": true,
+        "measurement_end_sample_time_s": 4.12,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      },
+      {
+        "run": "20261102T090452_414767Z",
+        "file": "iq_point_031.npz",
+        "sha256": "f1e4cb69fef13fbb2f5bed3d279da9a2d477637295b75f2ff7bb6dba237dd1a1",
+        "point": 31,
+        "previously_accepted": true,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "classification": "insufficient_saved_trace",
+        "accepted_windows_nonoverlapping": null,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": true
+      },
+      {
+        "run": "20261102T023947_939461Z",
+        "file": "iq_point_037.npz",
+        "sha256": "522fbc572c50dc649f7737835c738030fd577c00d90ddc6ef1825441664096a1",
+        "point": null,
+        "previously_accepted": null,
+        "accepted": true,
+        "measurement_end_sample_time_s": 3.12,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      },
+      {
+        "run": "20261102T023813_655557Z",
+        "file": "iq_point_038.npz",
+        "sha256": "f67ecf0c016d1afec876c470edeb573da66313746551fb548de71c1ca7ec921b",
+        "point": null,
+        "previously_accepted": null,
+        "accepted": true,
+        "measurement_end_sample_time_s": 3.22,
+        "classification": "accepted_offline",
+        "accepted_windows_nonoverlapping": true,
+        "source_unchanged": true,
+        "matches_candidate": true,
+        "same_original_accepted_window_passes": null
+      }
+    ],
+    "all_candidate_results_reproduced": true,
+    "source_code_unchanged": true,
+    "same_original_accepted_windows": {
+      "passed": 4,
+      "total": 4
+    },
+    "late_target": {
+      "baseline": {
+        "accepted": true,
+        "measurement_end_s": 4.92,
+        "quality_attempts": 14
+      },
+      "final_v6": {
+        "accepted": true,
+        "measurement_end_s": 7.12,
+        "quality_attempts": 9
+      }
+    },
+    "noise": [
+      {
+        "rate": 20000.0,
+        "shape": "white",
+        "seeds": 32,
+        "seconds_per_sequence": 8.0,
+        "rng_seed_offset": 609200,
+        "false_acceptances": 0
+      },
+      {
+        "rate": 20000.0,
+        "shape": "colored",
+        "seeds": 32,
+        "seconds_per_sequence": 8.0,
+        "rng_seed_offset": 609200,
+        "false_acceptances": 0
+      },
+      {
+        "rate": 250000.0,
+        "shape": "white",
+        "seeds": 16,
+        "seconds_per_sequence": 8.0,
+        "rng_seed_offset": 609200,
+        "false_acceptances": 0
+      }
+    ],
+    "controls": [
+      {
+        "case": "strong_target",
+        "sample_rate": 250000.0,
+        "accepted": true,
+        "measurement_end_sample_time_s": 0.08,
+        "accepted_windows_nonoverlapping": true,
+        "required_rejection": false
+      },
+      {
+        "case": "weak_target",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": false
+      },
+      {
+        "case": "strong_background",
+        "sample_rate": 250000.0,
+        "accepted": true,
+        "measurement_end_sample_time_s": 0.08,
+        "accepted_windows_nonoverlapping": true,
+        "required_rejection": false
+      },
+      {
+        "case": "previous_persistent",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": true
+      },
+      {
+        "case": "previous_offset",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": true
+      },
+      {
+        "case": "previous_transient",
+        "sample_rate": 250000.0,
+        "accepted": true,
+        "measurement_end_sample_time_s": 0.54,
+        "accepted_windows_nonoverlapping": true,
+        "required_rejection": false
+      },
+      {
+        "case": "wrong_tone_only",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": true
+      },
+      {
+        "case": "brief_target_burst",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": true
+      },
+      {
+        "case": "numerical_wrong_tone",
+        "sample_rate": 250000.0,
+        "accepted": false,
+        "measurement_end_sample_time_s": null,
+        "accepted_windows_nonoverlapping": null,
+        "required_rejection": true
+      }
+    ]
+  },
+  "limitations": [
+    "This is sequential frame sample-time replay, not live USB/queue/CPU wall-time validation; the unchanged 8 s hardware point deadline still applies.",
+    "Round 2 had already been inspected during diagnosis and is a temporal check, not a blind holdout. Historical and synthetic regressions influenced selection.",
+    "Final B repeats two of four originally valid neighbors within their saved traces. Points 8 and 31 stop before B finishes; those short files cannot establish live failure or success. The same originally accepted windows still pass unchanged quality gates.",
+    "Zero acceptances in 80 synthetic noise sequences per policy is bounded test evidence, not a universal false-acceptance-rate guarantee. Policies reuse the same seeds.",
+    "Point 9 remains invalid; raw records and historical valid flags are never rewritten.",
+    "No warm start is adopted. Only failed windows can become a longer candidate prefix; accepted VERIFY and MEASURE remain independent.",
+    "The newly accepted historical 38 kHz trace has a persistent exact-frequency spectral component, but no external RF ground truth. The original conditional half-window rule remains: halves are required only when the wide-band peak lies outside target tolerance.",
+    "The preserved late-target example is accepted at 7.12 s rather than the v5 4.92 s; the new schedule is not uniformly faster across all arrival times."
+  ],
+  "evidence_files": {
+    "sources.json": "dde6e0a4ead514d64e0cc0fb3f1a91eecc1586c8afe88095bb9a34a073bbb786",
+    "final_policy_summary.json": "787b4f272d63e25bd7c718018bf9f14704511b9ed87183a8b591ff54fabe7959",
+    "final_validation.json": "237b39d9240a3bcb6f3f0d0b683e13182aee47e059dc22d88384946b582b5b7d",
+    "final_actual_controls.json": "ec66c561ec08f5346cdc639e8dc06a48c2c9155747c559dfdb1c8753da68bb54",
+    "historical_weak_independent.json": "25279f5c28c4d1b4386fac02bf3202159eee6cb6c4f2cec8735f07e7065cc5b0",
+    "candidate_b_38k_windows.json": "9d1fa3aefca562d9169975cf233c035a16a8b4a634d394b0b3b42b4a62e9e894"
+  }
+}

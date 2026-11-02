@@ -124,7 +124,10 @@ class SweepQualityStateTests(unittest.TestCase):
     def test_measurement_failure_reverifies_same_point_and_preserves_exact_windows(self):
         sequence = np.concatenate([tone(2000, 5000), tone(2000, 5000), tone(3000, 10000),
                                    tone(2000, 5000), tone(2000, 5000), tone(2000, 10000)])
-        runner = ReplayRunner([sequence])
+        # Preserve the explicit legacy two-rejection schedule and its exact windows.
+        runner = ReplayRunner([sequence], SweepConfig(num_points=1, sweep_repeat=1,
+                                                     adaptive_rejections_per_level=2,
+                                                     adaptive_window_seconds=(.02,.05,.1,.25,.5,1.,2.)))
         result = self.run_quietly(runner)
         self.assertEqual(runner.retunes, 1)
         self.assertEqual(result["all_measured_tone_records"], [[2000.]])
@@ -138,7 +141,9 @@ class SweepQualityStateTests(unittest.TestCase):
     def test_one_valid_verify_followed_by_noise_does_not_unlock_measurement(self):
         sequence = np.concatenate([tone(2000,5000), tone(3000,5000),
                                    tone(2000,5000), tone(2000,5000),tone(2000,10000)])
-        runner = ReplayRunner([sequence])
+        runner = ReplayRunner([sequence], SweepConfig(num_points=1, sweep_repeat=1,
+                                                     adaptive_rejections_per_level=2,
+                                                     adaptive_window_seconds=(.02,.05,.1,.25,.5,1.,2.)))
         self.run_quietly(runner)
         self.assertEqual([q["state"] for q in runner.quality], ["VERIFY"]*4+["MEASURE"])
         self.assertFalse(runner.quality[1]["passed"])
@@ -180,7 +185,9 @@ class SweepQualityStateTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "RX data stalled"):
                     runner.run(enable_plot=False)
             self.assertEqual(manager.set_center_freq.call_count, 1)
-            self.assertEqual(runner.deadline, 9.)
+            self.assertEqual(runner.deadline, runner.point_started_monotonic_s+8.)
+            self.assertEqual(runner.deadline,runner.base_deadline)
+            self.assertEqual(runner.point_budget_extensions,[])
             self.assertEqual(runner.partial_result["all_amp_records"], [[]])
             runner.flush_point()
             log = [json.loads(line) for line in (Path(root)/"sweep_quality.jsonl").read_text().splitlines()]
@@ -212,7 +219,9 @@ class AdaptiveSweepTests(unittest.TestCase):
     def test_isolated_verify_pass_does_not_erase_rejections_and_level_restarts_verification(self):
         sequence=np.concatenate([tone(3000,5000),tone(2000,5000),tone(3000,5000),
                                  tone(2000,25000),tone(2000,25000),tone(2000,25000)])
-        runner=ReplayRunner([sequence])
+        runner=ReplayRunner([sequence], SweepConfig(num_points=1, sweep_repeat=1,
+                                                   adaptive_rejections_per_level=2,
+                                                   adaptive_window_seconds=(.02,.05,.1,.25,.5,1.,2.)))
         result=self.run_quietly(runner)
         self.assertEqual(runner.retunes,1)
         self.assertEqual([q['adaptive_level_index'] for q in runner.quality],[0,0,0,1,1,1])
@@ -253,7 +262,9 @@ class AdaptiveSweepTests(unittest.TestCase):
     def test_measure_failure_counts_toward_adaptation_and_cannot_be_accepted(self):
         sequence=np.concatenate([tone(3000,5000),tone(2000,10000),tone(3000,10000),
                                  tone(2000,75000)])
-        runner=ReplayRunner([sequence])
+        runner=ReplayRunner([sequence], SweepConfig(num_points=1, sweep_repeat=1,
+                                                   adaptive_rejections_per_level=2,
+                                                   adaptive_window_seconds=(.02,.05,.1,.25,.5,1.,2.)))
         self.run_quietly(runner)
         rejected=[q for q in runner.quality if q['state']=='MEASURE' and not q['passed']]
         self.assertEqual(len(rejected),1)

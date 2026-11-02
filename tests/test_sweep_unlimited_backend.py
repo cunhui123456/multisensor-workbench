@@ -274,7 +274,9 @@ class MainLifetimeTests(unittest.TestCase):
                 manifest = json.loads(next(Path(folder).glob('*/manifest.json')).read_text())
                 self.assertEqual(manifest['time_policy'], {
                     'total_time_limit_seconds': None, 'completion': 'operator_stop' if continuous else 'configured_rounds',
-                    'point_timeout_seconds': 8.})
+                    'point_timeout_seconds': 8., 'weak_point_extra_seconds':8.,
+                    'point_max_timeout_seconds':16.,
+                    'weak_point_extension_policy':'one_extension_after_qualified_long_verify_before_base_deadline'})
                 self.assertEqual(manifest['errors'], [])
                 self.assertEqual(manifest['telemetry'].get('stop_reason'), 'operator_stop' if continuous else None)
                 self.assertTrue(manifest['telemetry']['rf_stopped_confirmed'])

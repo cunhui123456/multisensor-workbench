@@ -1,0 +1,336 @@
+{
+  "schema": "sspp.sweep.offline_validation.v2",
+  "created_utc": "2026-11-02T10:24:24.689170+00:00",
+  "algorithm_version": "sspp.sweep.target_confirmed.v7",
+  "source_code_file": "sspp_experiments/material_sweep/logic.py",
+  "source_code_sha256": "d0b4da6cf43f277370e9de2239456d690f0dd689679aaef8f4f3ff7f53f62556",
+  "baseline_code_sha256": "9a3433a77fa7cc816d7212fdcb934a3173264db174dd3746059760e78909032c",
+  "unchanged_quality_function_asts": [
+    "fft_peak",
+    "quality_measurement",
+    "_target_half_confirmation",
+    "_split_previous_candidate"
+  ],
+  "hardware_test_performed": false,
+  "raw_data_modified": false,
+  "policy": {
+    "window_seconds": [
+      0.02,
+      0.1,
+      1.0,
+      2.0
+    ],
+    "rejections_per_level": 2,
+    "reuse_previous_round_window": true,
+    "hint_scope": "immediately previous round, same carrier/tone, successful adaptive level only; no IQ or pass reuse",
+    "independent_verify_windows": 2,
+    "independent_measurement": true,
+    "minimum_prominence_db": 6.0,
+    "point_deadline_seconds": 8.0,
+    "total_time_limit_seconds": null,
+    "deadline_extended": false,
+    "escalation_rule": "require enough remaining sample time for full independent chain after failed-prefix reuse; otherwise keep current level until original deadline"
+  },
+  "latest_run": {
+    "id": "20261102T100111_264009Z",
+    "original_v6": {
+      "accepted": 59,
+      "invalid": 1
+    },
+    "v7_archive_summary": {
+      "accepted": 48,
+      "insufficient_archive": 12,
+      "not_accepted_in_8s": 0
+    },
+    "accepted_with_known_hint_ancestry": 40,
+    "accepted_with_unknown_previous_archive_ancestry": 8,
+    "focused_recovered_point": {
+      "repeat": 2,
+      "point": 10,
+      "carrier_ghz": 5.142105263157895,
+      "source_sha256": "17b61129708928273d3485873aeedb8b3423a157bd05d57df54c553fbf360f78",
+      "initial_window_seconds": 1.0,
+      "measurement_end_sample_seconds": 3.0,
+      "three_windows": [
+        [
+          0,
+          250000
+        ],
+        [
+          250000,
+          250000
+        ],
+        [
+          500000,
+          250000
+        ]
+      ],
+      "weakest_measurement_half_prominence_db": 6.002277183436586
+    }
+  },
+  "historical_regressions": {
+    "old_four_invalid_recovered": 3,
+    "old_four_invalid_total": 4,
+    "historical_19khz_and_38khz_cold_start_passed": true,
+    "forced_1s_start_38khz_stress_did_not_pass": true
+  },
+  "negative_controls": {
+    "actual_v7_noise_runs": 160,
+    "same_80_seeds_reused_for_1s_and_2s": true,
+    "false_accepts": 0,
+    "negative_families": [
+      "persistent previous tone",
+      "offset previous tone",
+      "wrong tone",
+      "10ms burst",
+      "numerical residual"
+    ],
+    "learning_fixture": "Artificial rejection of first-round short windows only; learned successful long windows pass original DSP; second round unmodified actual DSP and budget"
+  },
+  "tests": {
+    "existing_modules": 17,
+    "existing_tests_passed": 210,
+    "v7_tests_passed": 17,
+    "unique_tests_passed": 227,
+    "skipped": 0,
+    "integration_evidence": {
+      "schema_version": 1,
+      "validation_kind": "executed_unittest_result",
+      "provenance": "Recorded from the completed exec_command/write_stdin output, concatenating the two observed chunks. No tests were rerun while writing this file.",
+      "execution_session_id": 23601,
+      "output_chunk_ids": [
+        "f871d1",
+        "434a88"
+      ],
+      "command": "env QT_QPA_PLATFORM=offscreen MPLCONFIGDIR=/private/tmp/sspp-v7-mpl-cache PYTHONPATH=/private/tmp/sspp_window_v7_20261102/repo:/private/tmp/sspp_window_v7_20261102/repo/tests /opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python -B -m unittest test_sweep_window_v7 -v",
+      "working_directory": "/private/tmp/sspp_window_v7_20261102/repo",
+      "exit_code": 0,
+      "test_count": 17,
+      "passed": 17,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_seconds_reported_by_unittest": 1.482,
+      "output": "test_blocked_escalation_does_not_end_early_or_accept_wrong_tone (test_sweep_window_v7.RoundWindowBudgetTests.test_blocked_escalation_does_not_end_early_or_accept_wrong_tone) ... ok\ntest_budget_fallback_uses_default_level_without_extending_original_limit (test_sweep_window_v7.RoundWindowBudgetTests.test_budget_fallback_uses_default_level_without_extending_original_limit) ... ok\ntest_buffer_credit_and_failed_prefix_are_counted_once_for_escalation (test_sweep_window_v7.RoundWindowBudgetTests.test_buffer_credit_and_failed_prefix_are_counted_once_for_escalation) ... ok\ntest_chain_budget_counts_rounding_cycle_minima_and_only_available_samples (test_sweep_window_v7.RoundWindowBudgetTests.test_chain_budget_counts_rounding_cycle_minima_and_only_available_samples) ... ok\ntest_disabled_hints_and_separate_run_both_start_fresh (test_sweep_window_v7.RoundWindowBudgetTests.test_disabled_hints_and_separate_run_both_start_fresh) ... ok\ntest_hardware_fault_is_never_changed_into_budget_or_quality_timeout (test_sweep_window_v7.RoundWindowBudgetTests.test_hardware_fault_is_never_changed_into_budget_or_quality_timeout) ... ok\ntest_hint_does_not_turn_previous_round_success_into_current_acceptance_after_stop (test_sweep_window_v7.RoundWindowBudgetTests.test_hint_does_not_turn_previous_round_success_into_current_acceptance_after_stop) ... ok\ntest_hint_successful_measurement_after_deadline_remains_invalid (test_sweep_window_v7.RoundWindowBudgetTests.test_hint_successful_measurement_after_deadline_remains_invalid) ... ok\ntest_hinted_measurement_failure_requires_two_fresh_verifications (test_sweep_window_v7.RoundWindowBudgetTests.test_hinted_measurement_failure_requires_two_fresh_verifications) ... ok\ntest_hints_stay_per_frequency_in_continuous_mode_and_stop_at_operator_request (test_sweep_window_v7.RoundWindowBudgetTests.test_hints_stay_per_frequency_in_continuous_mode_and_stop_at_operator_request) ... ok\ntest_impossible_escalation_stays_current_level_and_can_finish_fresh_chain (test_sweep_window_v7.RoundWindowBudgetTests.test_impossible_escalation_stays_current_level_and_can_finish_fresh_chain) ... ok\ntest_invalid_intervening_round_clears_hint_instead_of_reusing_older_success (test_sweep_window_v7.RoundWindowBudgetTests.test_invalid_intervening_round_clears_hint_instead_of_reusing_older_success) ... ok\ntest_offline_none_budget_allows_hints_without_inventing_a_deadline (test_sweep_window_v7.RoundWindowBudgetTests.test_offline_none_budget_allows_hints_without_inventing_a_deadline) ... ok\ntest_recorded_runner_three_rounds_persists_hints_and_independent_current_iq (test_sweep_window_v7.RoundWindowBudgetTests.test_recorded_runner_three_rounds_persists_hints_and_independent_current_iq) ... ok\ntest_same_frequency_previous_round_hint_requires_three_new_windows (test_sweep_window_v7.RoundWindowBudgetTests.test_same_frequency_previous_round_hint_requires_three_new_windows) ... ok\ntest_strong_point_remembers_20ms_level_not_40ms_measurement_duration (test_sweep_window_v7.RoundWindowBudgetTests.test_strong_point_remembers_20ms_level_not_40ms_measurement_duration) ... ok\ntest_version_and_policy_distinguish_disabled_hints_and_reject_non_bool_config (test_sweep_window_v7.RoundWindowBudgetTests.test_version_and_policy_distinguish_disabled_hints_and_reject_non_bool_config) ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 1.482s\n\nOK\n",
+      "frozen_sha256": {
+        "sspp_experiments/material_sweep/logic.py": "d0b4da6cf43f277370e9de2239456d690f0dd689679aaef8f4f3ff7f53f62556",
+        "tests/test_sweep_window_v7.py": "bf8efe00610148bdbe35998e2b8bad6d7cdc10b9ca5ad05e5b81c8e7e32a10b6"
+      },
+      "quality_math_ast_comparison": {
+        "reference": "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/sspp_experiments/material_sweep/logic.py (formal v6 at check time)",
+        "equal_functions": [
+          "quality_measurement",
+          "_split_previous_candidate",
+          "_target_half_confirmation",
+          "fft_peak"
+        ]
+      },
+      "scope": "Offline synthetic-IQ scheduling and mocked-device actual make_runner persistence integration; no hardware operation and no historical-data mutation.",
+      "prior_log_note": "v7_tests.log predates the new make_runner integration test and contains 16 tests; it is not the source for this 17-test result."
+    }
+  },
+  "limitations": [
+    "Not a new hardware trial; sample-time replay excludes USB/tuning/processing overhead",
+    "Target recovery is marginal: final half-window is approximately 6.0023 dB against a 6 dB gate",
+    "12 original short archives lack required future IQ; 8 later points have uncertain hint ancestry; no 60/60 claim",
+    "Starting at a prior successful duration can alter timing and may regress other noise realizations; no guarantee all points become valid",
+    "Time-budget feasibility is an optimistic lower bound, not a guarantee; hard deadline checked after processing",
+    "Finite negative controls do not prove zero false-acceptance probability"
+  ],
+  "data_hashes": {
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_001.npz": "f2b087a45cb533d89b5a2760089d4c286cbd133961feff8e7421e298f78f1ebb",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_002.npz": "19e78f5472cd01f47e7c4d7812c22a4740cf36cc608109ac47e03006dd2c121a",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_003.npz": "19e06af304414f26a5dc29e7abf6640eb3186a2f2ec52918626c677f80cc8dfb",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_004.npz": "0a42e4a32bac374984f614ed87ce7809cb1a8b83c7c690be98cda425068ff410",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_005.npz": "daf9189dc23a79742c5cd207711747d86d2d61874451b7a535d4942a04b08975",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_006.npz": "6366223367bf658ed6b0a9cdfb4ebcc4e7928ddbfa8b4cde49b5f08bba348986",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_007.npz": "7cd7f1b7b6cf51c2221ec724ba84e279240011f64c722be916237099c2637233",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_008.npz": "2503f595269f9e50470360c6e6b2b835d20ca607edf7773398283e52fe28a418",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_009.npz": "806303e477b6e4693670ce29cbf574ed02c18e5a7e8ae8fb7edaf1fd4d8a3de9",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_010.npz": "0ee4c604df997feed5808600ee82c8c82e50ccd0715da3967ec27692e3d553a6",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_011.npz": "736882a5735a0e3641dcfcbfeed345d39474e630cf63433e88f47d848a31db07",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_012.npz": "920f606c68995f177e4f40564b1cd2b7fdaeacea01ecf2d7662d20e27b98fd1e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_013.npz": "b637723733e60646e9c0e72de3b102a6566304a6ed1d94c0a5288f02f728d3fe",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_014.npz": "785cb0d17ac6856559cc3824c6f5e6c5b7924c27366eb8324af7eff558747739",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_015.npz": "5f77be95f6237418fb379b421e54961ef33f30cd70eb092cb157a5f9bc96fcbd",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_016.npz": "a0acfe41fd80de4ff53ea679dd785315927f7dd0c0e2e6d28f1dfe7bdde895ea",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_017.npz": "dc49f42c38ff48a45e2bdee45074b2cdbf76bc3152f1e8e51e86e74601826ff5",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_018.npz": "fe46d3278c8c1395cb4fa6ae6403b590639a8256360876d67385eeeb87ed7f64",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_019.npz": "d4e3416df11796e140ad3d4fbd1f5a5b18f461a3ed862f65219634c6d4da04eb",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_020.npz": "c9b1bc1b85fcfb8356fa7547c18bc0b6de66bac35a3f414ed92fd241415d987f",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_021.npz": "ac54d1e81b5954a74b87e0d540c0d94270c37c84ae5c39bb71a58038ed099157",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_022.npz": "6bc22aeaf02fb95c48fdfecac141b732ba54f32cbbff758bd7106bce94c27eb3",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_023.npz": "05398cf5a1d21288d6d50b501080b8be4c27dd7907dc96e6c3b6ea78c7daf548",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_024.npz": "f1cf6677bfe356fbe6a89e16d6ede88afefc09488cd91a57a24d892215e784d3",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_025.npz": "48db632829f58d1fe9e7a03112ad03ac232e12774b06b7b55d2b689dd43023f7",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_026.npz": "e73956fcb0c27095f9cb83a0d17c5c78233cf89845729e875ab5a5258e124c66",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_027.npz": "5748ace19447ea3ac3acf4942838d6c1b9f0ab434f6710ccb4208d118a5d2086",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_028.npz": "3a3bf0b8332f6d8c4b3f490a4d24bd572f84d5d6ea65f1b3683f625edc9625ea",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_029.npz": "0dfbb7ce56f876ba3150960c37f5e007fe27bc5e08d2bfc19e266201a5d400d9",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_030.npz": "17b61129708928273d3485873aeedb8b3423a157bd05d57df54c553fbf360f78",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_031.npz": "a3dc335bfef0fa176d496a2fdcc37ea7000ed69233d6d16ec99e3ece7fc1f7ee",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_032.npz": "ef6fea1faab3b1432312c08d17bc6f217e950b52b862cdbaea96614462f3a2f4",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_033.npz": "3b44174b36536ecdb56c8fb81fbfd14ddda997375f176c5e5e26abe66594e17e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_034.npz": "bd3edd7114c9819cd3042e1d7f8d17a10a6035ec2fc2bebfa1b576bf9e25ebf4",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_035.npz": "749a50fdfa6d14f24e96caa62d35a72a095e604478ae93f6bdf921d6e6c56e47",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_036.npz": "78870e2e8d818fd163665d5547abf93d4f127b8f621f1263c66efcda10ba37ed",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_037.npz": "fb2737b1a733c620cc24798b3938773c144fdbf123ce2723232d5e7b9d27d8f9",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_038.npz": "0e3a2ae0a43077631250b9cb844d52084be295c0c06dc02065ae1ccf92639474",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_039.npz": "2faad8cf25bb2340414475b6e6fceeb125a14c4f381f993bc51c2ec05443bd6e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_040.npz": "ec22fe3f011f322410da6ab354ae005aa77393376249f3233d29bbbb48b2ebbf",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_041.npz": "3eb6647ceb555d615b99ac0ef8e616a5f62638b8e00847a47af58e840c2740fa",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_042.npz": "7506e276e5985ffa011487308edccb9b4fba4ffba2f872b0d882ece2cd4cc99d",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_043.npz": "e1b665893066dd6ecec8bc685ad7380d16ebec1284d558a705300150742885a4",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_044.npz": "75215c03e034a3a81ee6b1b821238d039e48301706351f2608b549cf3fa2041c",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_045.npz": "1121945c0601ea6c1c112e0bab649ae159f9fad5c13e2e0d003286d91514147f",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_046.npz": "6c0bf265ce340c6b8b4ecd0141efab3a681e5c6837a7a6e60f7455ded91879da",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_047.npz": "6bb7eabdf332b4c5ab7ee418e74266cb9dab9a38501c8a3e3b9dffdbd94ad3a3",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_048.npz": "e165b61949f00420a09e1b70b349fbc47aefed5b773e76dc113f01f06d42056f",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_049.npz": "67fde2f4aa3630fc06b4898d0f397623759858f8747dfc91d849f0a7399dfa27",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_050.npz": "874cc7dec75884891ac1b38f921d63c469fa7baa4f972f8120464541fbc2163a",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_051.npz": "1a84233a353e7259fb68a624f53df11baa6765154db19da3bb408828d87e4810",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_052.npz": "9cfa5f9dc509be01ecee4b2e01bffa1e66ec95e60e4052f7405310ca1d46273f",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_053.npz": "930badb159e56e4eed5e376fb9c6c6fabd9eaeb6d49523e4ce63f768f5c635d4",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_054.npz": "297f6a555327a0b610f9d4032e14c9373efa7c6f7ad870c25290aeccb054bd75",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_055.npz": "a1724ce1e16d966e7ee64e621c91fb5d25a0308f1d6a3a422026f0fbbc494695",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_056.npz": "8325fbdce363a392621a10572e474e52b1d067997183286aef0d9c0d585c780d",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_057.npz": "f8250fca4325ae2b7a2c56cd7c865b64820372e1a37c6c688aaea4a3f64ba8cb",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_058.npz": "c43faa36c809bbe3e560e40af5562cac8cfd042b2fc7ffea2b59ed4470acbe3e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_059.npz": "54fd28b7f3dba9e2da0238ce71796b84c2d1b64f7f6788f23edd34cefafca58a",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/iq_point_060.npz": "e61f0a6d01cec4861672de73fcbdf30376fb5494fab7505a5d43752224fdea75",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_001.npz": "617ab4baf32f152767aea87834f123433a13a04b0ae684bdc5878d4d8ddba305",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_002.npz": "5c0ef4653bab3cf9d0830494d3b95de779dd2e14747eda06321cdd71c9bbab61",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_003.npz": "5bb15ce0fd64575c880da396412aa2438acfc6a668f306b5e63c10e37f9cb44d",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_004.npz": "d9c4321b17c64121fc68c757d6dad51b98a021b1d0740d85f69a3aa1bd630ddf",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_005.npz": "9703494f66a133397ef1cf7f1ad014b32bb443b8da47cd6b133882a5b8d8a5da",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_006.npz": "692f98f2ef13c5906048755afca540ed008878a1c3f57d8bdbbbc40f0ffeb391",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_007.npz": "8967b22d9b11d818394b773636840bba1939582a8c8e091e3a97e66be2d83996",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_008.npz": "83e99c882037fa8bb8d0e45aa942520ce37dc7f0fdef4566df5d7ee824ab85d3",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_009.npz": "9e1b8cc6a734dbf18a05bf8389ee671376bfcb9a3e280c7d35314d93378d0d62",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_010.npz": "3b1c04181f5a45f8da4ac9ec7e4f248e577aff729def38abc5060643b18b8174",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_011.npz": "de84ca9b7a156d160f84e1d99a2575727bbf5f548f677df3778268a0deebac3f",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_012.npz": "c8fd097126cf2033ab5dee04ba22be9d457005c82cc2c08ec3130ec54234faff",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_013.npz": "9b31394c898ecb986841a04571f56fda6db9e6403af2427176c87c4ea3f8822b",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_014.npz": "d9f75b0bc1da00b8df29c46a318b4a94ce4e6f94829060aa859c24e15ef103af",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_015.npz": "58bd5a70079e211e5ff84f9b86479668bfdb7afff481ef1383dee2c5d9a94942",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_016.npz": "ed371a820c13bfcc056ec68ab8c8feb7d1d23558db1a3e82b2bedd1a08bdedd5",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_017.npz": "b69d0935427d3cfe6a66af0a07c7b566dac0ef378fcb70c9bbbb4484ce1b17cb",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_018.npz": "ebf6d02eb3d99cbe016dba58152b08e9c07fbe8de35c9c5909e04224fd874cad",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_019.npz": "6421b6d2ad907fa3092f154aecf14ce97ded7ad20659ced5c8f293cba7c58425",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_020.npz": "c03bb220d9efa4a4b6ec00addab5943ce8e12f1fedd5cba0f2698c64b3026b20",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_021.npz": "1a94a70da172b84c1aa8eab0d69970cd09d8a743dc06595bcb1e7008240c11db",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_022.npz": "68fe7bd44a2a5531d8cf18a907f683a3a00cdc93fdca77fd55928ad58dadc19d",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_023.npz": "204d44fbf3127de01c86c707b5d945ec55c0009dff352966660ada0589c12f93",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_024.npz": "ec3936326bce449cc69c51bc8aa3aa155e1f0c96d171085165d0a6e201d68320",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_025.npz": "db44a03c6020119e253c6a9e18f5772a03926094176f63ee86d13737816d17b8",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_026.npz": "9319bc05919861b85e3120744a2a4487ace3bf888b000d14916c641cf61ea856",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_027.npz": "341fbe183bcbc47583c4771444fdccd604804d6b8ee01d1b391c3916edb76b12",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_028.npz": "91df83d8ef9fbb08b688e73a925ed2fbfdbdd60521be842b9366f2a724656288",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_029.npz": "457cd17a44dda2362039d9c69e883b9f4babf86292a22ffbb72b686013177aef",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_030.npz": "82443082b1377ecd84700a4c456e3fdcb06c105d3ea6ed27578b7620dedcc5ce",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_031.npz": "f1e4cb69fef13fbb2f5bed3d279da9a2d477637295b75f2ff7bb6dba237dd1a1",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_032.npz": "8e30b5dc339bb88d31a86a37f40f31b747c10e93b9bb13de873de339cfc47909",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_033.npz": "97a2717cb8fa42fcd65e2a144f35e1bcbdb3adbdd1bdfd91e46081ba175afcc0",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_034.npz": "90b7c8ce0163a6ec88774bfaad55ce7de49b8aa05b79f2c493275b6763682276",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_035.npz": "79237d524c77e9dfe58e4f788b82df5082c962428b05120d6b8fda7c22be0c76",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_036.npz": "58e0a2a165de09815cadbcbe87defa49be5115febdbf9932dcef123ea9bb0978",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_037.npz": "704e3787156e6f5484ed82d7c5a058cb8aebd33ae01262efb1462538c3273b1e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_038.npz": "40be84ad7cdb56b16231b314b5f7c23c69eb57ffc17f30d2f0f953b7f949f688",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_039.npz": "698644fae108bd4dca602272593cf2c42a57d43c4aa1a57d693e56297932ee3c",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T090452_414767Z/iq_point_040.npz": "24b5b7ac4fd5240ba8547625daf2a2eb9657f6fb9fdd6e52eebbc5cc9a6d2c3d",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T023947_939461Z/iq_point_037.npz": "522fbc572c50dc649f7737835c738030fd577c00d90ddc6ef1825441664096a1",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T023813_655557Z/iq_point_038.npz": "f67ecf0c016d1afec876c470edeb573da66313746551fb548de71c1ca7ec921b",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/manifest.json": "f369e134e881e5810ab06080c2ba46227fcbcda3f02c46ca3585433e8852ffb3",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/desktop_context.json": "311dd25e421670a2b98eca468a711d9df24538fbb0511ad6fcd74e09caab77b2",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/sweep_quality.jsonl": "432bba10598c646dbab00b4a1ba2e0020502ccfed8577b8b95a8e094e5aed41c",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/sweep_invalid_points.jsonl": "d42253fbf805eb90751936e6123f7a875fa37eb4578b43ef3d823edad8ac982e",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T100111_264009Z/measurements.csv": "44aaa076e88930ed1d8e5cbe24e5b6cc08b77b38545fb774b0a5d6627b7a16a0"
+  },
+  "evidence_directory": "/Users/cunhui/.codex/visualizations/2026/11/02/01a19a88-cafe-7171-9638-80761b6937f1/sspp_window_v7",
+  "evidence_files": {
+    "regression.log": {
+      "sha256": "a79eba40304a470c7aef1c602947943c27d948b611739ae133fcd67ca4a408a5",
+      "bytes": 100
+    },
+    "v7_integration_validation.json": {
+      "sha256": "adec9bb355871da75e3773b21619990552e758951bc53eb6c9bbf6b0d2286d5c",
+      "bytes": 5178
+    },
+    "evaluation/actual_memory_controls.py": {
+      "sha256": "6152f24e72efe48b81ff73bdfb73f3e3f9a230ac4f1c79c3932e4260414a0741",
+      "bytes": 7575
+    },
+    "evaluation/evaluate_duration_memory.py": {
+      "sha256": "481032b45164480e41d7dc8d5a6cb4509e99a088659efa3874c776f3f3915f9b",
+      "bytes": 6169
+    },
+    "evaluation/final_validation_summary.json": {
+      "sha256": "b0131325df16a17690a965974a95d2a885437009ea7477d9380875b9b069816f",
+      "bytes": 4625
+    },
+    "evaluation/evaluation_helpers.py": {
+      "sha256": "b7603ea4ef783ff78fb2ccfd7c9bc104fce15888838a581a9de7b6bb42ff3adf",
+      "bytes": 10638
+    },
+    "evaluation/actual_v7_full_archive.json": {
+      "sha256": "a11e9dcb4dd41e3d0d17e5c7c6bc66e230b8996d7207db6486826649f2ff9b9a",
+      "bytes": 1805032
+    },
+    "evaluation/actual_v7_old_first40.json": {
+      "sha256": "fb80fb2a4caba97b72ca70e18927d0420f885a4ab2b065587539ffb41c362079",
+      "bytes": 1266118
+    },
+    "evaluation/replay_full_archive.py": {
+      "sha256": "1cd4580095ae09043a8d0a03bb5468e925b752a8a2204c16682676d75ec2d66b",
+      "bytes": 6067
+    },
+    "evaluation/logic_initial_level_candidate.py": {
+      "sha256": "1fc36d92f1d49e3917483f4508d8059547dc6b12a89f0c6d13578b37d7cc880b",
+      "bytes": 42723
+    },
+    "evaluation/actual_v7_memory_controls.json": {
+      "sha256": "b90e7138f60503e436a7758ec5dc086580911fe5e2ff2aa4c53a2a7166b04ccd",
+      "bytes": 79161
+    },
+    "evaluation/latest_initial1s.json": {
+      "sha256": "787eb9daa5108aa16f5ce50ede0aeff9d198cddb7959ba6d438f364248ac5f85",
+      "bytes": 10785
+    },
+    "evaluation/logic_v6_source.py": {
+      "sha256": "9a3433a77fa7cc816d7212fdcb934a3173264db174dd3746059760e78909032c",
+      "bytes": 42684
+    },
+    "evaluation/quality_replay_engine.py": {
+      "sha256": "1ac0a9ed2477cc5b3ead35238c30d8bea680777b87a7e9fcf9116f376f5a10b5",
+      "bytes": 13084
+    },
+    "evaluation/artifact_manifest.json": {
+      "sha256": "360b7bd303d7b5f2fc692f9fb918ecde916693a5891d83f46679f2c84eb0313c",
+      "bytes": 2379
+    },
+    "evaluation/memory_controls.json": {
+      "sha256": "9b482697b091b6b21448d38dc2e4dbf1279e2113e5e33dfa7b13cc143edab327",
+      "bytes": 15141
+    },
+    "evaluation/memory_controls.py": {
+      "sha256": "50c8fba4a617ec041e5efc5ac9aec54096985a6468e7a3895221ee48173ddced",
+      "bytes": 3707
+    },
+    "evaluation/baseline_v6_full_archive.json": {
+      "sha256": "3e8990ddf54ad0920bfacc8508ea7f09df95c95c8bfbb4f36d7fdac43c80d5ac",
+      "bytes": 1951545
+    },
+    "evaluation/duration_memory_evaluation.json": {
+      "sha256": "c7af0e010a971c9eb1579953ccd5026f0abe67982dc1259ff40bba6a22af340d",
+      "bytes": 4087480
+    },
+    "evaluation/actual_v7_historical.json": {
+      "sha256": "c22ad2e6623d5d0bdd4af20afb1bbee1bdfec3b16ebaf84edaaa5b6b0c477270",
+      "bytes": 76174
+    },
+    "diagnosis/audit.json": {
+      "sha256": "c50c60f5aef1fb3c3118a4ece0e3b9ab090bd2505ab79fc72b0fa6875cb186f1",
+      "bytes": 122319
+    }
+  }
+}

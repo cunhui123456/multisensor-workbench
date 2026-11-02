@@ -1,0 +1,423 @@
+{
+  "schema": "sspp.sweep.offline_validation.v3",
+  "created_utc": "2026-11-02T10:59:56.551556+00:00",
+  "algorithm_version": "sspp.sweep.target_confirmed.v8",
+  "source_sha256": {
+    "sspp_experiments/material_sweep/logic.py": "ee93a079dd42f7cc1c7d96d21417f4dd56e42aa4d60c959fca7671fe8115f81f",
+    "sspp_experiments/material_sweep/acquisition.py": "2da7cbdac53706967958f6395049cbfaa7eb7f3fc3668e1914cc20e295b4cef8"
+  },
+  "baseline_v7_logic_sha256": "d0b4da6cf43f277370e9de2239456d690f0dd689679aaef8f4f3ff7f53f62556",
+  "hardware_test_performed": false,
+  "raw_data_modified": false,
+  "policy": {
+    "base_seconds": 8.0,
+    "weak_point_extra_seconds": 8.0,
+    "fixed_hard_seconds": 16.0,
+    "extension_count_maximum": 1,
+    "total_time_limit_seconds": null,
+    "minimum_long_verify_seconds": 1.0,
+    "independent_verification_windows": 2,
+    "independent_measurement_required": true,
+    "minimum_prominence_db": 6.0,
+    "failed_hint": "Immediate previous round same carrier/tone, next level after qualified long VERIFY, no IQ/pass/amplitude reuse"
+  },
+  "quality_math_ast_unchanged_from_v7": {
+    "fft_peak": true,
+    "_split_previous_candidate": true,
+    "_target_half_confirmation": true,
+    "quality_measurement": true
+  },
+  "tests": {
+    "unique_tests_passed_after_targeted_fix": 284,
+    "skipped": 0,
+    "core_modules_initial_tests": 161,
+    "core_initial_passed": 160,
+    "initial_failure": "Old test assumed a second clock read determined the 8 s deadline. Updated to assert point_start + base, equality to base_deadline, and no extension.",
+    "targeted_fixed_test_passed": 1,
+    "additional_cli_config_test_passed": 1,
+    "weak_budget_ui_tests_passed": 4,
+    "final_wording_ui_rerun_passed": 4,
+    "hint_tests_passed": 30,
+    "comparison_tests_passed": 61,
+    "comparison_subtests": 432,
+    "other_ui_service_tests_passed": 27,
+    "count_note": "284 unique test cases; targeted and final UI reruns are not counted twice.",
+    "core_command": "python -B -m unittest test_weak_point_budget test_sweep_timeout_diagnostics test_sweep_quality test_target_tone_quality test_weak_signal_gaps test_sweep_window_v6 test_sweep_unlimited_backend test_b210_shutdown_evidence test_temperature_sweep_capture test_sspp_dual_modes test_temperature_sweep_service test_realtime test_acquisition_power test_controller -q",
+    "environment": "rf-gnuradio; Qt offscreen; MPL Agg; PYTHONPATH=.:tests",
+    "ui_service_results": [
+      {
+        "module": "test_experiment_navigation",
+        "exit_code": 0,
+        "tail": "qt.qpa.fonts: Populating font family aliases took 22 ms. Replace uses of missing font family \"Sans Serif\" with one that exists to avoid this cost. \n----------------------------------------------------------------------\nRan 14 tests in 3.664s\n\nOK\n"
+      },
+      {
+        "module": "test_temperature_sweep_mainwindow",
+        "exit_code": 0,
+        "tail": "qt.qpa.fonts: Populating font family aliases took 19 ms. Replace uses of missing font family \"Sans Serif\" with one that exists to avoid this cost. \n----------------------------------------------------------------------\nRan 5 tests in 1.110s\n\nOK\n"
+      },
+      {
+        "module": "test_comparison_service",
+        "exit_code": 0,
+        "tail": "----------------------------------------------------------------------\nRan 8 tests in 0.018s\n\nOK\n"
+      }
+    ]
+  },
+  "actual_recorder_validation": {
+    "schema": "sspp.sweep.v8.offline_validation.v1",
+    "algorithm_version": "sspp.sweep.target_confirmed.v8",
+    "source_sha256": {
+      "sspp_experiments/material_sweep/logic.py": "ee93a079dd42f7cc1c7d96d21417f4dd56e42aa4d60c959fca7671fe8115f81f",
+      "sspp_experiments/material_sweep/acquisition.py": "2da7cbdac53706967958f6395049cbfaa7eb7f3fc3668e1914cc20e295b4cef8"
+    },
+    "source_code_unchanged": true,
+    "quality_math_ast_unchanged_from_v7": {
+      "fft_peak": true,
+      "_split_previous_candidate": true,
+      "_target_half_confirmation": true,
+      "quality_measurement": true
+    },
+    "policy_under_test": {
+      "base_seconds": 8.0,
+      "extra_seconds": 8.0,
+      "hard_seconds": 16.0,
+      "extension_max_per_point": 1,
+      "requires_full_passed_verify_seconds_at_least": 1.0,
+      "requires_evidence_before_base_deadline": true,
+      "no_overall_run_limit_added": true
+    },
+    "historical_prefixes": {
+      "run": "20261102T103636_013594Z",
+      "no_future_samples_synthesized": true,
+      "no_historical_values_or_flags_changed": true,
+      "all_31_original_window_decisions_match": true,
+      "original_window_count": 31,
+      "rows": [
+        {
+          "file": "iq_point_010.npz",
+          "source_sha256": "e74c2609635b061370cac1da79f698c0057aacc475467d2b3021f6e718deb39c",
+          "source_unchanged": true,
+          "provided_seconds": 8.02816,
+          "classification": "insufficient_future_iq",
+          "accepted": false,
+          "extension_count": 1,
+          "active_deadline_s": 16.0,
+          "state_at_eof": "VERIFY",
+          "verified_windows_at_eof": 1,
+          "minimum_new_sample_seconds_for_current_chain": 3.09184
+        },
+        {
+          "file": "iq_point_030.npz",
+          "source_sha256": "70ecd7187fbee9ae22f0284d5c1a3e354a08ba50a518d412437fd3a825587fc8",
+          "source_unchanged": true,
+          "provided_seconds": 8.02816,
+          "classification": "insufficient_future_iq",
+          "accepted": false,
+          "extension_count": 1,
+          "active_deadline_s": 16.0,
+          "state_at_eof": "MEASURE",
+          "verified_windows_at_eof": 2,
+          "minimum_new_sample_seconds_for_current_chain": 1.09184
+        },
+        {
+          "file": "iq_point_050.npz",
+          "source_sha256": "fec7db5d49696784ba2492d8c3d940f13f5efc4f847b9e3691fafdcdbf827ad7",
+          "source_unchanged": true,
+          "provided_seconds": 7.995392,
+          "classification": "insufficient_future_iq",
+          "accepted": false,
+          "extension_count": 1,
+          "active_deadline_s": 16.0,
+          "state_at_eof": "VERIFY",
+          "verified_windows_at_eof": 0,
+          "minimum_new_sample_seconds_for_current_chain": 4.124608
+        }
+      ]
+    },
+    "synthetic_continuation": {
+      "provenance": "Entirely synthetic 12 s, wrong tone for 3.12 s then strong target; not extrapolated or padded historical IQ.",
+      "result_by_extra_seconds": {
+        "0.0": {
+          "accepted": false,
+          "measurement_end_s": null,
+          "budget": {
+            "base_deadline_s": 8.0,
+            "hard_deadline_s": 8.0,
+            "active_deadline_s": 8.0,
+            "elapsed_s": 8.02816,
+            "extension_count": 0,
+            "extension": null
+          },
+          "accepted_windows_nonoverlapping": null
+        },
+        "8.0": {
+          "accepted": true,
+          "measurement_end_s": 9.12,
+          "budget": {
+            "base_deadline_s": 8.0,
+            "hard_deadline_s": 16.0,
+            "active_deadline_s": 16.0,
+            "elapsed_s": 9.142272000000006,
+            "extension_count": 1,
+            "extension": {
+              "reason": "qualified_long_verify_before_base_deadline",
+              "quality_attempt_index": 8,
+              "window_start": 780000,
+              "window_count": 500000,
+              "window_duration_s": 2.0,
+              "activated_monotonic_s": 105.24288,
+              "base_deadline_monotonic_s": 108.098304,
+              "hard_deadline_monotonic_s": 116.098304,
+              "extra_seconds": 8.0
+            }
+          },
+          "accepted_windows_nonoverlapping": true
+        }
+      }
+    },
+    "actual_noise_controls": {
+      "count": 160,
+      "per_hint_duration": 80,
+      "sample_rates_and_shapes": [
+        {
+          "rate": 20000.0,
+          "shape": "white",
+          "seeds_per_hint": 32
+        },
+        {
+          "rate": 20000.0,
+          "shape": "colored",
+          "seeds_per_hint": 32
+        },
+        {
+          "rate": 250000.0,
+          "shape": "white",
+          "seeds_per_hint": 16
+        }
+      ],
+      "accepted": 0,
+      "extended_once": 3,
+      "extended_cases": [
+        {
+          "rate": 250000.0,
+          "shape": "white",
+          "initial_hint_s": 1.0,
+          "seed": 0,
+          "active_deadline_s": 16.0
+        },
+        {
+          "rate": 250000.0,
+          "shape": "white",
+          "initial_hint_s": 1.0,
+          "seed": 6,
+          "active_deadline_s": 16.0
+        },
+        {
+          "rate": 250000.0,
+          "shape": "white",
+          "initial_hint_s": 1.0,
+          "seed": 15,
+          "active_deadline_s": 16.0
+        }
+      ],
+      "no_long_pass_evidence_stays_at_base": true
+    },
+    "actual_negative_controls": {
+      "count": 10,
+      "accepted": 0,
+      "extended_once": 1,
+      "cases": [
+        {
+          "case": "previous_persistent",
+          "initial_hint_s": 1.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "previous_persistent",
+          "initial_hint_s": 2.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "previous_offset",
+          "initial_hint_s": 1.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "previous_offset",
+          "initial_hint_s": 2.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "wrong_tone_only",
+          "initial_hint_s": 1.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "wrong_tone_only",
+          "initial_hint_s": 2.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "brief_target_burst",
+          "initial_hint_s": 1.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "brief_target_burst",
+          "initial_hint_s": 2.0,
+          "accepted": false,
+          "extension_count": 1,
+          "active_deadline_s": 16.0
+        },
+        {
+          "case": "numerical_wrong_tone",
+          "initial_hint_s": 1.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        },
+        {
+          "case": "numerical_wrong_tone",
+          "initial_hint_s": 2.0,
+          "accepted": false,
+          "extension_count": 0,
+          "active_deadline_s": 8.0
+        }
+      ]
+    },
+    "fixed_hard_cap_checks": {
+      "all_points_extension_count_at_most_one": true,
+      "all_hard_deadlines_fixed_to_start_plus_16": true,
+      "deadline_checks_run_on_actual_make_runner": true
+    },
+    "fixture_disclosure": "First-round learning-point short windows are artificially rejected; accepted learning windows pass original DSP. Second-round noise/negative IQ uses original DSP and actual make_runner deadlines. First 8 s noise is identical to v7 seeds; any extra samples use independent seed+1000000, never historical IQ.",
+    "limitations": [
+      "The latest three archived points contain only about 8 s each. All stop at insufficient_future_iq under v8; this is not evidence of recovery of any of the three.",
+      "Historical replay is per point with a synthetic prior-tone warmup; preceding-round v8 outcomes and hints requiring unavailable future IQ are not invented.",
+      "The 9.12 s successful measurement is from an entirely synthetic case, not a historical continuation or hardware test.",
+      "One passed long VERIFY is finite evidence for spending extra time, not proof of a persistent target or an accepted measurement. Three noise sequences and one 10 ms burst case triggered extra waiting; all remained unaccepted.",
+      "The hard deadline is fixed at 16 s, although a test frame may arrive just after it (at most one frame granularity); no processing beyond it is accepted.",
+      "The clock fixture uses frame arrival time and no real CPU/USB delays. No hardware was operated.",
+      "Finite zero false-acceptance results do not establish a universal error rate; seeds are reused across the two hint-duration conditions."
+    ]
+  },
+  "data_hashes": {
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/iq_point_010.npz": "e74c2609635b061370cac1da79f698c0057aacc475467d2b3021f6e718deb39c",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/iq_point_030.npz": "70ecd7187fbee9ae22f0284d5c1a3e354a08ba50a518d412437fd3a825587fc8",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/iq_point_050.npz": "fec7db5d49696784ba2492d8c3d940f13f5efc4f847b9e3691fafdcdbf827ad7",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/manifest.json": "48469939a14f3e1b6095722ef4f4a6c65d39f917cddeb74e760086772b5a8925",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/desktop_context.json": "a4cab1ed23d4e9cbce00c5623594ec7525193b16bc085ad0be23bf1be859700a",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/sweep_quality.jsonl": "de4daf2af4c5d9b34e627c8a2d9fb7e39dfee77c35555bb772146f347283f7d6",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/sweep_invalid_points.jsonl": "1c48a5b8575235137b9bba6a553da1685919e4d310f15af5c251f24a027743fe",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/measurements.csv": "d4bbd3421b668fa0636a655456c078b999b27212e1a29ffc83d23e68c322005b",
+    "/Users/cunhui/Git-Projects/Academic_Research/multisensor-workbench/Data/runs/20261102T103636_013594Z/web_console.log": "6758c252477f01cb4d024b5141b63acde61e094c39c9e6c1c12bbe69d2a2e5c3"
+  },
+  "evidence_directory": "/Users/cunhui/.codex/visualizations/2026/11/02/01a19a88-cafe-7171-9638-80761b6937f1/sspp_window_v8",
+  "evidence_files": {
+    "cli_config_test.log": {
+      "sha256": "4f33c0e0647ee92bc279a8dedfcc9b412d40f9a652e0d350a472c9a3e5fd820b",
+      "bytes": 96
+    },
+    "v8_hint_validation.log": {
+      "sha256": "b119258c47704ce9342437afddcb3a2d8c92c3e80f3df9d44abcdf14a6641589",
+      "bytes": 5873
+    },
+    "test_temperature_sweep_mainwindow.log": {
+      "sha256": "3e20e73b157e2bcbb7be94dcdb4c99f8ec621bd6160ff09fc44c87492a1d399f",
+      "bytes": 245
+    },
+    "core_regression.log": {
+      "sha256": "2e0f0dac3a1ef0af617100e7ad80cf9d217103f9b0c116ca082d3d38f7854990",
+      "bytes": 762
+    },
+    "v8_hint_validation.json": {
+      "sha256": "d2e8d2154f777de9d9ebbcbfb172e982bc0690b7c7d17fa08122ce090080e480",
+      "bytes": 1399
+    },
+    "final_ui_validation.log": {
+      "sha256": "be59872d2acea6ba927402b29fb4d6fcf956fd3d28922c5d501c5094604e7be2",
+      "bytes": 245
+    },
+    "comparison_v8.patch": {
+      "sha256": "41e4790e7537cc796459e2727db3def8a6eb7954b5a03fba87edbbe1618f536b",
+      "bytes": 31052
+    },
+    "comparison_v8_result.json": {
+      "sha256": "fc9f8460dbfb0a354e054abc46ce2cf52bd170effc6ec554bdc458528c9ff6d8",
+      "bytes": 1191
+    },
+    "test_comparison_service.log": {
+      "sha256": "8489915179452e2c28310cab0e3131ed7e3e233389bac4f6aea9e3a61183bbe3",
+      "bytes": 97
+    },
+    "weak_point_settings.png": {
+      "sha256": "028dd3163428dbc85de78a47e1d560217325de8e83e8690bc5d9f6a59e985336",
+      "bytes": 46055
+    },
+    "targeted_ui_tests.log": {
+      "sha256": "eb01dfa6ef480b85cc9c760931ee0e89ffdc205a072d901fa58953fe7ab085a8",
+      "bytes": 245
+    },
+    "test_experiment_navigation.log": {
+      "sha256": "e96966298a2e280111a3151f0e5ec9fc1c9cb9e8c795b8364a64f0e97f46d095",
+      "bytes": 246
+    },
+    "ui_service_validation.json": {
+      "sha256": "f9799060c0ceb9226f6552c3d6c66251f3e933d3ae590222f0e1173b3e22e951",
+      "bytes": 877
+    },
+    "evaluation/actual_v8_fixture.json": {
+      "sha256": "d2f33e71e6e0f26dfe72e3e9d5b5b096f20a8b16f86c96f181e693179af09c00",
+      "bytes": 116115
+    },
+    "evaluation/validation_summary.json": {
+      "sha256": "834454ac63ca0907e2b837919f9cc22365238681e440f052cd6ba57b9d213531",
+      "bytes": 8499
+    },
+    "evaluation/logic_v8_snapshot.py": {
+      "sha256": "ee93a079dd42f7cc1c7d96d21417f4dd56e42aa4d60c959fca7671fe8115f81f",
+      "bytes": 51855
+    },
+    "evaluation/acquisition_v8_snapshot.py": {
+      "sha256": "2da7cbdac53706967958f6395049cbfaa7eb7f3fc3668e1914cc20e295b4cef8",
+      "bytes": 47815
+    },
+    "evaluation/verify_v8_actual.py": {
+      "sha256": "26f0424889768e42e4a7dc13f48b0003a33fffd80cd75dcdfdfbd64960e24415",
+      "bytes": 14541
+    },
+    "evaluation/artifact_manifest.json": {
+      "sha256": "92ad7dcaaaeb0342d3d7d5ac6c2acef9fa1bfbca3bef667e39e2dc8f5354c823",
+      "bytes": 1512
+    },
+    "evaluation/actual_v8_controls.json": {
+      "sha256": "3ac32c353251b89b98b8f46099ba4484929243aed6835bb50306fc2c5c6c6209",
+      "bytes": 294539
+    },
+    "evaluation/actual_v8_historical.json": {
+      "sha256": "54e4a9bed7f89ed5711eb10f72a84d223932300d390f801613ab5683ef74440e",
+      "bytes": 193315
+    }
+  },
+  "limits": [
+    "No new hardware run or current app restart performed.",
+    "Archived 8 s IQ lacks future samples; none of the three invalid historical points is claimed recovered.",
+    "9.12 s successful case is entirely synthetic, with a separate no-extra negative result.",
+    "3/160 noise conditions and 1/10 negative conditions triggered one extension; all remained unaccepted.",
+    "Finite noise checks do not prove zero false acceptance; two hint conditions reuse the same 80 seeds.",
+    "Longer windows and extra waiting can change sample selection; cross-policy comparisons are restricted."
+  ]
+}

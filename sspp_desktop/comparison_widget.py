@@ -49,12 +49,34 @@ HEADERS = {
     "automatic_calibration_activated": "已自动启用标定", "source_key": "来源 key",
     "run_key": "来源 key", "channels": "通道", "reason": "删除原因", "deleted_utc": "更正时间 (UTC)",
     "correction_sha256": "更正账本 SHA-256", "excluded_calibration_points": "已删除错误区间数",
+    "condition_label": "温度条件", "calibration": "标定信息",
 }
 TABLE_NAMES = {"sweep_summary": "扫频均值与波动", "sweep_measurements": "逐点测量", "sweep_difference": "相对参考差值",
                "phase_samples": "幅相样点", "phase_summary": "幅相摘要", "phase_stages": "阶段摘要",
                "phase_aligned": "对齐幅相样点", "phase_curves": "参考后幅相窗口", "finger_validation": "手指验证摘要",
                "calibration_points": "温标区间与来源", "serial_samples": "原始串口样本",
-               "serial_summary": "串口记录摘要", "excluded_calibration_points": "错误区间删除记录"}
+               "serial_summary": "串口记录摘要", "excluded_calibration_points": "错误区间删除记录",
+               "temperature_conditions": "温度条件与来源"}
+
+
+def _table_dataset(dataset):
+    """Accept both report table contracts without changing the export report."""
+    if isinstance(dataset, dict):
+        columns, rows = dataset.get("columns", []), dataset.get("rows", [])
+    elif isinstance(dataset, list):
+        rows = dataset
+        if not all(isinstance(row, dict) for row in rows):
+            raise ValueError("分析数据表的列表行必须包含字段名称")
+        columns = list(dict.fromkeys(key for row in rows for key in row))
+    else:
+        raise ValueError("分析数据表格式无效")
+    if (not isinstance(columns, list) or not all(isinstance(key, str) for key in columns)
+            or not isinstance(rows, list)):
+        raise ValueError("分析数据表的列或行格式无效")
+    if any(not isinstance(row, dict) and
+           (not isinstance(row, (list, tuple)) or len(row) != len(columns)) for row in rows):
+        raise ValueError("分析数据表的行与列不匹配")
+    return columns, rows
 
 def _text(value):
     if value is None:
@@ -181,6 +203,9 @@ class ComparisonDialog(QtWidgets.QDialog):
 
     def apply_report(self, report):
         from .publication import single_record_report
+        # Validate before replacing the displayed report. Temperature conditions
+        # are a list of records; numerical tables declare columns and rows.
+        datasets = [(name, *_table_dataset(dataset)) for name, dataset in report.get("tables", {}).items()]
         self.report = report
         self.publication_directory = None
         sources = report.get("sources", [])
@@ -248,12 +273,10 @@ class ComparisonDialog(QtWidgets.QDialog):
             widget = self.data_tabs.widget(0)
             self.data_tabs.removeTab(0)
             widget.deleteLater()
-        for name, dataset in report.get("tables", {}).items():
+        for name, columns, rows in datasets:
             page = QtWidgets.QWidget()
             layout = QtWidgets.QVBoxLayout(page)
             table = self._table()
-            columns = dataset.get("columns", [])
-            rows = dataset.get("rows", [])
             count = min(500, len(rows))
             note = QtWidgets.QLabel(f"预览前 {count} / 总 {len(rows)} 行；导出包含完整数据。")
             note.setWordWrap(True)

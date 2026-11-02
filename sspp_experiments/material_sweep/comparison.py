@@ -5,7 +5,9 @@ import math
 from collections import defaultdict
 from statistics import mean, stdev
 
-from ..comparison import TARGET_CONFIRMED_SWEEP_VERSION, chart, finite, read_source, series, table
+from ..comparison import (TARGET_CONFIRMED_SWEEP_VERSIONS, ROUND_AWARE_SWEEP_VERSION,
+                          WEAK_POINT_BUDGET_SWEEP_VERSION,
+                          chart, finite, read_source, series, table)
 
 
 def _optional_window_value(row, name, *, integer=False, minimum=0.):
@@ -35,9 +37,9 @@ def _load(record):
     parsed, seen = [], set()
     for row in rows:
         declared = manifest.get("sweep_algorithm")
-        if (isinstance(declared, dict) and declared.get("version") == TARGET_CONFIRMED_SWEEP_VERSION
-                and row.get("algorithm_version") != TARGET_CONFIRMED_SWEEP_VERSION):
-            raise ValueError("v5 扫频 CSV 的 algorithm_version 与 manifest 不一致或缺失")
+        if (isinstance(declared, dict) and declared.get("version") in TARGET_CONFIRMED_SWEEP_VERSIONS
+                and row.get("algorithm_version") != declared["version"]):
+            raise ValueError(f"{declared['version']} 扫频 CSV 的 algorithm_version 与 manifest 不一致或缺失")
         try:
             repeat, point = int(row["repeat"]), int(row["point"])
             carrier, tone = float(row["requested_carrier_GHz"])*1e9, float(row["expected_tone_Hz"])
@@ -139,6 +141,10 @@ def compare_sweeps(records, reference_index, report, compatible):
         mean_series.append(series(record, [[r["target_rf_hz"]/1e9, r["mean_amplitude_dB"]] for r in ordered], [r["repeat_sd_dB"] for r in ordered]))
         sd_series.append(series(record, [[r["target_rf_hz"]/1e9, r["repeat_sd_dB"]] for r in ordered]))
     note = "纵轴为数字单音幅度（估计方法由各记录算法版本定义）；dB 域均值与 ddof=1 样本 SD。误差棒不是置信区间，连续扫频轮次不是独立取放。横轴为载波回读+设定tone（回读缺失时明确降为请求值）。"
+    if any(record["parameters"].get("sweep_algorithm_version") == ROUND_AWARE_SWEEP_VERSION for record in records):
+        note += "v7 的跨轮策略仅选择窗长，已通过的验证和正式测量仍使用独立新样本；策略是否启用及预算规则见参数核对。"
+    if any(record["parameters"].get("sweep_algorithm_version") == WEAK_POINT_BUDGET_SWEEP_VERSION for record in records):
+        note += "v8 可在基础期限内通过合格长窗验证后给予一次额外时间，并为超时弱点保留下一轮窗长提示；已通过的验证和正式测量仍使用独立新样本。额外时间上限与提示规则见参数核对，不同触发次数不等于相同实采时长。"
     report["charts"] = [chart("sweep_mean", "各实验扫频均值 ± 1 样本 SD", "载波 + tone（GHz）", "单音幅度（dB 数字估计）", mean_series, note),
                          chart("sweep_repeat_sd", "各实验的轮间重复 SD", "载波 + tone（GHz）", "样本 SD（dB）", sd_series, "单轮频点 SD 不可估计，保持空缺；不可解释为跨次取放重复性。")]
     differences, difference_series = [], []

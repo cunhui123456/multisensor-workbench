@@ -10,6 +10,23 @@ from pathlib import Path
 SWEEP_QUALITY_VERSION = "sspp.sweep.full_window_quality.v2"
 ADAPTIVE_SWEEP_VERSION = "sspp.sweep.adaptive_coherent_quality.v3"
 TARGET_CONFIRMED_SWEEP_VERSION = "sspp.sweep.target_confirmed.v5"
+WINDOW_EFFICIENT_SWEEP_VERSION = "sspp.sweep.target_confirmed.v6"
+ROUND_AWARE_SWEEP_VERSION = "sspp.sweep.target_confirmed.v7"
+WEAK_POINT_BUDGET_SWEEP_VERSION = "sspp.sweep.target_confirmed.v8"
+TARGET_CONFIRMED_SWEEP_VERSIONS = (TARGET_CONFIRMED_SWEEP_VERSION, WINDOW_EFFICIENT_SWEEP_VERSION,
+                                 ROUND_AWARE_SWEEP_VERSION, WEAK_POINT_BUDGET_SWEEP_VERSION)
+PREVIOUS_ROUND_WINDOW_POLICIES = {
+    True: "previous_round_same_frequency_successful_adaptive_level_only",
+    False: "disabled",
+}
+WEAK_POINT_PREVIOUS_ROUND_WINDOW_POLICIES = {
+    True: "previous_round_success_or_qualified_weak_confirmation_level_only",
+    False: "disabled",
+}
+ESCALATION_BUDGET_POLICY = "require_remaining_time_for_independent_verification_and_measurement_with_rejected_prefix"
+WEAK_POINT_BUDGET_POLICY = "one_extension_after_qualified_long_verify_before_base_deadline"
+FAILED_POINT_WINDOW_POLICY = "next_level_after_long_verified_window_on_timeout"
+WEAK_POINT_EVIDENCE_MIN_SECONDS = 1.0
 TARGET_QUALITY_RULES = {
     "target_candidate_search": "expected_tone_plus_minus_verify_tolerance_hz",
     "target_presence_method": "exact_tone_with_independent_halves_on_background_dominance",
@@ -123,8 +140,8 @@ def _window_levels(value, *, maximum_seconds=1.0):
 
 
 
-def _target_quality_parameters(params, sweep, declared):
-    """v5 snapshots must agree; never repair missing policy from today's defaults."""
+def _target_quality_parameters(params, sweep, declared, time_policy=None):
+    """Target-confirmed snapshots must agree; never fill from today's defaults."""
     validators = {
         "verify_min_seconds": lambda v: v >= .020,
         "measure_min_seconds": lambda v: v >= .040,
@@ -151,6 +168,43 @@ def _target_quality_parameters(params, sweep, declared):
     confirmation = _number(declared.get("target_confirmation_snr_db"))
     params["target_confirmation_snr_db"] = confirmation if confirmation is not None and confirmation >= 6 and (
         confirmation == params["min_tone_snr_db"]) else None
+    version = declared.get("version")
+    if version in (ROUND_AWARE_SWEEP_VERSION, WEAK_POINT_BUDGET_SWEEP_VERSION):
+        reuse = sweep.get("reuse_previous_round_window")
+        mirrored = declared.get("reuse_previous_round_window")
+        reuse = reuse if type(reuse) is bool and type(mirrored) is bool and mirrored is reuse else None
+        params["reuse_previous_round_window"] = reuse
+        policies = (WEAK_POINT_PREVIOUS_ROUND_WINDOW_POLICIES if version == WEAK_POINT_BUDGET_SWEEP_VERSION
+                    else PREVIOUS_ROUND_WINDOW_POLICIES)
+        expected = policies[reuse] if reuse is not None else None
+        params["previous_round_window_policy"] = expected if declared.get("previous_round_window_policy") == expected else None
+        params["escalation_budget_policy"] = (ESCALATION_BUDGET_POLICY
+            if declared.get("escalation_budget_policy") == ESCALATION_BUDGET_POLICY else None)
+    if version == WEAK_POINT_BUDGET_SWEEP_VERSION:
+        time_policy = time_policy if isinstance(time_policy, dict) else {}
+        extra = _number(sweep.get("weak_point_extra_seconds"))
+        mirrored = _number(declared.get("weak_point_extra_seconds"))
+        params["weak_point_extra_seconds"] = (extra
+            if extra is not None and 0 <= extra <= 30 and mirrored == extra
+            and _number(time_policy.get("weak_point_extra_seconds")) == extra else None)
+        base = _number(time_policy.get("point_timeout_seconds"))
+        params["point_timeout_seconds"] = base if base is not None and 1 <= base <= 30 else None
+        maximum = _number(time_policy.get("point_max_timeout_seconds"))
+        params["point_max_timeout_seconds"] = (maximum
+            if maximum is not None and 1 <= maximum <= 60
+            and params["point_timeout_seconds"] is not None and params["weak_point_extra_seconds"] is not None
+            and maximum == base + extra else None)
+        params["weak_point_extension_policy"] = (WEAK_POINT_BUDGET_POLICY
+            if time_policy.get("weak_point_extension_policy") == WEAK_POINT_BUDGET_POLICY else None)
+        # None is the compatibility table's unknown sentinel; distinguish an explicit unlimited policy.
+        params["total_time_limit_policy"] = ("unlimited"
+            if "total_time_limit_seconds" in time_policy and time_policy["total_time_limit_seconds"] is None else None)
+        evidence = _number(declared.get("weak_point_evidence_min_seconds"))
+        params["weak_point_evidence_min_seconds"] = (evidence
+            if evidence == WEAK_POINT_EVIDENCE_MIN_SECONDS else None)
+        for key, expected in (("weak_point_budget_policy", WEAK_POINT_BUDGET_POLICY),
+                              ("failed_point_window_policy", FAILED_POINT_WINDOW_POLICY)):
+            params[key] = expected if declared.get(key) == expected else None
 
 
 def _parameters(record):
@@ -170,20 +224,20 @@ def _parameters(record):
         # 旧记录未登记版本，仍按旧源码哈希互相比对；不能把缺失字段补成新版默认值。
         version = LEGACY_SWEEP_VERSION if "sweep_algorithm" not in m else (
             _text(declared.get("version")) if isinstance(declared, dict) else None)
-        if version not in (LEGACY_SWEEP_VERSION, SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+        if version not in (LEGACY_SWEEP_VERSION, SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, *TARGET_CONFIRMED_SWEEP_VERSIONS):
             version = None
         params["sweep_algorithm_version"] = version
-        if version in (SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+        if version in (SWEEP_QUALITY_VERSION, ADAPTIVE_SWEEP_VERSION, *TARGET_CONFIRMED_SWEEP_VERSIONS):
             for key in SWEEP_QUALITY_FIELDS:
                 params[key] = _number(sweep.get(key))
-        if version in (ADAPTIVE_SWEEP_VERSION, TARGET_CONFIRMED_SWEEP_VERSION):
+        if version in (ADAPTIVE_SWEEP_VERSION, *TARGET_CONFIRMED_SWEEP_VERSIONS):
             for key in ADAPTIVE_QUALITY_FIELDS:
                 params[key] = _number(sweep.get(key))
             params["adaptive_window_seconds"] = _window_levels(sweep.get("adaptive_window_seconds"))
         for key in ("nfft", "verify_cycles", "measure_cycles", "verify_tolerance_hz", "switch_settle_time"):
             params[key] = _number(sweep.get(key))
-        if version == TARGET_CONFIRMED_SWEEP_VERSION:
-            _target_quality_parameters(params, sweep, declared)
+        if version in TARGET_CONFIRMED_SWEEP_VERSIONS:
+            _target_quality_parameters(params, sweep, declared, m.get("time_policy"))
         names = {"logic.py", "sweep_logic.py", "do_sweep.py"}
         hashes = m.get("current_source_hashes") or m.get("source_hashes") or {}
     else:
@@ -210,7 +264,7 @@ def compare_parameters(records, reference_index, report):
               "tx_gain_dB": "实际 TX 增益 dB", "rx_gain_dB": "实际 RX 增益 dB", "tx_amplitude": "数字 TX 幅值",
               "channel": "通道", "tx_antenna": "实际 TX 天线选项", "rx_antenna": "实际 RX 天线选项",
               "master_clock_rate_hz": "主时钟 Hz", "sensor": "人工传感器说明",
-              "nfft": "FFT 配置点数（v2/v3/v5 为最低长度）", "verify_cycles": "验证单音周期数", "measure_cycles": "测量单音周期数",
+              "nfft": "FFT 配置点数（全窗版本为最低长度）", "verify_cycles": "验证单音周期数", "measure_cycles": "测量单音周期数",
               "verify_tolerance_hz": "峰频验证容差 Hz", "switch_settle_time": "切频等待 s",
               "carrier_hz": "载波设定 Hz", "tone_hz": "基带单音 Hz",
               "sweep_algorithm_version": "扫频估计器版本（旧截窗 / 固定全窗 / 自适应相干门槛 / 目标确认）",
@@ -228,7 +282,18 @@ def compare_parameters(records, reference_index, report):
               "rejected_window_policy": "升级窗长时的失败窗口复用规则",
               "previous_tone_detection": "前一单音的半窗支持或独立候选确认规则",
               "target_numerical_floor": "目标确认的数值噪声底规则",
-              "target_confirmation_snr_db": "目标完整窗与半窗最低突出度 dB"}
+              "target_confirmation_snr_db": "目标完整窗与半窗最低突出度 dB",
+              "reuse_previous_round_window": "使用上一轮同频点窗长提示",
+              "previous_round_window_policy": "跨轮窗长选择规则（不复用样本）",
+              "escalation_budget_policy": "窗口升级前的独立验证与测量预算规则",
+              "weak_point_extra_seconds": "合格弱频点单次额外时间上限 s",
+              "weak_point_evidence_min_seconds": "触发弱频点策略的最短有效验证窗 s",
+              "weak_point_budget_policy": "合格弱频点额外时间触发规则",
+              "failed_point_window_policy": "超时弱频点的下一轮窗长提示规则",
+              "point_timeout_seconds": "基础单点质量期限 s",
+              "point_max_timeout_seconds": "含合格弱点扩展的单点时间上限 s",
+              "weak_point_extension_policy": "采集器弱频点期限扩展规则",
+              "total_time_limit_policy": "整场时间限制策略（unlimited 表示无总时限）"}
     rows = []
     for parameter in dict.fromkeys(key for r in records for key in r["parameters"]):
         values = [r["parameters"].get(parameter) for r in records]
@@ -253,9 +318,15 @@ def compare_parameters(records, reference_index, report):
         report["warnings"].append("新旧扫频估计器混合：旧记录截取固定 FFT 窗口，新记录使用完整测量窗口与质量门槛；仅叠加查看，不计算定量幅度差。")
     elif SWEEP_QUALITY_VERSION in versions and ADAPTIVE_SWEEP_VERSION in versions:
         report["warnings"].append("扫频质量策略版本混合：v2 使用固定完整窗口与前音调频带最大峰，v3 使用自适应窗口与相干存在判据；仅叠加查看，不计算定量幅度差。")
-    if TARGET_CONFIRMED_SWEEP_VERSION in versions and any(v != TARGET_CONFIRMED_SWEEP_VERSION for v in versions):
+    if WEAK_POINT_BUDGET_SWEEP_VERSION in versions and any(v != WEAK_POINT_BUDGET_SWEEP_VERSION for v in versions):
+        report["warnings"].append("扫频窗口策略版本混合或未知：v8 增加合格弱频点的一次额外时间与超时后窗长提示；虽然幅值计算与质量门槛不变，采样策略与 v5/v6/v7 不同，仅叠加查看，不计算跨版本定量幅度差。")
+    elif ROUND_AWARE_SWEEP_VERSION in versions and any(v != ROUND_AWARE_SWEEP_VERSION for v in versions):
+        report["warnings"].append("扫频窗口策略版本混合或未知：v7 增加上一轮同频点窗长选择和升级预算约束；虽然幅值计算与质量门槛不变，采样策略与 v5/v6 不同，仅叠加查看，不计算跨版本定量幅度差。")
+    elif WINDOW_EFFICIENT_SWEEP_VERSION in versions and any(v != WINDOW_EFFICIENT_SWEEP_VERSION for v in versions):
+        report["warnings"].append("扫频窗口策略版本混合或未知：v6 默认使用20／100／1000／2000ms四档窗口，v5使用七档；虽然幅值计算与质量门槛相同，实采窗口选择不同，仅叠加查看，不计算跨版本定量幅度差。")
+    elif TARGET_CONFIRMED_SWEEP_VERSION in versions and any(v != TARGET_CONFIRMED_SWEEP_VERSION for v in versions):
         report["warnings"].append("扫频质量策略版本混合或未知：v5 使用目标范围内候选、精确单音及独立半窗确认与精确单音幅值；不能与旧版本计算定量幅度差。")
-    if ADAPTIVE_SWEEP_VERSION in versions or TARGET_CONFIRMED_SWEEP_VERSION in versions:
+    if any(v in (ADAPTIVE_SWEEP_VERSION, *TARGET_CONFIRMED_SWEEP_VERSIONS) for v in versions):
         report["warnings"].append("自适应策略一致不代表逐点实采窗口时长一致；弱信号可能使用更长窗口，频率分辨率、噪声水平及通过门槛后的筛选效应可能不同。逐点表保留实采窗长与档位；幅度差仍是未校准的描述性比较。")
     if any(r["parameter"] == "sensor" and r["status"] != "same" for r in rows):
         report["warnings"].append("传感器/机械位置的一致性未得到完整记录；叠加及数字幅度差不能证明材料造成了变化。")

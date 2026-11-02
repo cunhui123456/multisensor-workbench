@@ -1,4 +1,4 @@
-"""v5 comparison policy snapshots and per-row version provenance; no hardware."""
+"""Explicit v5 snapshots and current v8 producer/registry compatibility; no hardware."""
 import csv
 import io
 import json
@@ -6,7 +6,7 @@ import unittest
 
 from sspp_experiments.comparison import (
     ADAPTIVE_QUALITY_FIELDS, SWEEP_QUALITY_FIELDS, TARGET_CONFIRMED_SWEEP_VERSION,
-    TARGET_QUALITY_RULES, build_comparison,
+    TARGET_QUALITY_RULES, WEAK_POINT_BUDGET_SWEEP_VERSION, WEAK_POINT_BUDGET_POLICY, build_comparison,
 )
 import test_comparison_domain as fixture_module
 
@@ -75,7 +75,13 @@ class TargetQualityComparisonTests(unittest.TestCase):
             cfg = SweepConfig(num_points=2, sweep_repeat=2, skip_invalid_points=True)
             manifest['sweep'] = asdict(cfg)
             manifest['sweep_algorithm'] = sweep_algorithm_policy(cfg)
+            manifest['time_policy'] = {
+                'point_timeout_seconds': 8., 'weak_point_extra_seconds': cfg.weak_point_extra_seconds,
+                'point_max_timeout_seconds': 8. + cfg.weak_point_extra_seconds,
+                'weak_point_extension_policy': WEAK_POINT_BUDGET_POLICY, 'total_time_limit_seconds': None}
+            self.assertEqual(manifest['sweep_algorithm']['version'], WEAK_POINT_BUDGET_SWEEP_VERSION)
             self.save(name, 'manifest.json', manifest)
+            self.csv_edit(name, lambda row: row.update(algorithm_version=manifest['sweep_algorithm']['version']))
         report = build_comparison(self.root, ['runs/a', 'runs/b'])
         self.assertTrue(report['quantitative_difference_allowed'], report['compatibility'])
 
@@ -187,7 +193,7 @@ class TargetQualityComparisonTests(unittest.TestCase):
         self.save('runs/b', 'manifest.json', manifest)
         self.assert_overlay()
 
-    def test_two_second_limit_is_v5_only_and_over_limit_stays_invalid(self):
+    def test_v5_allows_two_seconds_but_older_v3_and_over_limit_stay_invalid(self):
         self.target_sweep('runs/a')
         self.target_sweep('runs/b')
         self.assertTrue(build_comparison(self.root, ['runs/a', 'runs/b'])['quantitative_difference_allowed'])

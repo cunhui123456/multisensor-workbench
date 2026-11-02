@@ -56,6 +56,8 @@ def parse_args():
     p.add_argument('--repeat', type=int, default=3)
     p.add_argument('--max-seconds', type=float, default=None, help='Deprecated compatibility option; ignored. Sweeps have no total time limit.')
     p.add_argument('--point-timeout', type=float, default=8)
+    p.add_argument('--weak-point-extra-seconds', type=float, default=8,
+                   help='One bounded extra budget after a qualified long VERIFY; 0 disables it.')
     p.add_argument('--tx-gain', type=float, default=20)
     p.add_argument('--rx-gain', type=float, default=30)
     p.add_argument('--freq-start', type=float, default=2.4e9)
@@ -88,6 +90,10 @@ def make_config(opts):
     if device['channel'] not in (0, 1): raise ValueError('B210 channel must be 0 or 1')
     if not (1 <= opts.repeat <= 100 and 2 <= opts.points <= 1000): raise ValueError('Invalid repeat/point count')
     if not (1 <= opts.point_timeout <= 30): raise ValueError('Point timeout must be within 1–30 seconds')
+    weak_extra = getattr(opts, 'weak_point_extra_seconds', 8.)
+    if (isinstance(weak_extra, bool) or not isinstance(weak_extra, (int,float))
+            or not np.isfinite(weak_extra) or not 0 <= weak_extra <= 30):
+        raise ValueError('Weak-point extra budget must be within 0–30 seconds')
     if not (70e6 <= opts.freq_start < opts.freq_stop <= 6e9): raise ValueError('Sweep range must be within 70 MHz–6 GHz')
     if not all(np.isfinite(v) for v in [opts.tx_gain, opts.rx_gain, opts.freq_start, opts.freq_stop, opts.point_timeout]): raise ValueError('Parameters must be finite')
     if not (0 <= opts.tx_gain <= 30 and 0 <= opts.rx_gain <= 76): raise ValueError('Gain outside local runner bounds')
@@ -99,7 +105,8 @@ def make_config(opts):
     config.validate()
     sweep = SweepConfig(freq_start=opts.freq_start, freq_stop=opts.freq_stop,
                         num_points=opts.points, sweep_repeat=opts.repeat,
-                        tone_start=opts.tone_start, tone_step=opts.tone_step, skip_invalid_points=True)
+                        tone_start=opts.tone_start, tone_step=opts.tone_step, skip_invalid_points=True,
+                        weak_point_extra_seconds=weak_extra)
     sweep.validate(config.rate)
     return device, config, sweep
 
@@ -222,7 +229,10 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
                 companion.finish_round(repeat,complete,invalid_point_count=invalid)
 
         def invalid_quality_details(self):
-            return {'raw_iq_file':f'iq_point_{self.point_number:03d}.npz', 'last_attempt':self.last_quality_record}
+            diagnostic = self._point_timeout_diagnostic()
+            return {'raw_iq_file':f'iq_point_{self.point_number:03d}.npz',
+                    'last_attempt':self.last_quality_record, 'point_timeout':diagnostic,
+                    'reason':self._point_timeout_message(diagnostic)}
 
         def on_invalid_measurement(self, sweep_idx, point_idx, freq, tone, quality):
             self.point_info['measurement_status']='invalid'
@@ -259,6 +269,10 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
             self.point_info = None
             self.expected_index = None
             self.deadline = 0
+            self.base_deadline = 0
+            self.hard_deadline = 0
+            self.point_budget_extension = None
+            self.point_budget_extensions = []
             self.raw_files = []
             self.point_started_monotonic_s = None
             self.quality_attempt_count = 0
@@ -266,8 +280,104 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
             self.last_quality_rejection = None
             self.last_quality_record = None
             self.point_attempts = 0
+            self.point_progress = {}
+            self.point_timeout_diagnostic = None
             self.last_frame_at = time.monotonic()
+
+        def on_point_progress(self, record):
+            # 由领域状态机报告当前待收窗口，不能用上一窗的结果猜测当前阶段。
+            self.point_progress = dict(record)
+
+        def _point_timeout_diagnostic(self, now=None, received_unprocessed_samples=0):
+            if self.point_timeout_diagnostic is not None:
+                return dict(self.point_timeout_diagnostic)
+            last = self.last_quality_record or {}
+            processing_expired = bool(last.get('point_deadline_expired'))
+            if now is None:
+                now = (last.get('host_processed_monotonic_s') if processing_expired else None)
+                if now is None:
+                    now = time.monotonic()
+            progress = self.point_progress
+            stage = progress.get('state', 'unknown')
+            verified = progress.get('verified_windows', 0)
+            required = progress.get('required_verified_windows', self.cfg.verify_consecutive_windows)
+            if stage == 'MEASURE' and processing_expired and last.get('passed'):
+                classification = 'measurement_completed_after_deadline'
+            elif (stage == 'MEASURE' and verified >= required and
+                  not (processing_expired and last.get('passed') is False)):
+                classification = 'measurement_incomplete_after_verification'
+            else:
+                classification = 'quality_insufficient_before_deadline'
+            buffered = progress.get('buffered_sample_count', 0) + received_unprocessed_samples
+            completion = progress.get('completion_samples_needed')
+            if completion is not None:
+                completion = max(0, completion-received_unprocessed_samples)
+            pending_seconds = progress.get('pending_window_seconds')
+            pending_count = progress.get('pending_window_count')
+            if classification == 'measurement_completed_after_deadline':
+                # 样本和判定都已完成，只是处理越期；不能误报还缺一窗样本。
+                completion, pending_seconds, pending_count = 0, 0., 0
+            diagnostic = {
+                'classification':classification,
+                'deadline_stage':stage,
+                'deadline_trigger':'window_processing' if processing_expired else 'waiting_for_window',
+                'verified_windows':verified, 'required_verified_windows':required,
+                'last_attempt_window_seconds':last.get('window_duration_s'),
+                'pending_window_seconds':pending_seconds,
+                'pending_window_count':pending_count,
+                'buffered_sample_count':buffered,
+                'received_unprocessed_samples_at_deadline':received_unprocessed_samples,
+                'completion_samples_needed':completion,
+                'adaptive_level_index':progress.get('adaptive_level_index'),
+                'budget_seconds':float(self.deadline-self.point_started_monotonic_s),
+                'base_budget_seconds':float(opts.point_timeout),
+                'weak_point_extra_seconds':float(self.cfg.weak_point_extra_seconds),
+                'point_budget_extension':self.point_budget_extension,
+                'elapsed_seconds':max(0., float(now-self.point_started_monotonic_s)),
+                'remaining_seconds':max(0., float(self.deadline-now)),
+                'deadline_overrun_seconds':max(0., float(now-self.deadline)),
+                'deadline_monotonic_s':float(self.deadline),
+                'observed_monotonic_s':float(now),
+                'last_attempt_index':last.get('quality_attempt_index'),
+                'last_attempt_state':last.get('state'),
+                'last_attempt_passed':last.get('passed'),
+                'last_rejection_reasons':list(self.last_quality_rejection or []),
+                'window_schedule':{key:progress.get(key) for key in (
+                    'point_initial_level_index', 'point_initial_window_seconds',
+                    'window_source', 'window_hint_source_round',
+                    'point_initial_budget_required_seconds',
+                    'point_initial_budget_available_seconds', 'last_escalation_budget',
+                    'window_hint_source_kind', 'window_hint_source_attempt',
+                    'window_hint_source_state', 'window_hint_observed_level_index',
+                    'window_hint_observed_window_seconds')},
+            }
+            self.point_timeout_diagnostic = diagnostic
+            return dict(diagnostic)
+
+        def _point_timeout_message(self, diagnostic):
+            verified_text = ('两次' if diagnostic['required_verified_windows'] == 2 else
+                             f"{diagnostic['required_verified_windows']}次")
+            explanation = {
+                'measurement_incomplete_after_verification':verified_text+'验证已完成，独立正式测量尚未完成',
+                'measurement_completed_after_deadline':'正式测量判定通过，但处理完成时已超过单点期限，未接纳',
+                'quality_insufficient_before_deadline':'截止前未完成质量合格的验证与正式测量',
+            }[diagnostic['classification']]
+            pending = diagnostic['pending_window_seconds']
+            window_text = f'{pending:g}s' if pending is not None else '未知'
+            last_text = ('通过' if diagnostic['last_attempt_passed'] is True else
+                         '未通过' if diagnostic['last_attempt_passed'] is False else '尚无判定')
+            planning = diagnostic.get('window_schedule', {}).get('last_escalation_budget') or {}
+            budget_text = ('；长窗升级所需时间超过剩余预算，已保留当前档重验'
+                           if planning.get('escalation_blocked_reason') == 'insufficient_remaining_point_budget'
+                           else '')
+            return (f"Point {self.point_number}: {explanation}；阶段 {diagnostic['deadline_stage']}；"
+                    f"验证 {diagnostic['verified_windows']}/{diagnostic['required_verified_windows']}；"
+                    f"待处理窗口 {window_text}；已用 {diagnostic['elapsed_seconds']:.3f}s / "
+                    f"预算 {diagnostic['budget_seconds']:g}s，剩余 {diagnostic['remaining_seconds']:.3f}s；"
+                    f"最近一次窗口判定{last_text}{budget_text}")
         def on_quality_attempt(self, record):
+            self._maybe_enable_weak_point_budget(record)
+            record['point_budget'] = self._point_budget_record()
             record['raw_iq_file'] = f'iq_point_{self.point_number:03d}.npz'
             record['rx_software_sample_start'] = int(self.indices[0] + record['window_start']) if self.indices else None
             self.quality_attempt_count += 1
@@ -278,8 +388,46 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
                 if record['state'] == 'MEASURE': self.rejected_measurement_count += 1
             with (output/'sweep_quality.jsonl').open('a',encoding='utf-8') as handle:
                 handle.write(json.dumps(record,ensure_ascii=False,allow_nan=False)+'\n')
+
+        def _point_budget_record(self):
+            return {'base_seconds':float(opts.point_timeout),
+                    'extra_seconds':float(self.cfg.weak_point_extra_seconds),
+                    'maximum_seconds':float(opts.point_timeout+self.cfg.weak_point_extra_seconds),
+                    'active_deadline_monotonic_s':float(self.deadline),
+                    'base_deadline_monotonic_s':float(self.base_deadline),
+                    'hard_deadline_monotonic_s':float(self.hard_deadline),
+                    'extension':self.point_budget_extension}
+
+        def _maybe_enable_weak_point_budget(self, record):
+            # 只消费已配置的一次额外预算；硬上限在切频时固定，不能从当前时间续期。
+            if (self.cfg.weak_point_extra_seconds <= 0 or self.point_budget_extension is not None
+                    or self.base_deadline <= 0 or self.point_started_monotonic_s is None
+                    or self.stop_event.is_set() or record.get('stop_requested')
+                    or record.get('point_deadline_expired') or record.get('passed') is not True
+                    or record.get('state') != 'VERIFY' or record.get('window_duration_s',0) < 1.):
+                return
+            now=time.monotonic()
+            if now > self.base_deadline:
+                return
+            self.deadline=self.hard_deadline
+            self.point_budget_extension={
+                'reason':'qualified_long_verify_before_base_deadline',
+                'quality_attempt_index':record['quality_attempt_index'],
+                'window_start':record['window_start'], 'window_count':record['window_count'],
+                'window_duration_s':record['window_duration_s'],
+                'activated_monotonic_s':float(now),
+                'base_deadline_monotonic_s':float(self.base_deadline),
+                'hard_deadline_monotonic_s':float(self.hard_deadline),
+                'extra_seconds':float(self.cfg.weak_point_extra_seconds)}
+            self.point_budget_extensions.append({'point_number':self.point_number,**self.point_budget_extension})
+            print(json.dumps({'event':'POINT_BUDGET','point_number':self.point_number,
+                              **self._point_budget_record()},ensure_ascii=False,allow_nan=False),flush=True)
         def point_deadline_expired(self):
             return time.monotonic() > self.deadline
+
+        def remaining_point_seconds(self):
+            # 同一绝对截止时间只读用于规划；提示窗/升级/重验均不延期。
+            return max(0., float(self.deadline-time.monotonic()))
         # 将前一频点缓存压缩保存为 NPZ 并登记哈希；这不是全会话连续 IQ。
         def flush_point(self):
             if self.point_info is not None and self.frames:
@@ -298,13 +446,18 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
             self.point_started_monotonic_s = time.monotonic()
             self.point_number += 1
             self.expected_index = None
-            self.deadline = time.monotonic()+opts.point_timeout
+            self.base_deadline = self.point_started_monotonic_s+opts.point_timeout
+            self.hard_deadline = self.base_deadline+self.cfg.weak_point_extra_seconds
+            self.deadline = self.base_deadline
+            self.point_budget_extension = None
             self.point_info = {'point_number':self.point_number,'requested_carrier_hz':float(freq),
                               'tone_hz':float(tone),'tx_actual_carrier_hz':float(manager.usrp.get_tx_freq(args.channel)),
                               'rx_actual_carrier_hz':float(manager.usrp.get_rx_freq(args.channel))}
             self.last_quality_rejection = None
             self.last_quality_record = None
             self.point_attempts = 0
+            self.point_progress = {}
+            self.point_timeout_diagnostic = None
             self.last_frame_at = time.monotonic()
         # 检查同频点帧索引必须紧接；软件索引检查不替代硬件时间戳核验。
         def _fetch_available_frames(self):
@@ -323,9 +476,11 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
             if frames:self.last_frame_at=time.monotonic()
             if time.monotonic()-self.last_frame_at>3:
                 raise RuntimeError('RX data stalled for more than 3 seconds; not treated as a weak-signal point')
-            if time.monotonic()>self.deadline:
+            now = time.monotonic()
+            if now>self.deadline:
                 if not self.point_attempts:raise RuntimeError('Point deadline reached without sufficient real IQ for validation')
-                raise PointQualityTimeout(f'Point {self.point_number}: no quality-approved measurement within {opts.point_timeout}s; last rejection={self.last_quality_rejection}')
+                diagnostic = self._point_timeout_diagnostic(now, sum(len(frame) for frame in frames))
+                raise PointQualityTimeout(self._point_timeout_message(diagnostic))
             if frames and publisher is not None:
                 # Preview the current point's real frame before NPZ persistence.
                 # Software sample indexes are not hardware continuity evidence.
@@ -446,7 +601,10 @@ def main():
        'raw_scope':'Frames fetched after per-point settle/queue clear, including verification and measurement; not a continuous all-session hardware-time recording'}
     manifest['time_policy'] = {'total_time_limit_seconds': None,
         'completion': 'operator_stop' if cfg.continuous else 'configured_rounds',
-        'point_timeout_seconds': opts.point_timeout}
+        'point_timeout_seconds': opts.point_timeout,
+        'weak_point_extra_seconds':cfg.weak_point_extra_seconds,
+        'point_max_timeout_seconds':opts.point_timeout+cfg.weak_point_extra_seconds,
+        'weak_point_extension_policy':'one_extension_after_qualified_long_verify_before_base_deadline'}
     manifest['sweep_algorithm'] = sweep_algorithm_policy(cfg)
     manifest['measurement'] = 'Quality-gated exact expected-tone Hann coefficient; measured_tone_Hz is target-band peak diagnostic; peak_amplitude_dBFS_est is retained as a legacy column name; relative digital amplitude, not calibrated S21/dBm'
     if temperature_config:
@@ -536,6 +694,7 @@ def main():
                                                 'bytes':quality_log.stat().st_size}
             manifest['sweep_quality_attempts'] = {'total':runner.quality_attempt_count,
                                                  'rejected_measurements':runner.rejected_measurement_count}
+            manifest['point_budget_extensions'] = list(getattr(runner,'point_budget_extensions',[]))
         if companion:
             try: manifest['temperature_sweep'] = companion.close()
             except Exception as exc:

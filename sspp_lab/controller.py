@@ -23,7 +23,8 @@ DEFAULTS={'mode':'sweep','condition':'empty','label':'empty_baseline','sensor':'
           'freq_start_ghz':2.4,'freq_stop_ghz':3.0,'points':20,'repeat':3,
           'carrier_ghz':2.4,'rate':250000,'tone':10000,'tone_start':2000,'tone_step':1000,
           'amplitude':.3,'tx_gain':20,'rx_gain':30,'duration':120,'max_seconds':None,
-          'point_timeout':8,'setup_confirmed':False,'liquid_temperature':None,'temperature_sweep':None}
+          'point_timeout':8,'weak_point_extra_seconds':8,
+          'setup_confirmed':False,'liquid_temperature':None,'temperature_sweep':None}
 
 class LabError(Exception):
     def __init__(self,message,status=400):
@@ -64,7 +65,7 @@ def validate_request(value,require_setup=True):
     bounds={'freq_start_ghz':(.07,6.),'freq_stop_ghz':(.07,6.),'carrier_ghz':(.07,6.),
             'rate':(200000,2000000),'tone':(1,50000),'tone_start':(1,50000),
             'tone_step':(0,20000),'amplitude':(.001,.3),'tx_gain':(0,30),'rx_gain':(0,76),
-            'duration':(10,180),'point_timeout':(1,30),
+            'duration':(10,180),'point_timeout':(1,30),'weak_point_extra_seconds':(0,30),
             'points':(2,100),'repeat':(1,20)}
     for key,(lower,upper) in bounds.items():
         number=cfg[key]
@@ -156,6 +157,7 @@ class LabController:
                    '--freq-stop',str(cfg['freq_stop_ghz']*1e9),'--points',str(cfg['points']),
                    '--repeat',str(cfg['repeat']),
                    '--point-timeout',str(cfg['point_timeout']),'--tone-start',str(cfg['tone_start']),
+                   '--weak-point-extra-seconds',str(cfg.get('weak_point_extra_seconds',DEFAULTS['weak_point_extra_seconds'])),
                    '--tone-step',str(cfg['tone_step'])]
         else:
             args+=['--initial-label',cfg['label'],'--carrier',str(cfg['carrier_ghz']*1e9),

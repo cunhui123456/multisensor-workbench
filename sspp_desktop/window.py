@@ -520,6 +520,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 "advanced": self.advanced_toggle.isChecked(), "liquid_setup": deepcopy(self._liquid_setup)}
 
     def _restore_draft(self, draft):
+        if 'weak_point_extra_seconds' not in draft['values']:
+            with QtCore.QSignalBlocker(self.fields['weak_point_extra_seconds']):
+                self.fields['weak_point_extra_seconds'].setValue(DEFAULTS['weak_point_extra_seconds'])
         for key, value in draft["values"].items():
             # 旧草稿的设备选择和已移除的扫频时限均不覆盖当前运行规则。
             if key in ("profile", "max_seconds", "auto_sweep_budget"):
@@ -677,13 +680,19 @@ class MainWindow(QtWidgets.QMainWindow):
         for key, name, lo, hi, decimals, step in [
             ("freq_start_ghz", "起点 GHz", .07, 6, 3, .001), ("freq_stop_ghz", "终点 GHz", .07, 6, 3, .001),
             ("points", "频点数", 2, 100, 0, 1), ("repeat", "重复轮数", 1, 20, 0, 1),
-            ("point_timeout", "单点时限 s", 1, 30, 1, .5),
+            ("point_timeout", "单点基础等待 s", 1, 30, 1, .5),
+            ("weak_point_extra_seconds", "弱点额外等待 s", 0, 30, 1, .5),
             ("tone_start", "首个单音 Hz", 1, 50000, 0, 100), ("tone_step", "单音步进 Hz", 0, 20000, 0, 100)]:
             self._number(sf, key, name, lo, hi, decimals, step)
         self.sweep_completion_hint = label("按指定轮数完成；也可随时停止并保存。", "muted")
         self.sweep_completion_hint.setWordWrap(True)
         sf.addRow(self.sweep_completion_hint)
-        for key in ('points', 'repeat', 'point_timeout'):
+        self.sweep_weak_budget_hint = label("", "muted")
+        self.sweep_weak_budget_hint.setWordWrap(True)
+        sf.addRow(self.sweep_weak_budget_hint)
+        self.fields['weak_point_extra_seconds'].setToolTip('仅在至少1秒的完整验证窗通过后启用一次；0表示关闭。整场实验仍无总时限，质量门槛不变。')
+        self._update_weak_budget_hint()
+        for key in ('points', 'repeat', 'point_timeout', 'weak_point_extra_seconds'):
             self.fields[key].valueChanged.connect(self._sweep_parameters_changed)
         cl.addWidget(self.sweep_group)
         advanced = QtWidgets.QGroupBox("高级参数")
@@ -734,8 +743,16 @@ class MainWindow(QtWidgets.QMainWindow):
         return side
 
     def _sweep_parameters_changed(self,*_):
+        self._update_weak_budget_hint()
         if getattr(self,'_navigating',False):return
         if hasattr(self,'confirm'):self.confirm.setChecked(False)
+
+    def _update_weak_budget_hint(self):
+        base = self.fields['point_timeout'].value()
+        extra = self.fields['weak_point_extra_seconds'].value()
+        self.sweep_weak_budget_hint.setText(
+            f'长验证窗通过后最多额外等待 {extra:g} 秒；每点最多 {base+extra:g} 秒。仍不合格则保留缺测，整场无总时限。'
+            if extra else f'弱点额外等待已关闭；每点最多 {base:g} 秒，整场无总时限。')
 
     def _combo(self, key, items):
         combo = QtWidgets.QComboBox()
@@ -794,6 +811,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if continuous:
                 self.sweep_completion_hint.setText("持续循环扫频，点击“停止并保存”结束。")
             self.sweep_group.setTitle("SSPP 温度影响 · 扫频计划")
+        self._update_weak_budget_hint()
         if hasattr(self, "tabs") and hasattr(self, "finger_tab"):
             self.tabs.setTabEnabled(self.finger_tab, phase and not liquid and not liquid_page)
         if hasattr(self, "live_plots"):
@@ -1766,9 +1784,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self._set_active(False)
         self._message("正在后台读取所选记录并分析参数与结果…" if len(keys) == 1 else
                       "正在后台读取所选记录并组合分析参数与结果…")
+
+        def discard_unusable(target):
+            # A partially rendered report must never remain exportable. A
+            # constructor can fail after creating its parent-owned QDialog.
+            if self.comparison_dialog is target:
+                self.comparison_dialog = None
+            target.report = None
+            try:
+                target.hide()
+                target.close()
+            finally:
+                target.deleteLater()
+
         def completed(report):
-            self._comparison_busy = False
             if generation != self._comparison_generation or self._close_requested or (dialog is not None and dialog.is_closed):
+                self._comparison_busy = False
                 if dialog is not None and not dialog.is_closed and dialog.report:
                     dialog.reference.blockSignals(True)
                     dialog.reference.setCurrentIndex(dialog.reference.findData(dialog.report.get("reference_key")))
@@ -1777,26 +1808,70 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._apply_status(self.snapshot)
                 return
             target = dialog
-            if target is None:
-                if self.comparison_dialog is not None and not self.comparison_dialog.is_closed:
-                    self.comparison_dialog.close()
-                target = ComparisonDialog(self)
-                self.comparison_dialog = target
-                target.reference_requested.connect(lambda key: self._request_comparison(list(target.report["keys"]), key, target))
-                target.export_requested.connect(lambda: self._export_comparison(target))
-                target.figure_export_requested.connect(lambda chart_id: self._export_publication_figure(target, chart_id))
-                target.figure_save_as_requested.connect(lambda chart_id: self._export_analysis_figure(target, chart_id))
-                target.open_figure_directory_requested.connect(lambda: self._open_publication_directory(target))
-                target.closed.connect(lambda: self._comparison_closed(target))
-            target.apply_report(report)
-            target.show()
-            target.raise_()
+            previous_dialog = self.comparison_dialog
+            previous_report = dialog.report if dialog is not None else None
+            previous_directory = dialog.publication_directory if dialog is not None else None
+            previous_chart = (dialog.chart_choice.currentData() or {}).get("id") if dialog is not None else None
+            previous_tab = dialog.tabs.currentIndex() if dialog is not None else 0
+            previous_data_tab = dialog.data_tabs.currentIndex() if dialog is not None else 0
+            existing_children = set(self.findChildren(QtWidgets.QDialog, options=QtCore.Qt.FindChildOption.FindDirectChildrenOnly))
+            try:
+                if target is None:
+                    target = ComparisonDialog(self)
+                    target.reference_requested.connect(lambda key: self._request_comparison(list(target.report["keys"]), key, target))
+                    target.export_requested.connect(lambda: self._export_comparison(target))
+                    target.figure_export_requested.connect(lambda chart_id: self._export_publication_figure(target, chart_id))
+                    target.figure_save_as_requested.connect(lambda chart_id: self._export_analysis_figure(target, chart_id))
+                    target.open_figure_directory_requested.connect(lambda: self._open_publication_directory(target))
+                target.apply_report(report)
+                target.show()
+                target.raise_()
+                if dialog is None:
+                    self.comparison_dialog = target
+                    target.closed.connect(lambda: self._comparison_closed(target))
+                    if previous_dialog is not None and not previous_dialog.is_closed:
+                        previous_dialog.close()
+            except Exception as error:
+                recovery = ""
+                if dialog is not None:
+                    try:
+                        if dialog.is_closed or previous_report is None:
+                            raise RuntimeError("旧结果窗口不可恢复")
+                        dialog.apply_report(previous_report)
+                        dialog.set_publication_directory(previous_directory)
+                        for index in range(dialog.chart_choice.count()):
+                            if (dialog.chart_choice.itemData(index) or {}).get("id") == previous_chart:
+                                dialog.chart_choice.setCurrentIndex(index)
+                                break
+                        dialog.tabs.setCurrentIndex(previous_tab)
+                        dialog.data_tabs.setCurrentIndex(previous_data_tab)
+                        recovery = "；已恢复上一次完整结果"
+                    except Exception:
+                        try:
+                            discard_unusable(dialog)
+                        except Exception:
+                            # Cleanup must not hide the original display error;
+                            # the report is detached and deleteLater was requested.
+                            pass
+                        recovery = "；旧结果无法恢复，已关闭结果窗口，可重新分析"
+                else:
+                    candidates = set(self.findChildren(QtWidgets.QDialog, options=QtCore.Qt.FindChildOption.FindDirectChildrenOnly)) - existing_children
+                    if target is not None:
+                        candidates.add(target)
+                    for candidate in candidates:
+                        try:
+                            discard_unusable(candidate)
+                        except Exception:
+                            pass
+                failed(RuntimeError(f"分析结果显示失败：{error}{recovery}"))
+                return
+            self._comparison_busy = False
             self._message("分析已完成；原始实验记录未修改。" if len(keys) == 1 else
                           "组合分析已完成；原始实验记录未修改。")
             self._apply_status(self.snapshot)
         def failed(error):
             self._comparison_busy = False
-            if dialog is not None and not dialog.is_closed:
+            if dialog is not None and not dialog.is_closed and dialog.report:
                 # Even an obsolete failed request must not leave its uncomputed
                 # reference selected above a previous report.
                 dialog.reference.blockSignals(True)
@@ -1814,7 +1889,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _comparison_closed(self, dialog):
         if self.comparison_dialog is dialog:
             self.comparison_dialog = None
-        self._comparison_generation += 1
+            self._comparison_generation += 1
 
     def _export_comparison(self, dialog):
         if self._comparison_blocked() or self._comparison_busy or dialog.is_closed or not dialog.report:
