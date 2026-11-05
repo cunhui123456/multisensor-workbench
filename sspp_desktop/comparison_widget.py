@@ -10,6 +10,11 @@ from .plots import DiagnosticPlot
 from .qt_cleanup import close_plot_widgets
 
 HEADERS = {
+    "reference_mean_n": "参考力 (N)", "reference_mean_kpa": "平均压力 (kPa)",
+    "direction": "加卸载方向", "cycle": "循环", "contact_area_mm2": "接触面积 (mm²)",
+    "pressure_channel": "力敏通道", "slope_n_per_v": "候选斜率 (N/V)", "intercept_n": "截距 (N)",
+    "rmse_n": "样本内 RMSE (N)", "r_squared": "样本内 R²", "status": "状态",
+    "reference_source": "参考仪器", "voltage_min_v": "最低标定电压 (V)", "voltage_max_v": "最高标定电压 (V)",
     "key": "实验 key", "label": "实验名称", "reference_key": "参考实验 key", "frequency_points": "频点数",
     "repeat_count": "重复次数", "repeat_count_min": "最少重复次数", "repeat_count_max": "最多重复次数",
     "max_repeat_sd_dB": "最大重复标准差 (dB)", "common_points_vs_reference": "共同频点数",
@@ -51,7 +56,7 @@ HEADERS = {
     "correction_sha256": "更正账本 SHA-256", "excluded_calibration_points": "已删除错误区间数",
     "condition_label": "温度条件", "calibration": "标定信息",
 }
-TABLE_NAMES = {"sweep_summary": "扫频均值与波动", "sweep_measurements": "逐点测量", "sweep_difference": "相对参考差值",
+TABLE_NAMES = {"pressure_calibration_points": "压力标定区间与来源", "pressure_candidate_fits": "候选拟合与样本内残差", "sweep_summary": "扫频均值与波动", "sweep_measurements": "逐点测量", "sweep_difference": "相对参考差值",
                "phase_samples": "幅相样点", "phase_summary": "幅相摘要", "phase_stages": "阶段摘要",
                "phase_aligned": "对齐幅相样点", "phase_curves": "参考后幅相窗口", "finger_validation": "手指验证摘要",
                "calibration_points": "温标区间与来源", "serial_samples": "原始串口样本",
@@ -87,7 +92,7 @@ def _text(value):
         return f"{value:.6g}"
     if isinstance(value, (dict, list)):
         return json.dumps(value, ensure_ascii=False)
-    return {"unknown": "未知", "same": "一致", "different": "不同", "reference": "参考"}.get(str(value), str(value))
+    return {"loading": "加载", "unloading": "卸载", "hold": "保持", "candidate": "候选，未启用", "unknown": "未知", "same": "一致", "different": "不同", "reference": "参考"}.get(str(value), str(value))
 
 
 class ComparisonDialog(QtWidgets.QDialog):
@@ -218,7 +223,7 @@ class ComparisonDialog(QtWidgets.QDialog):
         self.reference.blockSignals(False)
         allowed = report.get("quantitative_difference_allowed", False)
         kind = report.get("kind")
-        serial = kind in ("temperature_calibration", "temperature_pressure")
+        serial = kind in ("temperature_calibration", "temperature_pressure", "pressure_calibration")
         calibration = kind == "temperature_calibration"
         self.setWindowTitle(("温标记录分析 · 只读" if calibration else "实验记录分析 · 只读") if single else
                             ("实验档案组合分析 · 只读" if serial else "实验结果比较 · 只读分析"))
@@ -241,6 +246,9 @@ class ComparisonDialog(QtWidgets.QDialog):
                                   "按本记录的人工参考温度绘制曲线，保留全部区间均值与样本 SD；未自动启用标定。") if single else
                                  (f"共 {len(sources)} 条温标记录 · 组合分析{correction}\n"
                                   "按参考温度汇总为统一曲线，保留全部测量点与样本 SD；来源映射见数据表，多记录汇总不代表单次采集。"))
+        elif kind == "pressure_calibration":
+            self.setWindowTitle("压力传感器标定分析 · 只读")
+            self.summary.setText(f"{len(sources)} 条压力标定记录 · 按来源分别分析\n参考力以 N 记录；已知面积时显示平均压力 kPa。拟合残差不等于独立精度，候选模型未自动启用。")
         elif serial:
             self.summary.setText("1 条已保存串口记录 · 实验记录分析\n展示本记录各通道的实收电压与时间。" if single else
                                  (f"共 {len(sources)} 条串口记录 · 组合分析\n"

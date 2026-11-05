@@ -1,0 +1,154 @@
+{
+  "created_utc": "2026-11-05T07:29:00.694027+00:00",
+  "scope": [
+    "desktop SSPP defaults",
+    "recoverable whole-record archive deletion"
+  ],
+  "desktop_sspp_defaults": {
+    "points": 30,
+    "rx_gain_db": 45,
+    "tone_start_hz": 20000,
+    "tone_step_hz": 1000,
+    "highest_tone_hz": 49000,
+    "frequency_ghz": [
+      5.0,
+      5.3
+    ],
+    "repeat": 3
+  },
+  "default_entry_points": [
+    "startup",
+    "first SSPP draft",
+    "current SSPP parameter reset"
+  ],
+  "archive_behavior": [
+    "confirmation with count, names, conditions and record keys",
+    "batch deletion including failed records",
+    "same-volume no-replace move into Data/.archive_trash",
+    "restore without overwriting existing paths",
+    "activity locks and stale callback invalidation",
+    "external figures/reports/corrections retained"
+  ],
+  "validation": {
+    "targeted_final": {
+      "tests_passed": 109,
+      "subtests_passed": 101,
+      "errors": 0,
+      "failures": 0
+    },
+    "ui_previews": [
+      "archive at 1080x740",
+      "delete confirmation",
+      "restore window with localized type and time"
+    ],
+    "complete_single_process_suite": "NOT PASSED: terminated by native Qt timer/event-loop crashes; original unmodified baseline independently reproduces exit 139 with no prior assertion failure.",
+    "independent_legacy_test": "test_run_local.py::RunnerTests::test_gap_and_point_timeout_abort also fails in unmodified baseline when run independently: fixture leaves point_started_monotonic_s=None. Acquisition implementation was not changed.",
+    "baseline_audit": "/private/tmp/workbench_defaults_20261105/baseline_audit.json",
+    "desktop_final": {
+      "tests_passed": 10,
+      "subtests_passed": 7,
+      "errors": 0,
+      "failures": 0
+    },
+    "related_total": {
+      "tests_passed": 119,
+      "subtests_passed": 108
+    }
+  },
+  "hardware_opened": false,
+  "records_deleted_from_real_data": 0,
+  "existing_app_restarted": false,
+  "source_files": [
+    {
+      "path": "CONTEXT_RULES.md",
+      "before_sha256": "04f6c6676a293d111e9ade680cbee1b9a7746fdd523e567cfcb1dc6d100bd882",
+      "after_sha256": "d80562386b90596c32576441aa8d542bfb0f8dc6683a33a50d7004407da05791"
+    },
+    {
+      "path": "sspp_desktop/archive_trash.py",
+      "before_sha256": null,
+      "after_sha256": "49fa937368c932ca9b0ae354645e92e34c7c40dc2a3d5c03e8f01bd752ae0b03"
+    },
+    {
+      "path": "sspp_desktop/services.py",
+      "before_sha256": "04259675ad92e6505495473c9628a242ab018e57e00b015e1f79b7da9b5f28ec",
+      "after_sha256": "8967837fc245068584577c478fd9b8aaf5164ff87a7c5363947d337bc4950498"
+    },
+    {
+      "path": "sspp_desktop/window.py",
+      "before_sha256": "62bef03e1d42a042333fa03443661382b4fd86f97bdacc78f2afdb9ef3eee940",
+      "after_sha256": "645d92c98430014c92865c5020323a7eab61254ec30bcd491d61b9ee17fcbae7"
+    },
+    {
+      "path": "sspp_desktop/temperature_sweep_widget.py",
+      "before_sha256": "0e4d528649fa47a88b20f70708ae7b8e416a91cab5b45f4cdec66b57b6b67504",
+      "after_sha256": "a6ab88a7822ad485fc8b1661a28b2261561c7f9b25312d025c07e10f03a3eaab"
+    },
+    {
+      "path": "sspp_desktop/archive_trash_dialog.py",
+      "before_sha256": null,
+      "after_sha256": "0f4c48babf3e57f45bbd97a5e400a036314fd22e2e97a21e9f529471e1e84cef"
+    },
+    {
+      "path": "tests/test_comparison_ui.py",
+      "before_sha256": "8707afcdcad45442ddc252623625a29d052acffa55d4b46972f0790fc8f91e1a",
+      "after_sha256": "7b08ea34d8207c89576613ef7318878d48cd07cd15f4dd69baeb0bf3bd6b4676"
+    },
+    {
+      "path": "tests/test_sweep_budget.py",
+      "before_sha256": "62ee43ed4c0b32c7fa431bef352210562c751f20b271b1854f1f65b493f25dde",
+      "after_sha256": "c40d1bcdc53b8d511713d54973768c250dd5dd13e8578d530efd98e735004bde"
+    },
+    {
+      "path": "tests/test_unified_sweep_interactions.py",
+      "before_sha256": "10f06bc538f85100f2c9ff2c4e866725a9e0c40f5af921aef3311988072f09d0",
+      "after_sha256": "30add1f4f53c8aa93d3f80662ca39df0188e4d0ef9ac1a9c57ec0f997c03a126"
+    },
+    {
+      "path": "tests/test_archive_trash.py",
+      "before_sha256": null,
+      "after_sha256": "fba8cf0e139fc1481a4081dcd5818ec7702a4bb822a7d5ac4def64b380f69b81"
+    },
+    {
+      "path": "tests/test_experiment_navigation.py",
+      "before_sha256": "6cdb382618c0183d1dcadafce45a9e614366da3475b8382e6bf04a1d08e303ae",
+      "after_sha256": "1fd995685894371bc2d83e55ff99d1604e711e84982d1e4a9fc76d18e6229d3e"
+    },
+    {
+      "path": "tests/test_temperature_sweep_mainwindow.py",
+      "before_sha256": "b99ef35a5349df4865a00b2ad49ba1cc88c79485ed57691736ccd16318ee7faf",
+      "after_sha256": "0173074409efd287c7fb296c90b741d89b3b1e4f7b7176b5ff94ea3ed0588e53"
+    },
+    {
+      "path": "tests/test_liquid_temperature_mainwindow.py",
+      "before_sha256": "dad8691b118aa80310dfb2bfe84141eec4e8f25c4079c9afc911ff2935285610",
+      "after_sha256": "75b527c42d7a89fc46a1d603e974c5ef2581bd182b5ba13509af4effdd894a9c"
+    },
+    {
+      "path": "tests/test_archive_trash_ui.py",
+      "before_sha256": null,
+      "after_sha256": "2a485d3bd80386740ade8fc27964145d263237200cb179df7f16d18b08ec54c2"
+    },
+    {
+      "path": "docs/temperature_sweep.md",
+      "before_sha256": "f3442a526b1e3208049f58b88ca96e0a8773fa1ce7886fe8e1c983b261c8b610",
+      "after_sha256": "71287322951fb9014312453262dc5c6162046a553c1b4c0c60a1a549a45601d9"
+    },
+    {
+      "path": "docs/unified_sweep.md",
+      "before_sha256": "271f0bff3f49031bf0cda5f30982788ceeabfdbe3fcd3e86dbdfea5edf45e687",
+      "after_sha256": "0ce73f0ee38e90afbcfb98352b081ead857a0a557c3718fdeffb625db0d6a602"
+    },
+    {
+      "path": "docs/experiment_workflows.md",
+      "before_sha256": "78375229693f42f0322cf97232ff952d12c20895465f22c92537a43d356a84b8",
+      "after_sha256": "92d396d15caa82fa501c69a056710fece7c5b559a2da6cdc4941661864ff03da"
+    },
+    {
+      "path": "docs/results_comparison.md",
+      "before_sha256": "81d8ac9b92fd4c54878142ac99ace988b2ff4d80998cea009faf26f2abf1826f",
+      "after_sha256": "b22980f9018f32bb52c5fde5cbc5191714f6ac742666e7fcdbe757fb3305a484"
+    }
+  ],
+  "shared_backend_and_cli_defaults_unchanged": true
+}

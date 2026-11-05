@@ -1,5 +1,6 @@
 """实验服务与真实采集子进程之间的边界；本模块不初始化 UHD。"""
-from collections import deque
+from collections import deque, OrderedDict
+from copy import deepcopy
 from datetime import datetime, timezone
 import csv
 import hashlib
@@ -24,7 +25,8 @@ DEFAULTS={'mode':'sweep','condition':'empty','label':'empty_baseline','sensor':'
           'carrier_ghz':2.4,'rate':250000,'tone':10000,'tone_start':2000,'tone_step':1000,
           'amplitude':.3,'tx_gain':20,'rx_gain':30,'duration':120,'max_seconds':None,
           'point_timeout':8,'weak_point_extra_seconds':8,
-          'setup_confirmed':False,'liquid_temperature':None,'temperature_sweep':None}
+          'setup_confirmed':False,'setup_confirmation_source':'manual',
+          'liquid_temperature':None,'temperature_sweep':None}
 
 class LabError(Exception):
     def __init__(self,message,status=400):
@@ -52,8 +54,8 @@ def validate_request(value,require_setup=True):
         except ValueError as exc: raise LabError(str(exc)) from exc
     if cfg['temperature_sweep'] is not None:
         from sspp_experiments.temperature_sweep.metadata import validate_config
-        if cfg['mode'] != 'sweep' or cfg['liquid_temperature'] is not None:
-            raise LabError('SSPP 温度联测必须使用独立扫频实验')
+        if cfg['mode'] != 'sweep':
+            raise LabError('SSPP 温度联测必须使用独立扫频模式，不能用于固定频率采集')
         try: cfg['temperature_sweep']=validate_config(cfg['temperature_sweep'])
         except (TypeError, ValueError) as exc: raise LabError(str(exc)) from exc
     if cfg['mode'] not in ('sweep','phase'): raise LabError('请选择扫频或连续幅相')
@@ -80,6 +82,8 @@ def validate_request(value,require_setup=True):
     highest=cfg['tone_start']+(cfg['points']-1)*cfg['tone_step']
     if cfg['tone']>=cfg['rate']/2 or (cfg['mode']=='sweep' and highest>=cfg['rate']/2):
         raise LabError('基带单音超出采样率允许范围')
+    if cfg['setup_confirmation_source'] not in ('manual', 'global_initialization'):
+        raise LabError('设备准备依据无效')
     if require_setup and cfg['setup_confirmed'] is not True:
         raise LabError('请先确认设备接线、线缆固定及初始状态')
     return cfg
@@ -98,6 +102,8 @@ class LabController:
         self.redactions=[]
         self.diagnostic_cache={}
         self.diagnostic_lock=threading.Lock()
+        self._archive_rows=OrderedDict()
+        self._archive_lock=threading.Lock()
         self.exporting=False
         self.preparing=False
         self.prepare_cancelled=False
@@ -111,6 +117,20 @@ class LabController:
 
     def _handle_event(self,event,job):
         pass
+
+    @staticmethod
+    def _record_failure_diagnosis(job, evidence):
+        # Only expose a specific cause when the acquisition process recorded it.
+        # A transport diagnosis does not establish which cable, hub or supply failed.
+        diagnosis = evidence.get('failure_diagnosis')
+        if diagnosis != 'usrp_transport_control_unresponsive':
+            return
+        stopped = (evidence.get('tx_end_of_burst_sent') is True
+                   and (evidence.get('rx_stop_sent') is True or evidence.get('rx_stop_command_sent') is True)
+                   and evidence.get('workers_stopped') is True)
+        job['failure_diagnosis'] = diagnosis
+        job['failure_summary'] = ('B210 通信无响应；' + ('收发停止已确认。' if stopped else '停止状态未确认。')
+                                  + '请检查连接并重新连接 B210，再初始化。')
 
     def _write_control(self,proc,message):
         """小于 PIPE_BUF 的控制消息非阻塞写入，不能占住停止/快照锁。"""
@@ -253,9 +273,11 @@ class LabController:
         if not output.is_dir(): return
         write_json(output/'web_context.json',{'schema_version':1,'source':'local_browser_manual_experiment',
                    'job_id':job['id'],'condition':job['config']['condition'],'sensor':job['config']['sensor'],
-                   'initial_setup_user_confirmed':job['config']['setup_confirmed'],'parameters':job['config'],
+                   'initial_setup_user_confirmed':job['config']['setup_confirmed'] and job['config'].get('setup_confirmation_source','manual')=='manual',
+                   'setup_confirmation_source':job['config'].get('setup_confirmation_source','manual'),'parameters':job['config'],
                    'manual_events':self.events,'stage_timestamps_are_not_measured_motion':True,
                    'web_status':job['status'],'rf_stopped_confirmed':job.get('rf_stopped',False),
+                   'failure_diagnosis':job.get('failure_diagnosis'),'failure_summary':job.get('failure_summary'),
                    'source_hashes':{n:hashlib.sha256((ROOT/n).read_bytes()).hexdigest() for n in
                                    ['sspp_lab/controller.py','sspp_lab/diagnostics.py']}})
 
@@ -300,7 +322,9 @@ class LabController:
                             if kind=='MEASUREMENT': self.points.append(event);job['status']='running'
                             if kind in ('MARK_ACCEPTED','CONDITION_READY'): self.events.append(event);self._save_context(job)
                             if kind in ('RF_STOPPED','STOP_STATUS'): job['status']='saving'
-                            if kind=='STOP_STATUS': job['stop_status']=event
+                            if kind=='STOP_STATUS':
+                                job['stop_status']=event
+                                self._record_failure_diagnosis(job,event)
                             self._handle_event(event,job)
                     if 'RX/TX stopped; saving results.' in line: job['status']='saving'
             code=proc.wait()
@@ -311,6 +335,7 @@ class LabController:
                     t=manifest.get('telemetry',{})
                     job['rf_stopped']=bool(t.get('tx_end_of_burst_sent') and
                                           (t.get('rx_stop_sent') or t.get('rx_stop_command_sent')) and t.get('workers_stopped'))
+                    self._record_failure_diagnosis(job,t)
                     job['result_status']=manifest.get('status')
                     job['quality']=manifest.get('quality',{})
                     for error in manifest.get('errors',[]):
@@ -407,6 +432,41 @@ class LabController:
         if not target.is_dir(): raise LabError('实验不存在',404)
         return target
 
+    @staticmethod
+    def _archive_signature(paths):
+        result=[]
+        for path in paths:
+            try:
+                stat=path.stat()
+                result.append((stat.st_dev,stat.st_ino,stat.st_size,stat.st_mtime_ns,stat.st_ctime_ns))
+            except OSError:
+                result.append(None)
+        return tuple(result)
+
+    def _cached_archive_row(self,key,paths,build):
+        """Cache display summaries only; analysis/export always read their sources."""
+        signature=self._archive_signature(paths)
+        with self._archive_lock:
+            cached=self._archive_rows.get(key)
+            if cached and cached[0]==signature:
+                self._archive_rows.move_to_end(key)
+                return deepcopy(cached[1])
+        row=build()
+        # Do not retain a snapshot if acquisition changed metadata while reading.
+        if row is not None and self._archive_signature(paths)==signature:
+            with self._archive_lock:
+                self._archive_rows[key]=(signature,deepcopy(row))
+                self._archive_rows.move_to_end(key)
+                while len(self._archive_rows)>2048:self._archive_rows.popitem(last=False)
+        return row
+
+    def _history_row(self,key,kind,manifest,context):
+        context_status=context.get('desktop_status',context.get('web_status'))
+        return {'key':key,'mode':{'runs':'sweep','phase_runs':'phase','teacher_runs':'teacher'}[kind],
+                'started_utc':manifest.get('started_utc',''),'status':context_status if context_status in ('complete','complete_with_gaps','stopped','failed','stop_unconfirmed','initialization_failed') else manifest.get('status','unknown'),
+                'label':manifest.get('label') or manifest.get('initial_label') or manifest.get('material_input') or key.split('/')[-1],
+                'sensor':context.get('sensor',''),'source':'desktop' if context.get('source')=='local_desktop_manual_experiment' else ('web' if context else 'legacy')}
+
     def history(self):
         out=[]
         for kind in ('runs','phase_runs','teacher_runs'):
@@ -414,16 +474,20 @@ class LabController:
             if not base.exists(): continue
             for folder in base.iterdir():
                 if not folder.is_dir() or folder.is_symlink(): continue
-                m=read_json(folder/('feature_report.json' if kind=='teacher_runs' else 'manifest.json'),{})
-                context=read_json(folder/'desktop_context.json',{}) or read_json(folder/'web_context.json',{})
-                context_status=context.get('desktop_status',context.get('web_status'))
-                out.append({'key':kind+'/'+folder.name,'mode':{'runs':'sweep','phase_runs':'phase','teacher_runs':'teacher'}[kind],
-                            'started_utc':m.get('started_utc',''),'status':context_status if context_status in ('complete','complete_with_gaps','stopped','failed','stop_unconfirmed','initialization_failed') else m.get('status','unknown'),
-                            'label':m.get('label') or m.get('initial_label') or m.get('material_input') or folder.name,
-                            'sensor':context.get('sensor',''),'source':'desktop' if context.get('source')=='local_desktop_manual_experiment' else ('web' if context else 'legacy')})
+                key=kind+'/'+folder.name
+                paths=[folder/('feature_report.json' if kind=='teacher_runs' else 'manifest.json'),
+                       folder/'desktop_context.json',folder/'web_context.json']
+                def build():
+                    manifest=read_json(paths[0],{})
+                    context=read_json(paths[1],{}) or read_json(paths[2],{})
+                    return self._history_row(key,kind,manifest,context)
+                out.append(self._cached_archive_row(key,paths,build))
         return sorted(out,key=lambda x:x['started_utc'],reverse=True)
 
-    def details(self,key):
+    def _archive_details(self,details,manifest):
+        return details
+
+    def details(self,key,*,include_curve=True):
         path=self.run_path(key)
         m=read_json(path/('feature_report.json' if key.startswith('teacher_runs/') else 'manifest.json'),{})
         # 只展示实验元数据；设备身份不进入界面，错误文字单独脱敏。
@@ -431,16 +495,23 @@ class LabController:
                  'telemetry','quality','warnings','baseline','events','condition_summary','processed_windows','processed_samples',
                  'raw_bytes','method','measurement','limitations','experiment_scope',
                  'timestamp_continuity','timestamp_failure_file','temperature_sweep'}
-        exports=[p.name for p in path.iterdir() if p.is_file() and not p.is_symlink() and
-                 (p.suffix in ('.png','.pdf','.csv','.xlsx','.npz','.cf32') or p.name in ('events.json','condition_summary.json','web_context.json','desktop_context.json','amplitude_phase.jsonl','rx_frames.jsonl','baseline.json','diagnostic_figures.json','rx_timestamp_failure.json','sweep_quality.jsonl','sweep_invalid_points.jsonl'))]
+        exports=[]
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if (Path(entry.name).suffix in ('.png','.pdf','.csv','.xlsx','.npz','.cf32')
+                        or entry.name in ('events.json','condition_summary.json','web_context.json','desktop_context.json','amplitude_phase.jsonl','rx_frames.jsonl','baseline.json','diagnostic_figures.json','rx_timestamp_failure.json','sweep_quality.jsonl','sweep_invalid_points.jsonl')):
+                    if entry.is_file(follow_symlinks=False):exports.append(entry.name)
         figure_index=read_json(path/'diagnostic_figures.json',{}) or {}
         figures=[{k:v for k,v in item.items() if k in ('file','title','group')} for item in figure_index.get('plots',[]) if isinstance(item,dict)]
         metadata={k:v for k,v in m.items() if k in allowed}
         serial=str((m.get('device_profile') or {}).get('serial') or '')
         metadata['errors']=[self.public_log(str(error)).replace(serial,'[设备标识]') if serial else self.public_log(str(error))
                             for error in m.get('errors',[])]
-        return {'key':key,'metadata':metadata,'files':sorted(exports),'figures':figures,
-                'context':read_json(path/'desktop_context.json',{}) or read_json(path/'web_context.json',{}),'curve':self.curve(key)}
+        details={'key':key,'metadata':metadata,'files':sorted(exports),'figures':figures,
+                 'context':read_json(path/'desktop_context.json',{}) or read_json(path/'web_context.json',{}),
+                 'curve_loaded':include_curve,
+                 'curve':self.curve(key) if include_curve else {'mode':'phase' if key.startswith('phase_runs/') else 'sweep','points':[],'loaded':False}}
+        return self._archive_details(details,m)
 
     def curve(self,key=None):
         if key is None:

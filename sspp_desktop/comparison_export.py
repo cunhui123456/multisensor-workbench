@@ -33,13 +33,15 @@ def export_figures(report, directory):
             ax = fig.axes[0]
             ax.set_title(chart["title"], fontproperties=font_properties, loc="left")
             source = next((s for s in report.get("sources", []) if s["key"] == report.get("reference_key")), {})
-            if single and report.get("kind") == "temperature_calibration":
+            if report.get("kind") == "pressure_calibration":
+                heading = "压力标定观测分析 · 参考力与明确接触面积分开保存 · 候选拟合未激活"
+            elif single and report.get("kind") == "temperature_calibration":
                 heading = "温标记录分析 · 一条已保存记录的区间均值与样本 SD · 无自动标定"
             elif single and report.get("kind") == "temperature_pressure":
                 heading = "串口记录分析 · 时间为本记录采集起点后的实收时间"
             elif single:
                 heading = "实验记录分析 · 仅展示本条记录的测量结果"
-            elif report.get("kind") in ("material_sweep", "liquid_temperature_sweep"):
+            elif report.get("kind") in ("material_sweep", "liquid_temperature_sweep", "temperature_sweep"):
                 heading = f"参考：{source.get('label', '')} · {report.get('reference_key', '')}  |  差值 = 目标 − 参考"
             elif report.get("kind") == "liquid_temperature_phase":
                 heading = "各温度平台使用各自run内的参考位置；只比较相对响应，远离为正"

@@ -77,84 +77,67 @@ class ExperimentNavigationTests(unittest.TestCase):
         self.pump(lambda: not self.window.liquid_workspace.is_busy and not self.window.runner.pending)
         self.app.processEvents()
 
-    def test_four_top_navigation_items_and_extracted_settings_belong_to_sidebar(self):
+    def test_five_navigation_items_and_unified_settings_belong_to_sidebar(self):
         window = self.window
         self.assertEqual(window.experiment_id, "material")
         self.assertEqual(window.experiment_nav.currentIndex(), 0)
         self.assertEqual(window.config()["mode"], "sweep")
         self.assertEqual([window.experiment_nav.tabData(i) for i in range(window.experiment_nav.count())],
-                         ["material", "finger", "liquid", "temperature", "temperature_calibration", "temperature_sweep"])
-        self.assertEqual([window.experiment_nav.tabText(i) for i in range(window.experiment_nav.count())],
-                         ["材料扫频", "手指位移", "液体温度影响", "温压采集", "温度标定", "SSPP 温度扫频"])
-        self.assertLess(window.experiment_nav.mapTo(window, QtCore.QPoint()).y(),
-                        window.sidebar.mapTo(window, QtCore.QPoint()).y())
-        self.assertGreater(window.experiment_nav.width(), window.sidebar.width())
-        for widget in (window.finger_settings, window.liquid_settings, window.temperature_settings):
+                         ["material", "finger", "temperature", "temperature_calibration", "pressure_calibration"])
+        self.assertEqual(window.experiment_nav.tabText(0), "SSPP 扫频")
+        self.assertLess(window.experiment_nav.mapTo(window, QtCore.QPoint()).y(), window.sidebar.mapTo(window, QtCore.QPoint()).y())
+        for widget in (window.finger_settings, window.sweep_options, window.temperature_settings):
             self.assertTrue(window.sidebar.isAncestorOf(widget))
-        for key, visible in (("material", None), ("finger", window.finger_settings),
-                             ("liquid", window.liquid_settings), ("temperature", window.temperature_settings)):
-            with self.subTest(experiment=key):
-                self.select(key)
-                self.assertTrue(window.sidebar.isVisible())
-                for widget in (window.finger_settings, window.liquid_settings, window.temperature_settings):
-                    self.assertEqual(not widget.isHidden(), widget is visible)
-                self.assertEqual(not window.rf_actions.isHidden(), key != "temperature")
+        for key in ('material','finger','temperature'):
+            self.select(key)
+            self.assertTrue(window.sidebar.isVisible())
+            self.assertEqual(not window.rf_actions.isHidden(), key != 'temperature')
+        self.assertFalse(hasattr(window, 'confirm'))
         self.assertIsNone(self.service.started)
 
-    def test_rf_drafts_and_liquid_metadata_are_isolated_and_confirmations_reset(self):
-        self.select("finger")
+    def test_rf_drafts_and_optional_conditions_are_isolated_without_confirmation(self):
         window = self.window
-        window.fields["label"].setText("finger_draft")
-        window.fields["rx_gain"].setValue(33.)
-        window.fields["carrier_ghz"].setValue(2.7)
-        window.confirm.setChecked(True)
-        self.select("material")
-        self.assertFalse(window.confirm.isChecked())
-        self.assertEqual(window.config()["mode"], "sweep")
-        window.material_workspace.material_name.setText("empty_glass")
-        window.fields["rx_gain"].setValue(41.)
-        window.fields["freq_start_ghz"].setValue(2.5)
-        window.confirm.setChecked(True)
-        self.select("liquid")
-        self.assertFalse(window.confirm.isChecked())
-        window._prepare_liquid(liquid_request("phase"))
-        window.fields["rx_gain"].setValue(52.)
-        window.fields["carrier_ghz"].setValue(2.8)
-        liquid_name = window.config()["label"]
-        window.confirm.setChecked(True)
-        self.select("finger")
-        self.assertEqual(window.config()["label"], "finger_draft")
-        self.assertEqual(window.config()["rx_gain"], 33.)
-        self.assertEqual(window.config()["carrier_ghz"], 2.7)
-        self.assertIsNone(window.config()["liquid_temperature"])
-        self.assertFalse(window.confirm.isChecked())
-        self.select("material")
-        self.assertEqual(window.config()["label"], "empty_glass")
-        self.assertEqual(window.config()["rx_gain"], 41.)
-        self.assertEqual(window.config()["freq_start_ghz"], 2.5)
-        self.assertIsNone(window.config()["liquid_temperature"])
-        self.select("liquid")
-        self.assertEqual(window.config()["label"], liquid_name)
-        self.assertEqual(window.config()["rx_gain"], 52.)
-        self.assertEqual(window.config()["carrier_ghz"], 2.8)
-        self.assertEqual(window.config()["liquid_temperature"]["temperature_c"], 29.8)
-        self.assertFalse(window.confirm.isChecked())
+        self.assertEqual((window.config()['points'], window.config()['rx_gain'],
+                          window.config()['tone_start']), (30, 45., 20000.))
+        window.material_workspace.material_name.setText('sweep_sample')
+        window.fields['rx_gain'].setValue(41.)
+        window.fields['freq_start_ghz'].setValue(2.5)
+        window.sweep_options.temperature_mode.setCurrentIndex(1)
+        window.temperature_sweep_workspace.reference_temperature.setText('29.8')
+        self.select('finger')
+        self.assertEqual((window.config()['rx_gain'], window.config()['tone'],
+                          window.config()['carrier_ghz']), (30., 10000., 2.4))
+        self.assertIsNone(window.config()['temperature_sweep'])
+        window.fields['label'].setText('finger_draft')
+        window.fields['rx_gain'].setValue(33.)
+        window.fields['carrier_ghz'].setValue(2.7)
+        self.select('material')
+        self.assertEqual(window.config()['label'],'sweep_sample')
+        self.assertEqual(window.config()['rx_gain'],41.)
+        self.assertEqual(window.config()['freq_start_ghz'],2.5)
+        self.assertEqual(window.config()['temperature_sweep']['reference_temperature_c'],29.8)
+        self.select('finger')
+        self.assertEqual(window.config()['label'],'finger_draft')
+        self.assertEqual(window.config()['rx_gain'],33.)
+        self.assertEqual(window.config()['carrier_ghz'],2.7)
+        self.assertIsNone(window.config()['temperature_sweep'])
+        self.assertIsNone(window.config()['liquid_temperature'])
+        self.assertFalse(hasattr(window, 'confirm'))
 
     def test_serial_draft_preserved_but_confirmation_does_not_survive_navigation(self):
         self.select("temperature")
         widget = self.window.temperature_workspace
         widget.sample_name.setText("serial_sample")
-        widget.confirm.setChecked(True)
+
         self.select("material")
         self.select("temperature")
         self.assertEqual(widget.sample_name.text(), "serial_sample")
-        self.assertFalse(widget.confirm.isChecked())
+        self.assertFalse(hasattr(widget, "confirm"))
 
     def test_archive_always_scoped_to_current_experiment(self):
-        expected = {"material": {"material_sweep", "teacher_sweep"},
-                    "finger": {"finger_displacement", "phase_history"},
-                    "liquid": {"liquid_temperature_sweep", "liquid_temperature_phase"},
-                    "temperature": set(), "temperature_calibration": set(), "temperature_sweep": set()}
+        expected = {"material": {"material_sweep", "teacher_sweep", "liquid_temperature_sweep"},
+                    "finger": {"finger_displacement", "phase_history", "liquid_temperature_phase"},
+                    "temperature": set(), "temperature_calibration": set(), "pressure_calibration": set()}
         for key, categories in expected.items():
             with self.subTest(experiment=key):
                 self.select(key)
@@ -210,7 +193,7 @@ class ExperimentNavigationTests(unittest.TestCase):
             self.assertFalse(window.select_experiment("finger"))
             window.experiment_nav.setCurrentIndex(1)
             self.assertEqual(window.experiment_id, "temperature")
-            self.assertEqual(window.experiment_nav.currentIndex(), 3)
+            self.assertEqual(window.experiment_nav.currentIndex(), 2)
             self.assertTrue(window.stop_button.isEnabled())
             window.tabs.setCurrentIndex(window.analysis_tab)
             self.assertTrue(window.stop_button.isVisible())
@@ -235,15 +218,16 @@ class ExperimentNavigationTests(unittest.TestCase):
         window.stop_button.click()
         self.pump(lambda: self.service.stopped and "stop" not in window.runner.pending)
 
-    def test_liquid_without_applied_setup_cannot_start_even_if_confirmed(self):
-        self.select("liquid")
+    def test_invalid_optional_liquid_fields_block_start_without_any_apply_step(self):
         window = self.window
-        window.material_workspace.material_name.setText("must_not_bypass")
-        window.confirm.setChecked(True)
+        window.material_workspace.material_name.setText('sample')
+        window.sweep_options.liquid_enabled.setChecked(True)
+        self.service.initialize_environment(window._environment_target('usrp'))
+        window._set_active(False)
         window.start_experiment()
         self.assertIsNone(self.service.started)
-        self.assertIn("应用", window.notice.text())
         self.assertFalse(window._start_pending)
+        self.assertTrue(window.notice.text())
 
     def test_reset_affects_only_current_rf_experiment_draft(self):
         self.select("finger")
@@ -257,39 +241,30 @@ class ExperimentNavigationTests(unittest.TestCase):
         self.select("finger")
         window.reset_parameters()
         self.assertEqual(window.fields["carrier_ghz"].value(), 2.4)
+        self.assertEqual(window.fields["rx_gain"].value(), 30.)
         self.select("material")
         self.assertEqual(window.fields["rx_gain"].value(), 45.)
         self.assertEqual(window.fields["freq_start_ghz"].value(), 2.5)
         self.assertEqual(window.config()["label"], "sample")
 
-    def test_completed_liquid_poll_cannot_pollute_finger_state_or_plots(self):
-        self.select("finger")
+    def test_completed_liquid_phase_does_not_pollute_finger_research_state(self):
+        self.select('finger')
         window = self.window
-        liquid_key = "phase_runs/completed_liquid"
-        snapshot = {"job": {"status": "complete", "config": liquid_request("phase"),
-                            "output": "Data/" + liquid_key, "rf_stopped": True}, "logs": [], "events": []}
-        live = {"mode": "phase", "points": [{"x": 10., "phase": 99., "amplitude": 1.}],
-                "preview": None, "revision": 17}
-        research = {"run_key": liquid_key, "annotations": [], "pending": None}
-
-        def assert_finger_empty():
-            self.assertIsNone(window.finger_workspace.run_key)
-            self.assertIsNone(window.finger_workspace.source_key)
-            self.assertEqual(window.finger_workspace.records, [])
-            for curve in (window.finger_workspace.interval_line, window.live_plots.phase_line):
-                values = curve.yData
-                self.assertTrue(values is None or len(values) == 0)
-            self.assertEqual(window.status_label.text(), "待开始")
-
-        window._poll_done((snapshot, live, research))
-        assert_finger_empty()
-        self.select("liquid")
-        window._poll_done((snapshot, live, research))
-        self.assertEqual(list(window.live_plots.phase_line.yData), [99.])
+        liquid_key = 'phase_runs/completed_liquid'
+        snapshot = {'job': {'status':'complete','config':liquid_request('phase'),
+                           'output':'Data/'+liquid_key,'rf_stopped':True},'logs':[],'events':[]}
+        live={'mode':'phase','points':[{'x':10.,'phase':99.,'amplitude':1.}], 'preview':None,'revision':17}
+        research={'run_key':liquid_key,'annotations':[],'pending':None}
+        window._poll_done((snapshot,live,research))
         self.assertIsNone(window.finger_workspace.run_key)
-        self.select("finger")
-        window._poll_done((snapshot, live, research))
-        assert_finger_empty()
+        self.assertIsNone(window.finger_workspace.source_key)
+        self.assertEqual(window.finger_workspace.records,[])
+        values=window.finger_workspace.interval_line.yData
+        self.assertTrue(values is None or len(values)==0)
+        self.select('material')
+        window._poll_done((snapshot,live,research))
+        self.assertIsNone(window.finger_workspace.run_key)
+        self.assertEqual(window.status_label.text(),'待开始')
 
     def test_finger_sampling_controls_remain_available_while_rf_config_locked(self):
         self.select("finger")
@@ -314,21 +289,38 @@ class ExperimentNavigationTests(unittest.TestCase):
         widget.apply_snapshot({"run_key": "phase_runs/finger", "annotations": [], "pending": None})
         self.assertTrue(widget.method.isEnabled())
 
-    def test_editing_liquid_temperature_invalidates_applied_setup_and_confirmation(self):
-        self.select("liquid")
-        window = self.window
-        window._prepare_liquid(liquid_request())
-        self.assertIsNotNone(window._liquid_setup)
-        window.confirm.setChecked(True)
-        window.liquid_workspace.fields["temperature_c"].setText("30.1")
-        self.assertIsNone(window._liquid_setup)
-        self.assertIsNone(window.config()["liquid_temperature"])
-        self.assertFalse(window.confirm.isChecked())
-        self.assertEqual(window.experiment_id, "liquid")
-        window.confirm.setChecked(True)
-        window.start_experiment()
+    def test_liquid_edits_are_used_directly_and_do_not_reinitialize(self):
+        window=self.window
+        window.material_workspace.material_name.setText('sample')
+        for key,value in liquid_request()['liquid_temperature'].items():
+            if key in window.liquid_workspace.fields:
+                window.liquid_workspace.fields[key].setText(str(value))
+        window.sweep_options.liquid_enabled.setChecked(True)
+        self.assertEqual(window.config()['liquid_temperature']['temperature_c'],29.8)
+        window.liquid_workspace.fields['temperature_c'].setText('30.1')
+        self.assertEqual(window.config()['liquid_temperature']['temperature_c'],30.1)
+        self.assertEqual(window.experiment_id,'material')
         self.assertIsNone(self.service.started)
-        self.assertIn("应用", window.notice.text())
+        self.assertEqual(self.service.initialize_calls,[])
+
+    def test_pressure_calibration_navigation_is_serial_and_clears_confirmation(self):
+        self.select("pressure_calibration")
+        workspace = self.window.temperature_workspace
+        self.assertTrue(workspace.pressure_calibration_mode)
+        self.assertFalse(workspace.calibration_mode)
+        self.assertEqual(self.window._environment_target()["kind"], "serial")
+        self.assertFalse(self.window.rf_actions.isVisible())
+        self.assertEqual(self.window.tabs.currentIndex(), self.window.temperature_tab)
+
+        self.select("temperature_calibration")
+        self.assertFalse(workspace.pressure_calibration_mode)
+        self.assertTrue(workspace.calibration_mode)
+        self.assertFalse(hasattr(workspace, "confirm"))
+        self.select("pressure_calibration")
+        self.assertTrue(workspace.pressure_calibration_mode)
+        self.select("temperature")
+        self.assertFalse(workspace.pressure_calibration_mode)
+        self.assertTrue(workspace.protocol.isEnabled())
 
     def test_temperature_calibration_is_serial_only_and_reuses_verified_temperature_workflow(self):
         self.select("temperature_calibration")

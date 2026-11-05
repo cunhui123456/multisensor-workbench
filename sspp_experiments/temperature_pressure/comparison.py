@@ -8,7 +8,7 @@ import io
 import json
 import math
 import re
-from ..comparison import chart, read_json_source, read_source, table
+from ..comparison import COLORS, chart, read_json_source, read_source, table
 
 ARTIFACTS = ("samples.csv", "raw_serial.bin", "serial_events.jsonl", "voltage_response.csv",
              "calibration_points.json", "calibration_events.jsonl")
@@ -21,7 +21,8 @@ def prepare_serial_record(record):
                        ("serial_closed", "workers_stopped", "data_files_closed"))):
         raise ValueError(f"记录 {record['key']} 未封存、存在错误或缺少串口完整停止证据，不能参与组合分析")
     points = read_json_source(record, "calibration_points.json", required=False)
-    record["kind"] = ("temperature_calibration" if manifest.get("temperature_calibration")
+    record["kind"] = ("pressure_calibration" if manifest.get("pressure_calibration") or points.get("schema") == "sspp.pressure_plateaus.v1" else
+                      "temperature_calibration" if manifest.get("temperature_calibration")
                       or manifest.get("temperature_ramp") or points else "temperature_pressure")
     record["_calibration"] = points
     serial = manifest.get("serial") or {}
@@ -67,7 +68,7 @@ def _bind_files(record, report):
     unbound = []
     for name in ARTIFACTS:
         content = read_source(record, name, required=(name=="samples.csv" or
-                              (name=="calibration_points.json" and record["kind"]=="temperature_calibration")))
+                              (name=="calibration_points.json" and record["kind"] in ("temperature_calibration", "pressure_calibration"))))
         if content is None:
             continue
         saved = expected.get(name)
@@ -100,6 +101,14 @@ def _samples(record):
                        "channel":channel, "host_elapsed_s":elapsed, "voltage_v":voltage,
                        "time_segment":int(segment), "mcu_time_ms":_number(row.get("mcu_time_ms"), "mcu_time_ms", 0),
                        "adc":_number(row.get("adc"), "adc", 0, 1023, optional=True)})
+        if record["_manifest"].get("protocol") == "pressure_v2":
+            parsed[-1].update(
+                baseline_v=_number(row.get("baseline_v"), "baseline_v", 0, 5.1, optional=True),
+                delta_voltage_v=_number(row.get("delta_voltage_v"), "delta_voltage_v", -5.1, 5.1, optional=True),
+                zero_id=_number(row.get("zero_id"), "zero_id", 0),
+                zero_count=_number(row.get("zero_count"), "zero_count", 0, 40),
+                selection_token=_number(row.get("selection_token"), "selection_token", 1, 4294967295),
+            )
     declared_count = record["_manifest"].get("rows")
     if declared_count is not None and declared_count != len(parsed):
         raise ValueError("串口实收样本行数与封存 manifest 不一致")
@@ -229,13 +238,17 @@ def _calibration_rows(record, run_index, report):
 
 def compare_serial(records, report):
     """Combine temperature observations without averaging, fitting, or activation."""
+    pressure = records[0]["kind"] == "pressure_calibration"
     calibration = records[0]["kind"] == "temperature_calibration"
+    if pressure:
+        _compare_pressure(records, report)
     single = len(records) == 1
     if calibration:
         report['excluded_calibration_points'] = []
     all_samples, calibration_rows = [], []
     for index, record in enumerate(records, 1):
-        _bind_files(record, report)
+        if not pressure:
+            _bind_files(record, report)
         samples = _samples(record)
         all_samples.extend(samples)
         metric = {"key":record["key"], "label":record["label"], "run_index":index,
@@ -297,7 +310,7 @@ def compare_serial(records, report):
             ['run_key', 'run_index', 'point_id', 'reference_mean_c', 'channels', 'reason', 'deleted_utc', 'correction_sha256'],
             report['excluded_calibration_points'])
         report['warnings'].append('人工参考温度与连续电压按保存区间关联；参考稳定性不足的点继续标注人工复核，误差棒不表示独立重复实验或温度准确度。')
-    else:
+    elif not pressure:
         report['warnings'].append('展示本记录实收电压，不插值、不自动拟合或激活温度换算。' if single else
                                   '各来源独立保留，不合并重叠点、不跨记录连线、不插值、不自动拟合或激活温度换算。串口通道名相同不证明传感器/接线或参考仪器相同。')
     for channel in sorted({r['channel'] for r in all_samples}):
@@ -307,7 +320,7 @@ def compare_serial(records, report):
             if not values:continue
             data=[];previous=None
             for row in values:
-                if previous is not None and (row['time_segment']!=previous['time_segment'] or row['host_elapsed_s']-previous['host_elapsed_s']>3):
+                if previous is not None and (row['time_segment']!=previous['time_segment'] or row['host_elapsed_s']-previous['host_elapsed_s']>3 or row.get('selection_token') != previous.get('selection_token')):
                     data.append([row['host_elapsed_s'],None])
                 data.append([row['host_elapsed_s'],row['voltage_v']]);previous=row
             plots.append(_publication_series(record,index,data))
@@ -319,4 +332,139 @@ def compare_serial(records, report):
         if not calibration:
             item['publication']={'xlabel':'Elapsed acquisition time (s)','ylabel':'Voltage (V)','channel':channel,'title':channel+' voltage response'}
         report['charts'].append(item)
-    report['tables']['serial_samples']=table(list(all_samples[0]),all_samples)
+    report['tables']['serial_samples']=table(list(dict.fromkeys(key for row in all_samples for key in row)),all_samples)
+
+
+def _pressure_rows(record, run_index, report):
+    """Keep manual force observations distinct from planned targets and voltage."""
+    points = record['_calibration'].get('points')
+    if not isinstance(points, list):
+        raise ValueError('压力标定来源缺少 points 列表')
+    deleted = _deleted_points(record)
+    rows, eligible, seen, excluded = [], [], set(), 0
+    for point in points:
+        if not isinstance(point, dict):
+            raise ValueError('压力标定区间结构无效')
+        ident = point.get('id')
+        if type(ident) is not int or ident < 1 or ident in seen:
+            raise ValueError('压力标定区间编号无效或重复')
+        seen.add(ident)
+        if point.get('status') != 'saved':
+            excluded += 1
+            continue
+        if str(ident) in deleted:
+            deletion = deleted[str(ident)]
+            report['excluded_calibration_points'].append({
+                'run_key':record['key'], 'run_index':run_index, 'point_id':ident,
+                'reference_mean_n':_number(point.get('reference_mean_n'),'reference_mean_n',0,optional=True),
+                'channels':sorted(point.get('channels',{})), 'reason':deletion['reason'],
+                'deleted_utc':deletion['deleted_utc'], 'correction_sha256':record['correction']['sha256']})
+            continue
+        reference = _number(point.get('reference_mean_n'),'reference_mean_n',0,optional=True)
+        if reference is None:
+            excluded += 1
+            continue
+        area = _number(point.get('contact_area_mm2'),'contact_area_mm2',0,optional=True)
+        if area == 0:
+            raise ValueError('接触面积必须大于零；未知时应留空')
+        pressure = _number(point.get('reference_mean_kpa'),'reference_mean_kpa',0,optional=True)
+        if pressure is not None and (area is None or not math.isclose(pressure,reference*1000/area,rel_tol=1e-8,abs_tol=1e-8)):
+            raise ValueError('保存的平均压强与实测参考力／接触面积不一致')
+        direction = point.get('direction')
+        cycle = point.get('cycle')
+        channel = _channel(point.get('pressure_channel'))
+        if direction not in ('loading','unloading','hold') or type(cycle) is not int or cycle < 1:
+            raise ValueError('压力标定加载方向或循环编号无效')
+        flags = point.get('quality_flags',[])
+        if not isinstance(flags,list) or not all(isinstance(flag,str) for flag in flags):
+            raise ValueError('压力标定质量标记无效')
+        values = point.get('channels',{}).get(channel)
+        if not isinstance(values,dict) or values.get('mean_v') is None:
+            excluded += 1
+            continue
+        count = _number(values.get('count'),'count',1)
+        if not count.is_integer():
+            raise ValueError('压力标定样本数必须为整数')
+        voltage = _number(values.get('mean_v'),'mean_v',0,5.1)
+        sd = _number(values.get('sample_sd_v'),'sample_sd_v',0,optional=True)
+        if count < 2 and sd is not None:
+            raise ValueError('单样本标定区间不能声明样本标准差')
+        stability = point.get('reference_stability') or {}
+        if not isinstance(stability,dict):
+            raise ValueError('压力参考稳定性结构无效')
+        rows.append({'key':record['key'],'label':record['label'],'run_index':run_index,'point_id':ident,
+                     'channel':channel,'pressure_channel':channel,'reference_mean_n':reference,
+                     'reference_mean_kpa':pressure,'contact_area_mm2':area,
+                     'target_force_n':_number(point.get('target_force_n'),'target_force_n',0,optional=True),
+                     'direction':direction,'cycle':cycle,'reference_source':point.get('reference_source'),
+                     'sample_count':int(count),'mean_v':voltage,'sample_sd_v':sd,
+                     'reference_stability_status':stability.get('status','unknown'),
+                     'quality_flags':flags,'requires_manual_review':point.get('requires_manual_review',True),
+                     'duration_s':_number(point.get('duration_s'),'duration_s',0,optional=True)})
+        eligible.append(point)
+    if excluded:
+        report['warnings'].append(f"{record['key']} 有 {excluded} 个中断、缺少实测参考力或所选通道电压的区间未入响应图；目标载荷不补作参考值。")
+    if deleted:
+        report['warnings'].append(f"{record['key']} 有 {len(deleted)} 个错误区间按更正账本排除；原始采样保留，可恢复。")
+    return rows, eligible
+
+
+def _compare_pressure(records, report):
+    from .pressure import candidate_fits
+    report['excluded_calibration_points'] = []
+    report['presentation_mode'] = 'single_pressure_response' if len(records)==1 else 'separate_pressure_responses'
+    report['automatic_calibration_activated'] = False
+    report['quantitative_difference_allowed'] = False
+    rows, fits = [], []
+    for index, record in enumerate(records,1):
+        # Verify sealed data before interpreting summaries or deriving candidates.
+        _bind_files(record,report)
+        values, points = _pressure_rows(record,index,report)
+        rows.extend(values)
+        record['parameters']['pressure_calibration'] = record['_manifest'].get('pressure_calibration',{})
+        for group, fit in candidate_fits(points).items():
+            fits.append({'key':record['key'],'run_index':index,'group':group,**fit})
+    if not rows:
+        report['warnings'].append('没有同时具备实测参考力和所选通道电压的已保存压力区间；仍显示原始串口电压。')
+    for channel in sorted({row['channel'] for row in rows}):
+        for variable, unit, english in (('reference_mean_n','N','Normal contact force (N)'),
+                                        ('reference_mean_kpa','kPa','Mean contact pressure (kPa)')):
+            groups = {}
+            for row in rows:
+                if row['channel'] != channel or row[variable] is None:
+                    continue
+                identity=(row['key'],row['direction'],row['cycle'],row['contact_area_mm2'],row['reference_source'])
+                groups.setdefault(identity,[]).append(row)
+            if not groups:
+                continue
+            plots=[]
+            for group_index,(identity,values) in enumerate(groups.items()):
+                values=sorted(values,key=lambda row:row[variable])
+                key,direction,cycle,area,reference_source=identity
+                index=values[0]['run_index'];record=records[index-1]
+                label=f"Run {index} · {direction} · cycle {cycle} · A={area if area is not None else 'unknown'} mm² · {reference_source}"
+                plot=_publication_series(record,index,[[row[variable],row['mean_v']] for row in values],
+                                         [row['sample_sd_v'] for row in values],label=label)
+                plot['label']=label
+                plot['color']=COLORS[group_index%len(COLORS)]
+                plot['point_sources']=[{'key':row['key'],'point_id':row['point_id']} for row in values]
+                plots.append(plot)
+            pressure=variable=='reference_mean_kpa'
+            item=chart(('pressure_kpa_' if pressure else 'pressure_force_')+channel,
+                       channel+(' 平均压强—电压响应' if pressure else '法向接触力—电压响应'),
+                       '平均压强（kPa）' if pressure else '参考法向接触力（N）','电压（V）',plots,
+                       '按来源、方向、循环、接触面积和参考仪器分组展示，每个实测区间保留均值和样本 SD；连线仅引导视线。'
+                       +'压力只由已记录参考力和明确接触面积换算。质量不足的观测保留复核标记，不参与候选拟合；未激活标定。')
+            item['kind']='errorbar'
+            item['publication']={'kind':'pressure_calibration_response','channel':channel,
+                                 'xlabel':english,'ylabel':'Voltage (V)','title':channel+' force calibration response'}
+            report['charts'].append(item)
+    report['tables']['pressure_calibration_points']=table(list(rows[0]) if rows else
+            ['key','point_id','channel','reference_mean_n','reference_mean_kpa','mean_v','sample_sd_v'],rows)
+    fit_columns=list(dict.fromkeys(key for row in fits for key in row))
+    report['tables']['pressure_candidate_fits']=table(fit_columns or ['key','group','status'],fits)
+    report['tables']['excluded_calibration_points']=table(
+        ['run_key','run_index','point_id','reference_mean_n','channels','reason','deleted_utc','correction_sha256'],
+        report['excluded_calibration_points'])
+    report['warnings'].append('候选线性模型只使用同一记录、明确力敏通道、方向、循环、接触面积和参考仪器的一组有效区间。RMSE 与 R² 是拟合样本内残差统计，不是独立测力精度；禁止范围外外推，模型未自动激活。')
+    report['warnings'].append('压力（kPa）要求法向接触力与可靠接触面积；未记录面积时只报告力（N）。不同记录、加载与卸载不合并拟合；不能由曲线叠加宣称消除迟滞或温漂。')

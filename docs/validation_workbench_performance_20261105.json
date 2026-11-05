@@ -1,0 +1,598 @@
+{
+  "schema": "workbench.performance_validation.v1",
+  "created_utc": "2026-11-05T05:33:19.832942+00:00",
+  "device": {
+    "model": "Mac17,6",
+    "chip": "Apple M5 Max",
+    "memory_gb": 64,
+    "environment": "rf-gnuradio"
+  },
+  "scope": [
+    "Independent non-modal experiment help dialog",
+    "Lightweight archive summary with explicit full curve reads",
+    "Avoid redundant table state writes; invalidate stale asynchronous work on search",
+    "Cached unchanged archive index metadata; full analysis/export source verification retained",
+    "Lossless NPZ DEFLATE level 3 for new sweep points"
+  ],
+  "tests": {
+    "command": "QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg PYQTGRAPH_QT_LIB=PySide6 python -B -m pytest -q -p no:cacheprovider tests",
+    "passed": 865,
+    "subtests_passed": 944,
+    "elapsed_s": 91.4,
+    "failures": 0,
+    "skips": 0,
+    "log_sha256": "eeb4f305c215e366ab3eb7f789ce5b2f8e05be1796533c9afa9a1f019840b1b9"
+  },
+  "archive_benchmarks": {
+    "before": {
+      "phase": "before",
+      "root": "/private/tmp/workbench_performance_20261105/stage",
+      "keys": {
+        "runs": "runs/20261102T090452_414767Z",
+        "phase_runs": "phase_runs/20260908T120220_240708Z",
+        "temperature_pressure_runs": "temperature_pressure_runs/20261102T051925_763902Z"
+      },
+      "measurements": [
+        {
+          "name": "history",
+          "median_ms": 51.67,
+          "runs": [
+            {
+              "ms": 63.356,
+              "read_opens": 514,
+              "reads_by_name": {
+                "desktop_context.json": 208,
+                "feature_report.json": 2,
+                "calibration_points.json": 16,
+                "manifest.json": 274,
+                "web_context.json": 14
+              },
+              "opened_file_bytes": 9615631
+            },
+            {
+              "ms": 51.495,
+              "read_opens": 514,
+              "reads_by_name": {
+                "desktop_context.json": 208,
+                "feature_report.json": 2,
+                "calibration_points.json": 16,
+                "manifest.json": 274,
+                "web_context.json": 14
+              },
+              "opened_file_bytes": 9615631
+            },
+            {
+              "ms": 51.67,
+              "read_opens": 514,
+              "reads_by_name": {
+                "desktop_context.json": 208,
+                "feature_report.json": 2,
+                "calibration_points.json": 16,
+                "manifest.json": 274,
+                "web_context.json": 14
+              },
+              "opened_file_bytes": 9615631
+            }
+          ],
+          "returned_rows": 150
+        },
+        {
+          "name": "details:runs",
+          "median_ms": 16.242,
+          "runs": [
+            {
+              "ms": 16.326,
+              "read_opens": 4,
+              "reads_by_name": {
+                "manifest.json": 2,
+                "desktop_context.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 1240369
+            },
+            {
+              "ms": 16.066,
+              "read_opens": 4,
+              "reads_by_name": {
+                "manifest.json": 2,
+                "desktop_context.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 1240369
+            },
+            {
+              "ms": 16.242,
+              "read_opens": 4,
+              "reads_by_name": {
+                "manifest.json": 2,
+                "desktop_context.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 1240369
+            }
+          ],
+          "returned_rows": 1342
+        },
+        {
+          "name": "details:phase_runs",
+          "median_ms": 22.499,
+          "runs": [
+            {
+              "ms": 24.429,
+              "read_opens": 5,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 2,
+                "baseline.json": 1,
+                "amplitude_phase.jsonl": 1
+              },
+              "opened_file_bytes": 4043469
+            },
+            {
+              "ms": 22.499,
+              "read_opens": 5,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 2,
+                "baseline.json": 1,
+                "amplitude_phase.jsonl": 1
+              },
+              "opened_file_bytes": 4043469
+            },
+            {
+              "ms": 21.938,
+              "read_opens": 5,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 2,
+                "baseline.json": 1,
+                "amplitude_phase.jsonl": 1
+              },
+              "opened_file_bytes": 4043469
+            }
+          ],
+          "returned_rows": 2164
+        },
+        {
+          "name": "details:temperature_pressure_runs",
+          "median_ms": 47.724,
+          "runs": [
+            {
+              "ms": 47.154,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            },
+            {
+              "ms": 48.343,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            },
+            {
+              "ms": 47.724,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            }
+          ],
+          "returned_rows": 19352
+        }
+      ],
+      "notes": "Offline existing Data APFS copy; timings include Python file-open instrumentation; first index run cold at service level, filesystem cache not cleared."
+    },
+    "after": {
+      "phase": "after",
+      "root": "/private/tmp/workbench_performance_20261105/stage",
+      "keys": {
+        "runs": "runs/20261102T090452_414767Z",
+        "phase_runs": "phase_runs/20260908T120220_240708Z",
+        "temperature_pressure_runs": "temperature_pressure_runs/20261102T051925_763902Z"
+      },
+      "measurements": [
+        {
+          "name": "history",
+          "median_ms": 3.71,
+          "runs": [
+            {
+              "ms": 31.468,
+              "read_opens": 277,
+              "reads_by_name": {
+                "calibration_points.json": 16,
+                "web_context.json": 7,
+                "desktop_context.json": 104,
+                "manifest.json": 149,
+                "feature_report.json": 1
+              },
+              "opened_file_bytes": 4934685
+            },
+            {
+              "ms": 3.71,
+              "read_opens": 0,
+              "reads_by_name": {},
+              "opened_file_bytes": 0
+            },
+            {
+              "ms": 3.01,
+              "read_opens": 0,
+              "reads_by_name": {},
+              "opened_file_bytes": 0
+            }
+          ],
+          "returned_rows": 150
+        },
+        {
+          "name": "details:runs",
+          "median_ms": 6.169,
+          "runs": [
+            {
+              "ms": 6.169,
+              "read_opens": 3,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 779708
+            },
+            {
+              "ms": 6.248,
+              "read_opens": 3,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 779708
+            },
+            {
+              "ms": 6.147,
+              "read_opens": 3,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1,
+                "measurements.csv": 1
+              },
+              "opened_file_bytes": 779708
+            }
+          ],
+          "returned_rows": 1342
+        },
+        {
+          "name": "summary:runs",
+          "median_ms": 3.237,
+          "runs": [
+            {
+              "ms": 3.237,
+              "read_opens": 2,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 462956
+            },
+            {
+              "ms": 3.162,
+              "read_opens": 2,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 462956
+            },
+            {
+              "ms": 3.444,
+              "read_opens": 2,
+              "reads_by_name": {
+                "desktop_context.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 462956
+            }
+          ],
+          "returned_rows": 0
+        },
+        {
+          "name": "details:phase_runs",
+          "median_ms": 21.444,
+          "runs": [
+            {
+              "ms": 21.444,
+              "read_opens": 4,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1,
+                "amplitude_phase.jsonl": 1,
+                "baseline.json": 1
+              },
+              "opened_file_bytes": 4037091
+            },
+            {
+              "ms": 21.951,
+              "read_opens": 4,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1,
+                "amplitude_phase.jsonl": 1,
+                "baseline.json": 1
+              },
+              "opened_file_bytes": 4037091
+            },
+            {
+              "ms": 21.354,
+              "read_opens": 4,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1,
+                "amplitude_phase.jsonl": 1,
+                "baseline.json": 1
+              },
+              "opened_file_bytes": 4037091
+            }
+          ],
+          "returned_rows": 2164
+        },
+        {
+          "name": "summary:phase_runs",
+          "median_ms": 0.229,
+          "runs": [
+            {
+              "ms": 0.364,
+              "read_opens": 2,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 13228
+            },
+            {
+              "ms": 0.229,
+              "read_opens": 2,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 13228
+            },
+            {
+              "ms": 0.223,
+              "read_opens": 2,
+              "reads_by_name": {
+                "diagnostic_figures.json": 1,
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 13228
+            }
+          ],
+          "returned_rows": 0
+        },
+        {
+          "name": "details:temperature_pressure_runs",
+          "median_ms": 45.687,
+          "runs": [
+            {
+              "ms": 44.814,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            },
+            {
+              "ms": 45.925,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            },
+            {
+              "ms": 45.687,
+              "read_opens": 3,
+              "reads_by_name": {
+                "manifest.json": 1,
+                "samples.csv": 2
+              },
+              "opened_file_bytes": 3763873
+            }
+          ],
+          "returned_rows": 19352
+        },
+        {
+          "name": "summary:temperature_pressure_runs",
+          "median_ms": 0.158,
+          "runs": [
+            {
+              "ms": 0.233,
+              "read_opens": 1,
+              "reads_by_name": {
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 6165
+            },
+            {
+              "ms": 0.158,
+              "read_opens": 1,
+              "reads_by_name": {
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 6165
+            },
+            {
+              "ms": 0.153,
+              "read_opens": 1,
+              "reads_by_name": {
+                "manifest.json": 1
+              },
+              "opened_file_bytes": 6165
+            }
+          ],
+          "returned_rows": 0
+        }
+      ],
+      "notes": "Offline existing Data APFS copy; timings include Python file-open instrumentation; first index run cold at service level, filesystem cache not cleared."
+    },
+    "equivalence": {
+      "history_rows": 150,
+      "history_identical": true,
+      "full_detail_equivalence": {
+        "runs/20261102T090452_414767Z": true,
+        "phase_runs/20260908T120220_240708Z": true,
+        "temperature_pressure_runs/20261102T051925_763902Z": true,
+        "temperature_pressure_runs/20261102T064612_169547Z": true
+      },
+      "ignored_added_keys": [
+        "curve_loaded",
+        "curve.loaded"
+      ]
+    }
+  },
+  "selection_benchmark": {
+    "method": "Same real Data APFS copy, four check+select operations; Qt offscreen, cProfile; first operation includes pending startup table rendering",
+    "before": [
+      {
+        "key": "runs/20261105T050951_801879Z",
+        "seconds": 1.02692741600913,
+        "main_thread_profile": "         120920 function calls (118312 primitive calls) in 1.024 seconds\n\n   Ordered by: cumulative time\n   List reduced from 520 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n      684    0.666    0.001    0.666    0.001 {method 'setFlags' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n      189    0.000    0.000    0.636    0.003 __init__.py:703(is_symlink)\n      189    0.000    0.000    0.636    0.003 <frozen genericpath>:60(islink)\n     1737    0.005    0.000    0.626    0.000 {built-in method posix.lstat}\n        1    0.000    0.000    0.431    0.431 workers.py:17(run)\n        1    0.000    0.000    0.431    0.431 window.py:2215(<lambda>)\n        1    0.000    0.000    0.431    0.431 serial_archive.py:48(details)\n        1    0.000    0.000    0.431    0.431 comparison_service.py:52(details)\n        1    0.000    0.000    0.430    0.430 controller.py:448(details)\n        2    0.000    0.000    0.402    0.201 workers.py:55(_finished)\n        3    0.000    0.000    0.282    0.094 window.py:1323(_set_active)\n      798    0.274    0.000    0.274    0.000 {method 'setItem' of 'PySide6.QtWidgets.QTableWidget' objects}\n        5    0.000    0.000    0.267    0.053 window.py:1719(_update_comparison_controls)\n        2    0.000    0.000    0.260    0.130 window.py:455(_refresh_navigation_enabled)\n      337    0.003    0.000    0.232    0.001 {built-in method posix.stat}\n      442    0.000    0.000    0.219    0.000 __init__.py:780(read_text)\n      125    0.000    0.000    0.209    0.002 __init__.py:685(is_file)\n      125    0.000    0.000    0.203    0.002 <frozen genericpath>:36(isfile)\n    441/8    0.000    0.000    0.194    0.024 controller.py:34(read_json)\n        2    0.000    0.000    0.152    0.076 window.py:1402(_temperature_busy_changed)\n\n\n"
+      },
+      {
+        "key": "runs/20261105T050830_453913Z",
+        "seconds": 0.5649987910001073,
+        "main_thread_profile": "         22777 function calls (21773 primitive calls) in 0.565 seconds\n\n   Ordered by: cumulative time\n   List reduced from 504 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n      456    0.545    0.001    0.545    0.001 {method 'setFlags' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n        4    0.001    0.000    0.442    0.111 window.py:1719(_update_comparison_controls)\n        1    0.000    0.000    0.429    0.429 profile_selection_before.py:13(pump)\n        3    0.000    0.000    0.408    0.136 window.py:1323(_set_active)\n        2    0.007    0.004    0.295    0.147 {built-in method processEvents}\n        1    0.000    0.000    0.288    0.288 workers.py:55(_finished)\n        2    0.000    0.000    0.255    0.127 window.py:455(_refresh_navigation_enabled)\n        2    0.000    0.000    0.255    0.127 window.py:1402(_temperature_busy_changed)\n        1    0.000    0.000    0.157    0.157 window.py:2182(loaded)\n        1    0.000    0.000    0.153    0.153 window.py:1462(_apply_status)\n        1    0.000    0.000    0.136    0.136 {built-in method time.sleep}\n        1    0.000    0.000    0.136    0.136 {method 'setCheckState' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n        1    0.000    0.000    0.136    0.136 window.py:1743(_comparison_item_changed)\n        1    0.000    0.000    0.135    0.135 workers.py:17(run)\n        1    0.000    0.000    0.135    0.135 window.py:2215(<lambda>)\n        1    0.000    0.000    0.135    0.135 serial_archive.py:48(details)\n        1    0.000    0.000    0.135    0.135 comparison_service.py:52(details)\n       38    0.000    0.000    0.131    0.003 {method 'emit' of 'PySide6.QtCore.SignalInstance' objects}\n        1    0.000    0.000    0.130    0.130 {method 'selectRow' of 'PySide6.QtWidgets.QTableView' objects}\n        1    0.000    0.000    0.124    0.124 window.py:2161(_select_history)\n\n\n"
+      },
+      {
+        "key": "runs/20261102T123515_382508Z",
+        "seconds": 0.5479139999952167,
+        "main_thread_profile": "         33119 function calls (31804 primitive calls) in 0.548 seconds\n\n   Ordered by: cumulative time\n   List reduced from 616 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.547    0.547 profile_selection_before.py:13(pump)\n        3    0.008    0.003    0.544    0.181 {built-in method processEvents}\n      456    0.517    0.001    0.517    0.001 {method 'setFlags' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n        4    0.000    0.000    0.516    0.129 window.py:1323(_set_active)\n        2    0.000    0.000    0.402    0.201 workers.py:55(_finished)\n        4    0.001    0.000    0.400    0.100 window.py:1719(_update_comparison_controls)\n        3    0.000    0.000    0.377    0.126 window.py:455(_refresh_navigation_enabled)\n        2    0.000    0.000    0.276    0.138 workers.py:17(run)\n        1    0.000    0.000    0.266    0.266 window.py:2182(loaded)\n        1    0.000    0.000    0.262    0.262 window.py:1462(_apply_status)\n        3    0.000    0.000    0.254    0.085 window.py:1402(_temperature_busy_changed)\n        2    0.000    0.000    0.246    0.123 window.py:1199(_submit)\n      120    0.001    0.000    0.177    0.001 {built-in method posix.lstat}\n        4    0.000    0.000    0.177    0.044 controller.py:423(run_path)\n        8    0.000    0.000    0.163    0.020 __init__.py:932(resolve)\n        8    0.000    0.000    0.163    0.020 <frozen posixpath>:388(realpath)\n        1    0.000    0.000    0.144    0.144 window.py:2205(<lambda>)\n        1    0.000    0.000    0.137    0.137 services.py:102(temperature_history)\n        1    0.000    0.000    0.132    0.132 window.py:2215(<lambda>)\n        1    0.000    0.000    0.132    0.132 serial_archive.py:48(details)\n\n\n"
+      },
+      {
+        "key": "runs/20261102T122416_130069Z",
+        "seconds": 0.5542531249811873,
+        "main_thread_profile": "         29295 function calls (28019 primitive calls) in 0.554 seconds\n\n   Ordered by: cumulative time\n   List reduced from 610 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.554    0.554 profile_selection_before.py:13(pump)\n        3    0.007    0.002    0.551    0.184 {built-in method processEvents}\n      456    0.526    0.001    0.527    0.001 {method 'setFlags' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n        4    0.000    0.000    0.438    0.109 window.py:1323(_set_active)\n        2    0.000    0.000    0.408    0.204 workers.py:55(_finished)\n        4    0.001    0.000    0.403    0.101 window.py:1719(_update_comparison_controls)\n        3    0.000    0.000    0.375    0.125 window.py:455(_refresh_navigation_enabled)\n        2    0.000    0.000    0.298    0.149 workers.py:17(run)\n        3    0.000    0.000    0.287    0.096 window.py:1402(_temperature_busy_changed)\n        1    0.000    0.000    0.278    0.278 window.py:2182(loaded)\n        1    0.000    0.000    0.274    0.274 window.py:1462(_apply_status)\n        2    0.000    0.000    0.247    0.124 window.py:1199(_submit)\n      120    0.001    0.000    0.178    0.001 {built-in method posix.lstat}\n        4    0.000    0.000    0.177    0.044 controller.py:423(run_path)\n        1    0.000    0.000    0.164    0.164 window.py:2205(<lambda>)\n        8    0.000    0.000    0.163    0.020 __init__.py:932(resolve)\n        8    0.000    0.000    0.163    0.020 <frozen posixpath>:388(realpath)\n        1    0.000    0.000    0.157    0.157 services.py:102(temperature_history)\n        1    0.000    0.000    0.134    0.134 window.py:2215(<lambda>)\n        1    0.000    0.000    0.134    0.134 serial_archive.py:48(details)\n\n\n"
+      }
+    ],
+    "after": [
+      {
+        "key": "runs/20261105T050951_801879Z",
+        "seconds": 0.28042483297758736,
+        "main_thread_profile": "         28308 function calls (27052 primitive calls) in 0.280 seconds\n\n   Ordered by: cumulative time\n   List reduced from 244 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.279    0.279 profile_selection_after.py:13(pump)\n        3    0.008    0.003    0.276    0.092 {built-in method processEvents}\n        3    0.000    0.000    0.269    0.090 workers.py:55(_finished)\n        1    0.000    0.000    0.267    0.267 window.py:1610(loaded)\n        1    0.001    0.001    0.267    0.267 window.py:1684(_render_history_rows)\n      798    0.253    0.000    0.253    0.000 {method 'setItem' of 'PySide6.QtWidgets.QTableWidget' objects}\n        2    0.000    0.000    0.106    0.053 workers.py:17(run)\n        2    0.000    0.000    0.106    0.053 window.py:2340(<lambda>)\n        2    0.000    0.000    0.106    0.053 serial_archive.py:54(details)\n        2    0.000    0.000    0.106    0.053 controller.py:490(details)\n        2    0.000    0.000    0.057    0.028 controller.py:426(run_path)\n        4    0.000    0.000    0.057    0.014 __init__.py:932(resolve)\n        4    0.000    0.000    0.057    0.014 <frozen posixpath>:388(realpath)\n       24    0.000    0.000    0.057    0.002 {built-in method posix.lstat}\n        6    0.000    0.000    0.027    0.005 controller.py:35(read_json)\n        6    0.000    0.000    0.027    0.004 __init__.py:780(read_text)\n        6    0.000    0.000    0.027    0.004 __init__.py:763(open)\n        6    0.000    0.000    0.027    0.004 {built-in method _io.open}\n      114    0.000    0.000    0.010    0.000 window.py:1639(_local_time)\n        2    0.000    0.000    0.007    0.003 {built-in method posix.scandir}\n\n\n"
+      },
+      {
+        "key": "runs/20261105T050830_453913Z",
+        "seconds": 0.0061883750022388995,
+        "main_thread_profile": "         11498 function calls (10577 primitive calls) in 0.006 seconds\n\n   Ordered by: cumulative time\n   List reduced from 214 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.005    0.005 profile_selection_after.py:13(pump)\n        2    0.002    0.001    0.004    0.002 {built-in method processEvents}\n        1    0.001    0.001    0.001    0.001 {built-in method time.sleep}\n        1    0.000    0.000    0.001    0.001 workers.py:55(_finished)\n        3    0.000    0.000    0.001    0.000 window.py:1336(_set_active)\n        4    0.000    0.000    0.001    0.000 window.py:1760(_update_comparison_controls)\n        1    0.000    0.000    0.001    0.001 window.py:2313(loaded)\n        2    0.000    0.000    0.001    0.000 window.py:453(_refresh_navigation_enabled)\n        2    0.000    0.000    0.001    0.000 window.py:1415(_temperature_busy_changed)\n        1    0.000    0.000    0.001    0.001 workers.py:17(run)\n        1    0.000    0.000    0.001    0.001 window.py:2340(<lambda>)\n        1    0.000    0.000    0.001    0.001 serial_archive.py:54(details)\n        1    0.000    0.000    0.001    0.001 controller.py:490(details)\n        1    0.000    0.000    0.001    0.001 {method 'selectRow' of 'PySide6.QtWidgets.QTableView' objects}\n        1    0.000    0.000    0.001    0.001 window.py:2286(_select_history)\n        1    0.000    0.000    0.000    0.000 window.py:1475(_apply_status)\n        2    0.000    0.000    0.000    0.000 {method 'setPlainText' of 'PySide6.QtWidgets.QPlainTextEdit' objects}\n        3    0.000    0.000    0.000    0.000 window.py:2308(_flush_history_summary)\n       51    0.000    0.000    0.000    0.000 window.py:293(_environment_snapshot)\n       51    0.000    0.000    0.000    0.000 device_environment.py:317(environment_snapshot)\n\n\n"
+      },
+      {
+        "key": "runs/20261102T123515_382508Z",
+        "seconds": 0.00952470800257288,
+        "main_thread_profile": "         9876 function calls (8998 primitive calls) in 0.010 seconds\n\n   Ordered by: cumulative time\n   List reduced from 217 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.008    0.008 profile_selection_after.py:13(pump)\n        2    0.005    0.002    0.006    0.003 {built-in method processEvents}\n        1    0.001    0.001    0.001    0.001 {built-in method time.sleep}\n        3    0.000    0.000    0.001    0.000 window.py:1336(_set_active)\n        1    0.000    0.000    0.001    0.001 workers.py:55(_finished)\n      2/1    0.000    0.000    0.001    0.001 {method 'setCheckState' of 'PySide6.QtWidgets.QTableWidgetItem' objects}\n        1    0.000    0.000    0.001    0.001 window.py:1795(_comparison_item_changed)\n        1    0.000    0.000    0.001    0.001 window.py:1205(_message)\n        3    0.001    0.000    0.001    0.000 {method 'setVisible' of 'PySide6.QtWidgets.QWidget' objects}\n        1    0.000    0.000    0.001    0.001 window.py:2313(loaded)\n        2    0.000    0.000    0.001    0.000 window.py:453(_refresh_navigation_enabled)\n        2    0.000    0.000    0.001    0.000 window.py:1415(_temperature_busy_changed)\n        3    0.000    0.000    0.001    0.000 window.py:1760(_update_comparison_controls)\n        1    0.000    0.000    0.001    0.001 workers.py:17(run)\n        1    0.000    0.000    0.001    0.001 window.py:2340(<lambda>)\n        1    0.000    0.000    0.001    0.001 serial_archive.py:54(details)\n        1    0.000    0.000    0.001    0.001 controller.py:490(details)\n        1    0.000    0.000    0.001    0.001 {method 'selectRow' of 'PySide6.QtWidgets.QTableView' objects}\n        1    0.000    0.000    0.001    0.001 window.py:2286(_select_history)\n        1    0.000    0.000    0.000    0.000 window.py:1475(_apply_status)\n\n\n"
+      },
+      {
+        "key": "runs/20261102T122416_130069Z",
+        "seconds": 0.0061391249764710665,
+        "main_thread_profile": "         9876 function calls (8998 primitive calls) in 0.006 seconds\n\n   Ordered by: cumulative time\n   List reduced from 217 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.005    0.005 profile_selection_after.py:13(pump)\n        2    0.002    0.001    0.004    0.002 {built-in method processEvents}\n        1    0.001    0.001    0.001    0.001 {built-in method time.sleep}\n        1    0.000    0.000    0.001    0.001 workers.py:55(_finished)\n        3    0.000    0.000    0.001    0.000 window.py:1336(_set_active)\n        1    0.000    0.000    0.001    0.001 window.py:2313(loaded)\n        2    0.000    0.000    0.001    0.000 window.py:453(_refresh_navigation_enabled)\n        2    0.000    0.000    0.001    0.000 window.py:1415(_temperature_busy_changed)\n        1    0.000    0.000    0.001    0.001 workers.py:17(run)\n        1    0.000    0.000    0.001    0.001 window.py:2340(<lambda>)\n        1    0.000    0.000    0.001    0.001 serial_archive.py:54(details)\n        1    0.000    0.000    0.001    0.001 controller.py:490(details)\n        3    0.000    0.000    0.001    0.000 window.py:1760(_update_comparison_controls)\n        1    0.000    0.000    0.001    0.001 {method 'selectRow' of 'PySide6.QtWidgets.QTableView' objects}\n        1    0.000    0.000    0.001    0.001 window.py:2286(_select_history)\n        1    0.000    0.000    0.000    0.000 window.py:1475(_apply_status)\n        2    0.000    0.000    0.000    0.000 {method 'setPlainText' of 'PySide6.QtWidgets.QPlainTextEdit' objects}\n        3    0.000    0.000    0.000    0.000 window.py:2308(_flush_history_summary)\n        2    0.000    0.000    0.000    0.000 {method 'emit' of 'PySide6.QtCore.SignalInstance' objects}\n       49    0.000    0.000    0.000    0.000 window.py:293(_environment_snapshot)\n\n\n"
+      }
+    ],
+    "limits": "Offline local timing; not a guarantee of physical desktop latency. Measured again after the final serial-refresh fix, with targeted and full tests passed."
+  },
+  "ui": {
+    "geometry_before": [
+      [
+        0,
+        0,
+        340,
+        846
+      ],
+      [
+        344,
+        0,
+        1096,
+        846
+      ]
+    ],
+    "geometry_after": [
+      [
+        0,
+        0,
+        340,
+        846
+      ],
+      [
+        344,
+        0,
+        1096,
+        846
+      ]
+    ],
+    "screenshot_sha256": {
+      "help_dialog.png": "6435bcaab55cd7aab106eb5418d36d1ef388221539df99843b45cde727dca68f",
+      "archive_summary.png": "8846c81e6ef0dd294276bd386303eb56abfe9915cbd0ffa810c4c1d00fd8b4bd",
+      "main_compact.png": "c3a0b4e812f4be8ae9be182339320c146d8812751b86aa418ac9895b0b6b9c8a"
+    },
+    "verified": [
+      "popup text visible, Close in Chinese; no main layout displacement",
+      "archive summary has curve_loaded=false",
+      "new selection and search invalidate late results",
+      "metadata-only selection does not draw curves",
+      "state updates emit no row changes when flags unchanged"
+    ]
+  },
+  "sweep_compression": {
+    "status": "stage implementation validated offline",
+    "approved_level": 3,
+    "changed_files": [
+      "sspp_experiments/material_sweep/acquisition.py",
+      "tests/test_point_archive.py",
+      "tests/test_sweep_unlimited_backend.py"
+    ],
+    "quality_algorithm_unchanged_sha256": "ee93a079dd42f7cc1c7d96d21417f4dd56e42aa4d60c959fca7671fe8115f81f",
+    "no_hardware_run": true,
+    "historical_data_not_rewritten": true,
+    "validation": {
+      "tests": 89,
+      "subtests": 125,
+      "seconds": 12.91,
+      "log": "/private/tmp/workbench_performance_20261105/point_archive_tests.log"
+    }
+  },
+  "source_sha256": {
+    "sspp_lab/controller.py": "335c7398a51bb7a9eb7eb97c755836cd0c3d306ab93afaab6bd660e0f3416fa4",
+    "sspp_desktop/comparison_service.py": "7b66c033e2d0f5ff44986eb2b1fd3947e9c7149edec31d860045a07dbdab5957",
+    "sspp_desktop/serial_archive.py": "67232f1f51397744f036a8c3b1c7671663d6f412fa270875230b29bdd1c8908d",
+    "sspp_desktop/window.py": "62bef03e1d42a042333fa03443661382b4fd86f97bdacc78f2afdb9ef3eee940",
+    "sspp_desktop/experiment_help.py": "aa0b562bdeb32b2335b47125d40677edc4941efb1598cbbc0aabd8cf39c0692d",
+    "sspp_experiments/material_sweep/acquisition.py": "fcad84367de2429f433254e52e36db6c68e1e2a932cb4494b12616c5c2480ced",
+    "tests/test_archive_performance.py": "1e6f5d7b0371043e55babf0b03a8fe5cdd8f4e75ba0bae31ebd8c3d6ec1de246",
+    "tests/test_archive_lazy_ui.py": "f874d63cd0ccc869a073a60f60ae6383d0bfa77eabc222f41f4bd376425e3192",
+    "tests/test_help_dialog_ui.py": "926c227c305a1d2e1c5d08b5d155d7a3ec85d6a27d96421969e11121e50198bb",
+    "tests/test_point_archive.py": "c126b08282ddbbbff6d3df9a0503a250513ae717ca7d02fff7ee8f16b1825533",
+    "tests/test_sweep_unlimited_backend.py": "2148f5e3d31986fda4b1eb838c4273450dbce3b7a55906c4dd5705d3bc435c73",
+    "tests/test_comparison_ui.py": "8707afcdcad45442ddc252623625a29d052acffa55d4b46972f0790fc8f91e1a",
+    "tests/test_history_refresh_queue.py": "7f906c1aee3cb8f6db5891b191e9f1a6c18d897a86960262e44f5433b2b768db",
+    "tests/test_archive_mouse_selection.py": "69b79128ac4223abe5b33372ecff885e89c6b3837cebfed96b8b2bae82ba0a40",
+    "tests/test_compact_experiment_ui.py": "a26f91a9161381317b730180bdc6e2306e86f864cbe7781063be05a983cced0c",
+    "tests/test_serial_archive.py": "c38ef9c8742a8e169390dd1b331c3123d77aff727f7cb0b10346a51e111d24a8",
+    "tests/test_sweep_budget.py": "62ee43ed4c0b32c7fa431bef352210562c751f20b271b1854f1f65b493f25dde"
+  },
+  "boundaries": {
+    "hardware_opened": false,
+    "serial_opened": false,
+    "firmware_uploaded": false,
+    "live_app_restarted": false,
+    "historical_data_rewritten": false,
+    "quality_policy_changed": false,
+    "rf_speed_measured": false,
+    "protected_files_preinstall": 174
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "schema": "workbench.temperature_comparison_labels.v1",
+  "date": "2026-11-05T14:34:32.880945+08:00",
+  "problem": "Five manual-temperature sweeps displayed identical sample/condition labels without their saved reference temperatures.",
+  "fix": [
+    "Deduplicate identical sample and condition names; label finite saved manual temperatures explicitly as manual reference",
+    "Propagate shared record label to chart series, reference selector, metrics, data tables, publication legends/captions/data",
+    "Use sweep reference heading for temperature_sweep PDF reports"
+  ],
+  "verified_records": [
+    {
+      "key": "runs/20261105T062235_960632Z",
+      "label": "水 · 手填参考 35 °C",
+      "temperature_c": 35.0,
+      "source_files": [
+        {
+          "relative_path": "manifest.json",
+          "sha256": "deacf5c348fb0396604862f5b7a93f7772f4096a196e18991eccce345b5674b8",
+          "bytes": 46112
+        },
+        {
+          "relative_path": "desktop_context.json",
+          "sha256": "2c35ac5e168eb136f3b4b1a0de1439bd559fb65b6b3f562f1a23568b65e7d0e8",
+          "bytes": 2465
+        },
+        {
+          "relative_path": "measurements.csv",
+          "sha256": "194b9ba1915ecbef4694db318bdddd66354652af81deb30eeadf014fe9b570f8",
+          "bytes": 14611
+        }
+      ]
+    },
+    {
+      "key": "runs/20261105T061359_647118Z",
+      "label": "水 · 手填参考 42 °C",
+      "temperature_c": 42.0,
+      "source_files": [
+        {
+          "relative_path": "manifest.json",
+          "sha256": "00482270afcd4762b92fe4d25b3f19fb8c917cbddc35739b0ba806281c7bab2d",
+          "bytes": 46916
+        },
+        {
+          "relative_path": "desktop_context.json",
+          "sha256": "dc1c7c0aae1ced82dd3fc5e2d91de2b1e5473bcdbeea01db0b0f7fc931885d12",
+          "bytes": 2465
+        },
+        {
+          "relative_path": "measurements.csv",
+          "sha256": "6ac9642267e73116a9d629ce808ba22a70117ef8de9293519be77683db3c4538",
+          "bytes": 14576
+        }
+      ]
+    },
+    {
+      "key": "runs/20261105T060917_055698Z",
+      "label": "水 · 手填参考 45 °C",
+      "temperature_c": 45.0,
+      "source_files": [
+        {
+          "relative_path": "manifest.json",
+          "sha256": "5eacb756e0d2ca7bf95aa2aaf9848a161e4cf4b1e0e47ca07721daad5222c58c",
+          "bytes": 46888
+        },
+        {
+          "relative_path": "desktop_context.json",
+          "sha256": "8f6eb27b9bd084c6755d866e5e3829e5135eb1276f627ae045740c85a6f73e8a",
+          "bytes": 2465
+        },
+        {
+          "relative_path": "measurements.csv",
+          "sha256": "623a93b746822e6df3f0a9f633bbd27e11eb488b867e99024a1ae23d7222ced8",
+          "bytes": 14629
+        }
+      ]
+    },
+    {
+      "key": "runs/20261105T060628_979719Z",
+      "label": "水 · 手填参考 49 °C",
+      "temperature_c": 49.0,
+      "source_files": [
+        {
+          "relative_path": "manifest.json",
+          "sha256": "bb1f5340df33f3d22b17e4f04eade3faa403691640e299a335f967c3c70e022a",
+          "bytes": 48522
+        },
+        {
+          "relative_path": "desktop_context.json",
+          "sha256": "b368be7c14bf5e0c0c4cf4372f55648cc979f975dc5bc6b752376e04c192bee5",
+          "bytes": 2465
+        },
+        {
+          "relative_path": "measurements.csv",
+          "sha256": "69bb9fc3ae0e06e674b7b8a9dd437af3d7f545da3b46ee47accd9ec063492f5c",
+          "bytes": 14603
+        }
+      ]
+    },
+    {
+      "key": "runs/20261105T060347_308362Z",
+      "label": "水 · 手填参考 52 °C",
+      "temperature_c": 52.0,
+      "source_files": [
+        {
+          "relative_path": "manifest.json",
+          "sha256": "cc478f800f70116e7ec591bac8aa61d0c25c781cada6e7f202b9463a523e0789",
+          "bytes": 45698
+        },
+        {
+          "relative_path": "desktop_context.json",
+          "sha256": "84399bd1d74160598d4f42159de2957abe2855c2f47543618cbb93f122817f8a",
+          "bytes": 2465
+        },
+        {
+          "relative_path": "measurements.csv",
+          "sha256": "d97eb4f07e0a50d5749e49794e358c6edf4413075af0bbda97d3d3303dd52f29",
+          "bytes": 14597
+        }
+      ]
+    }
+  ],
+  "reference_key": "runs/20261105T060347_308362Z",
+  "data_equivalence": {
+    "all_report_fields_except_derived_labels_equal": true,
+    "amplitudes_sd_differences_reference_and_source_hashes_equal": true
+  },
+  "tests": {
+    "related_regression": {
+      "passed": 103,
+      "subtests": 88,
+      "seconds": 37.67
+    },
+    "new_temperature_labels": {
+      "passed": 7,
+      "subtests": 23,
+      "seconds": 10.86
+    },
+    "combined_distinct_tests": 110,
+    "combined_subtests": 111,
+    "failures": 0
+  },
+  "ui_and_export": {
+    "reference_and_visible_legends": true,
+    "publication_legend_caption_data": true,
+    "pdf_reference_heading": true,
+    "screenshots": {
+      "comparison_temperature_after.png": "0a38cf6463ce3005b77576831c75a38d174603fcd69814c9452da4419b809fdc",
+      "temperature_figure_after.png": "371a5e6cecfeaf58adfc61b7f246b964758b1f7f494b79d8d9bae26eb781de47"
+    }
+  },
+  "source_sha256": {
+    "sspp_experiments/comparison.py": "b3cc1e396488a858d87d1db07680bfb06b58a8dadc215572ca3f398f2feb90f7",
+    "sspp_desktop/comparison_export.py": "c0d5273b69932d5fb318d668551993c0ca0c55683539e32bcc82048745157000",
+    "tests/test_temperature_comparison_labels.py": "453584ed678b714be9603759aa88ea05a4913c4fc6ffbf30945caab3fa4b520c"
+  },
+  "boundaries": {
+    "hardware_opened": false,
+    "historical_data_rewritten": false,
+    "temperature_values_inferred": false,
+    "comparison_acceptance_rules_changed": false,
+    "live_app_restarted": false
+  }
+}

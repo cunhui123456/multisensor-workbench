@@ -1,0 +1,128 @@
+{
+  "checked_utc": "2026-11-05T04:54:20.415062+00:00",
+  "baseline_key": "runs/20261102T123515_382508Z",
+  "failed_runs": [
+    {
+      "key": "runs/20261105T044154_929542Z",
+      "started_utc": "2026-11-05T04:41:54.929771+00:00",
+      "ended_utc": "2026-11-05T04:42:02.084224+00:00",
+      "status": "failed_or_incomplete",
+      "desktop_status": "stop_unconfirmed",
+      "identical_to_baseline": {
+        "requested_sdr": true,
+        "actual_sdr": true,
+        "actual_hardware": true,
+        "device_profile": true,
+        "environment": true,
+        "runner_sha256": true
+      },
+      "common_acquisition_source_hashes_equal": true,
+      "same_acquisition_source_files": [
+        "sspp_experiments/material_sweep/acquisition.py",
+        "sspp_experiments/material_sweep/logic.py",
+        "sspp_lab/hardware.py",
+        "sspp_lab/power.py",
+        "sspp_lab/realtime.py"
+      ],
+      "telemetry": {
+        "tx_samples": 264080,
+        "rx_samples": 214200,
+        "tx_partial_sends": 1,
+        "tx_end_of_burst_sent": false,
+        "rx_stop_command_sent": false,
+        "workers_stopped": true,
+        "failure_diagnosis": "usrp_transport_control_unresponsive",
+        "rf_stopped_confirmed": false
+      },
+      "errors": [
+        "TX: TX send returned zero samples",
+        "TX shutdown: TX EOB send accepted 0 of 1 sample; stop unconfirmed",
+        "USRP 数据发送和设备控制通信均无响应；检查 USB 连接、集线器与供电，重新连接 B210 后重新初始化。具体物理原因尚未确定；这不是弱信号质量超时。",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "rx_shutdown_error": "wait_for_ack assertion: accum_timeout < _timeout",
+      "source_files": {
+        "Data/runs/20261105T044154_929542Z/manifest.json": "ab9c3bb2c661f2964df951ac6afdb6af529a19f3668e07ebd777e62c55870bd3",
+        "Data/runs/20261105T044154_929542Z/desktop_context.json": "61b0b92906cf7853ba68e32c051e601890a88fab2e63957e2eee781a7c074308",
+        "Data/runs/20261105T044154_929542Z/web_console.log": "4e43d32381c6576aae45d55a07ed5f823d1b859f0a092057bbe3ff590dfad167"
+      }
+    },
+    {
+      "key": "runs/20261105T044309_486093Z",
+      "started_utc": "2026-11-05T04:43:09.486336+00:00",
+      "ended_utc": "2026-11-05T04:43:16.098451+00:00",
+      "status": "failed_or_incomplete",
+      "desktop_status": "stop_unconfirmed",
+      "identical_to_baseline": {
+        "requested_sdr": true,
+        "actual_sdr": true,
+        "actual_hardware": true,
+        "device_profile": true,
+        "environment": true,
+        "runner_sha256": true
+      },
+      "common_acquisition_source_hashes_equal": true,
+      "same_acquisition_source_files": [
+        "sspp_experiments/material_sweep/acquisition.py",
+        "sspp_experiments/material_sweep/logic.py",
+        "sspp_lab/hardware.py",
+        "sspp_lab/power.py",
+        "sspp_lab/realtime.py"
+      ],
+      "telemetry": {
+        "tx_samples": 144080,
+        "rx_samples": 89760,
+        "tx_partial_sends": 1,
+        "tx_end_of_burst_sent": false,
+        "rx_stop_command_sent": false,
+        "workers_stopped": true,
+        "failure_diagnosis": "usrp_transport_control_unresponsive",
+        "rf_stopped_confirmed": false
+      },
+      "errors": [
+        "TX: TX send returned zero samples",
+        "TX shutdown: TX EOB send accepted 0 of 1 sample; stop unconfirmed",
+        "USRP 数据发送和设备控制通信均无响应；检查 USB 连接、集线器与供电，重新连接 B210 后重新初始化。具体物理原因尚未确定；这不是弱信号质量超时。",
+        "No quality-approved RF measurements; missing points are not valid data"
+      ],
+      "rx_shutdown_error": "wait_for_ack assertion: accum_timeout < _timeout",
+      "source_files": {
+        "Data/runs/20261105T044309_486093Z/manifest.json": "bd07e0b16d3338f6e3971e4ecd7e3c7d4e743ae0fd357420933791cd1249ce18",
+        "Data/runs/20261105T044309_486093Z/desktop_context.json": "4a8b27ca385f4db75254c43cba82069d2b327e0cdec048b34e2178710f752674",
+        "Data/runs/20261105T044309_486093Z/web_console.log": "162b06990e423de60113f2e6593da647de7fea1545c99b02dbc81df745ce6366"
+      }
+    }
+  ],
+  "confirmed_cause": "B210 transport and control communication stopped responding after HARDWARE_READY and ACQUIRING",
+  "not_established": [
+    "specific USB cable, hub, power supply, host driver or physical fault",
+    "whether a reconnect has restored reliable streaming",
+    "USB hub/dock being the cause; the previous successful experiments used a hub/dock as well"
+  ],
+  "process_check": {
+    "gui_pid": 63925,
+    "descendant_processes": 0,
+    "hardware_opened_by_audit": false
+  },
+  "software_fix": "Expose recorded failure_diagnosis and concise failure_summary in job/context/environment; preserve stop evidence and require explicit reinitialization",
+  "offline_validation": {
+    "passed": 83,
+    "subtests_passed": 84,
+    "run_desktop_check": "passed; hardware_opened=false"
+  },
+  "source_data_modified": false,
+  "initialization_logs": [
+    {
+      "path": ".cache/initialization_logs/20261105T044130_486661Z_d2a61a20.log",
+      "sha256": "d9fcb13fd03b08e59a8fa20fd2a0a8f25f342431614b7f6bbdd871ec724c2279",
+      "result": "ready; subprocess exit=0; USB3; register loopback passed; device handle released"
+    },
+    {
+      "path": ".cache/initialization_logs/20261105T044304_696800Z_dc8ea2cb.log",
+      "sha256": "2d417aeafe5c5d520aaca664c5d00ad6a851bea7a47e10ea30578df76c60fa6d",
+      "result": "ready; subprocess exit=0; USB3; register loopback passed; device handle released"
+    }
+  ],
+  "user_confirmed_connection": "USB hub/dock, also used during previous successful experiments",
+  "physical_recovery_verified": false
+}

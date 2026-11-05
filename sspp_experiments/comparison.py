@@ -54,8 +54,8 @@ def history_category(row, context=None):
     key, mode = row.get("key", ""), row.get("mode", "")
     experiment = context.get("experiment", row.get("experiment"))
     if key.startswith("temperature_pressure_runs/") or mode == "serial":
-        category = experiment if experiment in ("temperature_calibration", "temperature_pressure") else row.get("category")
-        return category if category in ("temperature_calibration", "temperature_pressure") else "temperature_pressure"
+        category = experiment if experiment in ("temperature_calibration", "temperature_pressure", "pressure_calibration") else row.get("category")
+        return category if category in ("temperature_calibration", "temperature_pressure", "pressure_calibration") else "temperature_pressure"
     if experiment in ("liquid_temperature_sweep", "liquid_temperature_phase", "temperature_sweep"):
         return experiment
     if key.startswith("teacher_runs/") or mode == "teacher":
@@ -341,6 +341,26 @@ def _started(value):
         return math.inf
 
 
+def _temperature_comparison_label(label, metadata):
+    """Use the saved reference value in all report labels, without inferring °C."""
+    parts = [label.strip()]
+    condition = _text(metadata.get("condition_label"))
+    if condition and condition.strip() != parts[0]:
+        parts.append(condition.strip())
+    mode = metadata.get("mode", "platform")
+    if mode == "continuous":
+        # A changing-temperature run has no single representative temperature.
+        parts.append("连续温度记录")
+    else:
+        reference = metadata.get("reference_temperature_c")
+        if finite(reference):
+            source = "手填参考" if mode == "manual" else "参考"
+            parts.append(f"{source} {reference:.12g} °C")
+        else:
+            parts.append("参考温度未记录")
+    return " · ".join(parts)
+
+
 def build_comparison(root, keys, reference_key=None):
     """1–8 条同类型可信记录；单条只分析自身数据，不建立跨记录参考。"""
     root = Path(root).resolve()
@@ -364,9 +384,8 @@ def build_comparison(root, keys, reference_key=None):
                       label=str(manifest.get("label") or manifest.get("initial_label") or manifest.get("material_input") or relative.name),
                       started_utc=str(manifest.get("started_utc", "")))
         if kind == "temperature_sweep":
-            condition = context.get("parameters", {}).get("temperature_sweep", {}).get("condition_label")
-            if isinstance(condition, str) and condition.strip():
-                record["label"] += " · " + condition.strip()
+            metadata = (context.get("parameters") or {}).get("temperature_sweep") or {}
+            record["label"] = _temperature_comparison_label(record["label"], metadata)
         if kind == "teacher_sweep":
             raise ValueError("老师历史扫频缺少统一的 measurements.csv 对比契约；请逐条查看或导出，不能混入新扫频定量对比")
         if key.startswith("temperature_pressure_runs/"):
@@ -404,7 +423,7 @@ def build_comparison(root, keys, reference_key=None):
               "analysis_mode": "single" if single else "combined",
               "reference_key": None if single else reference_key, "sources": [], "compatibility": [], "warnings": [],
               "quantitative_difference_allowed": False, "charts": [], "metrics": [], "tables": {}}
-    serial_kind = records[0]["kind"] in ("temperature_pressure", "temperature_calibration")
+    serial_kind = records[0]["kind"] in ("temperature_pressure", "temperature_calibration", "pressure_calibration")
     compatible = False if serial_kind or single else compare_parameters(records, reference_index, report)
     if serial_kind:
         from .temperature_pressure.comparison import compare_serial
@@ -430,6 +449,16 @@ def build_comparison(root, keys, reference_key=None):
             for name in (() if metadata.get("mode")=="manual" else ("temperature_measurements.csv", "temperature/samples.csv", "temperature/manifest.json")):
                 read_source(record, name, required=True)
         report["tables"]["temperature_conditions"] = conditions
+    # A unified sweep can combine a liquid setup with either temperature source.
+    # Preserve both independent condition records in reports; the initial liquid
+    # thermometer value is not a substitute for the continuous sensor series.
+    liquid_conditions = [
+        {"key": record["key"], **record["_context"]["parameters"]["liquid_temperature"]}
+        for record in records
+        if isinstance((record["_context"].get("parameters") or {}).get("liquid_temperature"), dict)
+    ]
+    if liquid_conditions:
+        report["tables"]["liquid_temperature_conditions"] = liquid_conditions
     if single:
         report["compatibility"] = []
         report["quantitative_difference_allowed"] = False

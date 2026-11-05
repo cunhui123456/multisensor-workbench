@@ -109,7 +109,7 @@ class TemperatureSweepWidget(QtWidgets.QWidget):
         self.settings_widget.setObjectName("temperatureSweepSettings")
         layout = QtWidgets.QVBoxLayout(self.settings_widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        defaults = QtWidgets.QLabel("默认扫频：5.0–5.3 GHz，20 个等间隔频点。参数可在下方扫频设置调整。")
+        defaults = QtWidgets.QLabel("默认扫频：5.0–5.3 GHz，30 个等间隔频点，RX 45 dB，首个单音 20000 Hz。参数可在扫频设置与高级参数中调整。")
         defaults.setWordWrap(True)
         layout.addWidget(defaults)
         self.experiment_mode=QtWidgets.QComboBox()

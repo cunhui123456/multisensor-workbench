@@ -1,0 +1,95 @@
+{
+  "schema": "multisensor.pressure_v2_backend_validation.v1",
+  "date": "2026-11-04",
+  "scope": "offline firmware protocol, transport, selection, acquisition, calibration intervals, preparation and archive regression",
+  "hardware_opened": false,
+  "firmware_uploaded": false,
+  "result": "passed",
+  "tests": {
+    "command": "python -B -m pytest -q tests/test_pressure_v2.py tests/test_temperature_protocol.py tests/test_temperature_capture.py tests/test_temperature_firmware.py tests/test_temperature_ramp.py tests/test_temperature_plateau.py tests/test_pressure_calibration.py tests/test_pressure_archive.py",
+    "passed": 89,
+    "subtests_passed": 34
+  },
+  "firmware_host_transcript": {
+    "sha256": "de8166c06fa59def9bdb4f5902af7dd3f8440e5f760ef920e170dc91f208e4eb",
+    "frames": 52,
+    "chunk_sizes": [
+      1,
+      7,
+      64,
+      8192
+    ],
+    "selection_channel": "S4",
+    "selection_token": 7654321,
+    "baseline_v": 2.6882,
+    "delta_voltage_v": 0.0489,
+    "meaning": "native host mock of actual ino source; not a hardware measurement"
+  },
+  "runtime_selection": {
+    "verified": "S2 to S5 to S2; fresh tokens; stale frames excluded; active calibration interval and zero/clear pending block switching; new interval must equal current confirmed channel",
+    "manifest_channels": "actual observed channels; initial_pressure_channel remains the initial request",
+    "window_reset": "successful selection resets live trend and stability windows; historical points remain"
+  },
+  "limitations": [
+    "Digital ACK confirms firmware-reported TCA state, not physical ink-pad identification or analogue health",
+    "No force/temperature calibration accuracy or hardware switching timing has been measured",
+    "Original serial bytes preserved, waiting/stale frames excluded from structured samples"
+  ],
+  "files": [
+    {
+      "path": "sspp_experiments/temperature_pressure/protocol.py",
+      "bytes": 10305,
+      "sha256": "1dbce956aeee2a1e305679360fdbf4488469db38ef2b2119fcd328051ac0b1b4"
+    },
+    {
+      "path": "sspp_experiments/temperature_pressure/serial_io.py",
+      "bytes": 3759,
+      "sha256": "14219189d2836cc77dc9ed92919b986d26d2ea59064c7281b3d3630c0cf892e9"
+    },
+    {
+      "path": "sspp_experiments/temperature_pressure/pressure_control.py",
+      "bytes": 7913,
+      "sha256": "b117ffa46ee502e181ad0de9b371bece81af0aa0d811fafe94db8ff6b4d4e467"
+    },
+    {
+      "path": "sspp_experiments/temperature_pressure/acquisition.py",
+      "bytes": 30973,
+      "sha256": "bccff4c3dcd7576a41b62612ca9918529a9a4c34492e8795296fdd60667aa7b1"
+    },
+    {
+      "path": "sspp_experiments/temperature_pressure/firmware.py",
+      "bytes": 29415,
+      "sha256": "d0bac4916ffb66b8b7c7763b1a0568611a314f50ebdf554a915ebec5bb7499ee"
+    },
+    {
+      "path": "tests/test_pressure_v2.py",
+      "bytes": 16789,
+      "sha256": "c0086b42618b36a28d91f5c98617a212007ceecbc41d028f393aa98056ea60c6"
+    },
+    {
+      "path": "firmware/temperature_pressure/manifest.json",
+      "bytes": 3223,
+      "sha256": "5a52802466c70251f4cbf213591700dfe2640275b22077c58c8b7747bbb0853e"
+    },
+    {
+      "path": "firmware/temperature_pressure/README.md",
+      "bytes": 4429,
+      "sha256": "844354016d8c921ebea71d025eb80744da5c61afbee196fef0ef026c03828269"
+    },
+    {
+      "path": "firmware/temperature_pressure/Pressure_Diagnostic_v2.ino",
+      "bytes": 17479,
+      "sha256": "7a12d5ea457a133182589ecd86dba89ada836363426ce1dacf870cefba802901"
+    },
+    {
+      "path": "firmware/temperature_pressure/pressure_v2.hex",
+      "bytes": 37090,
+      "sha256": "0eb36474fabd4fa34d6ef9c68b70d73a470074eb580a1cdf610e6f174dc30fc9"
+    },
+    {
+      "path": "firmware/temperature_pressure/pressure_v2_build.json",
+      "bytes": 75705,
+      "sha256": "591f10d5901c9946794dc50b6f68d6454b006eb7305a7f2e298e59fe88ab3a7e"
+    }
+  ]
+}

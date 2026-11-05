@@ -100,7 +100,7 @@ class FigureArchiveTests(unittest.TestCase):
 
     def test_six_experiment_folders_and_combined_source_identity(self):
         self.assertEqual(set(EXPERIMENT_FOLDERS.values()), {'material_sweep', 'finger_displacement',
-            'liquid_temperature', 'temperature_pressure', 'temperature_calibration', 'temperature_sweep'})
+            'liquid_temperature', 'temperature_pressure', 'temperature_calibration', 'pressure_calibration', 'temperature_sweep'})
         for kind, folder in EXPERIMENT_FOLDERS.items():
             report = dict(self.report, kind=kind)
             parent, category = self.service._publication_parent(report)

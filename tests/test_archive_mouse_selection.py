@@ -30,11 +30,11 @@ class ArchiveMouseSelectionTests(unittest.TestCase):
         self.service.rows.extend(self.archive.history())
         self.details_started = threading.Event()
 
-        def details(key):
+        def details(key, *, include_curve=True):
             self.details_started.set()
             if not self.details_release.wait(4):
                 raise RuntimeError('offline detail callback not released')
-            return self.archive.details(key)
+            return self.archive.details(key, include_curve=include_curve)
 
         self.service.details = details
         self.service.compare_runs = self.archive.compare_runs
@@ -139,7 +139,7 @@ class ArchiveMouseSelectionTests(unittest.TestCase):
         self.assertEqual(len(self.window.history_table.selectionModel().selectedRows()), 1)
         self.assertTrue(self.window.view_history_button.isEnabled())
         QtTest.QTest.mouseClick(self.window.view_history_button, QtCore.Qt.MouseButton.LeftButton)
-        self.assertEqual(self.window.tabs.currentIndex(), self.window.serial_archive_tab)
+        self.pump(lambda: not self.window.runner.pending and self.window.tabs.currentIndex() == self.window.serial_archive_tab)
         self.assertEqual(self.window.comparison_keys, checked)
 
     def test_late_detail_callback_does_not_leave_user_selected_page(self):

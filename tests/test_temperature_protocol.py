@@ -53,6 +53,46 @@ class TemperatureProtocolTests(unittest.TestCase):
         self.assertEqual([row["time_segment"] for row in rows], [1, 1])
         self.assertEqual([event["kind"] for event in events], ["firmware_status", "mcu_reset"])
 
+    def test_pressure_diagnostic_banner_discards_startup_fragment(self):
+        parser = LineParser("pressure_v1")
+        rows, events = parser.feed(
+            b"92278,2.# Pressure_Diagnostic v1; pressure_v1; nominal_Vref=5.0\n50,2.7214\n", **STAMP)
+        self.assertEqual([event["kind"] for event in events], ["startup_fragment", "firmware_status"])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual((rows[0]["mcu_time_ms"], rows[0]["voltage_v"], rows[0]["time_segment"]), (50, 2.7214, 0))
+        self.assertEqual(rows[0]["adc"], "")  # # diagnostics do not invent structured ADC samples
+
+    def test_pressure_diagnostic_restart_segments_even_without_clock_drop(self):
+        parser = LineParser("pressure_v1")
+        rows, _ = parser.feed(b"100,2.72\n", **STAMP)
+        self.assertEqual(rows[0]["time_segment"], 0)
+        rows, events = parser.feed(b"# Pressure_Diagnostic v1; pressure_v1\n200,2.8231\n250,2.7134\n", **STAMP)
+        self.assertEqual([event["kind"] for event in events], ["firmware_status", "mcu_reset"])
+        self.assertEqual([row["time_segment"] for row in rows], [1, 1])
+        self.assertEqual([row["mcu_elapsed_s"] for row in rows], [0.0, .05])
+
+    def test_pressure_diagnostic_midrun_fragment_is_not_a_valid_sample(self):
+        parser = LineParser("pressure_v1")
+        parser.feed(b"100,2.72\n", **STAMP)
+        rows, events = parser.feed(b"150,2.# Pressure_Diagnostic v1\n200,2.7210\n",
+                                   host_time_utc=STAMP["host_time_utc"], host_elapsed_s=5.0)
+        self.assertEqual([event["kind"] for event in events], ["interrupted_line", "firmware_status", "mcu_reset"])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["time_segment"], 1)
+
+    def test_pressure_status_and_other_versions_do_not_reset_old_protocol(self):
+        parser = LineParser("pressure_v1")
+        parser.feed(b"100,2.71\n", **STAMP)
+        rows, events = parser.feed(
+            b"# P t=150 adc=556.6 V=2.7204 V0=NA dV=NA\n"
+            b"# Pressure_Diagnostic v10; pressure_v1\n"
+            b"# STATUS note=# Pressure_Diagnostic v1; comment_only\n"
+            b"150,2.72\n200,2.82\n", **STAMP)
+        self.assertEqual([event["kind"] for event in events], ["firmware_status"] * 3)
+        self.assertEqual([row["voltage_v"] for row in rows], [2.72, 2.82])
+        self.assertEqual([row["time_segment"] for row in rows], [0, 0])
+        self.assertEqual([row["mcu_elapsed_s"] for row in rows], [.05, .1])
+
     def test_invalid_rows_and_encoding_never_become_samples(self):
         parser = LineParser("pressure_v1")
         rows, events = parser.feed(b"nan,2.7\n100,nan\n100,inf\n100,-1\n100,5.2\n1,2,3\n\xff\n", **STAMP)

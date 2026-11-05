@@ -662,6 +662,11 @@ class DeviceEnvironmentMixin:
             self._environment_starting = True
             self._environment_start_thread = threading.get_ident()
             previous_proc, previous_job = self.proc, self.job
+            # Global initialization is the desktop readiness gate. The explicit
+            # Start click uses that verified state; it does not invent a second
+            # manual wiring confirmation or mutate the caller's draft.
+            request = {**request, "setup_confirmed": True,
+                       "setup_confirmation_source": "global_initialization"}
         try:
             return super().start(request)
         except Exception as exc:
@@ -721,7 +726,7 @@ class DeviceEnvironmentMixin:
                     self._environment_binding = None
                     previous = self._device_environments["usrp"]
                     self._device_environments["usrp"] = {"state": "failed", "target": previous["target"],
-                                                         "message": "射频采集失败，请检查并重新初始化 USRP",
+                                                         "message": job.get("failure_summary") or "射频采集失败，请检查并重新初始化 USRP",
                                                          "log_path": previous.get("log_path")}
 
     def stop(self):

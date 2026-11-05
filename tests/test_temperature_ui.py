@@ -28,10 +28,12 @@ class FakePreparation:
         self.write_active = False
         self.stop_requested = False
 
-    def start(self, port, protocol, board="nano_old", upload=True):
+    def start(self, port, protocol, board="nano_old", upload=True, pressure_channel="S3"):
         self.calls.append((port, protocol, board, upload))
         self.status, self.is_running, self.result = "checking", True, None
         self.target = dict(port=port, protocol=protocol, board=board)
+        if protocol == "pressure_v2":
+            self.target["pressure_channel"] = pressure_channel
 
     def finish(self, status="ready"):
         self.status, self.is_running = status, False
@@ -39,8 +41,9 @@ class FakePreparation:
             self.result = dict(self.target, upload=self.calls[-1][3], preparation_key="device_preparations/FAKE",
                                artifacts=[], firmware_sha256=None, firmware_identity="protocol_only")
 
-    def matches(self, port, protocol, board="nano_old"):
-        return self.status == "ready" and all(self.result.get(k) == v for k, v in dict(port=port, protocol=protocol, board=board).items())
+    def matches(self, port, protocol, board="nano_old", pressure_channel="S3"):
+        return (self.status == "ready" and all(self.result.get(k) == v for k, v in dict(port=port, protocol=protocol, board=board).items())
+                and (protocol != "pressure_v2" or self.result.get("pressure_channel") == pressure_channel))
 
     def snapshot(self):
         return {"status": self.status, "running": self.is_running, "message": "数据验证通过" if self.status == "ready" else "准备固件 " + self.status,
@@ -101,7 +104,6 @@ class TemperatureUiTests(unittest.TestCase):
         self.fail("Qt fake serial condition timed out")
 
     def prepare(self, widget):
-        widget.confirm.setChecked(True)
         widget.start_preparation(upload=False)
         self.assertTrue(widget.is_running)
         widget.preparation.finish()
@@ -122,7 +124,6 @@ class TemperatureUiTests(unittest.TestCase):
     def test_global_open_check_is_not_data_ready_and_preparation_requires_it(self):
         widget = self.widget()
         widget.set_environment_required(True)
-        widget.confirm.setChecked(True)
         self.assertFalse(widget.upload_button.isEnabled())
         widget.start_preparation(upload=False)
         self.assertIn("初始化实验台", widget.status.text())
@@ -139,12 +140,14 @@ class TemperatureUiTests(unittest.TestCase):
         self.assertFalse(widget.preparation_ready)
         self.assertFalse(widget.start_button.isEnabled())
 
-    def test_upload_requires_hardware_confirmation_and_review_dialog(self):
+    def test_initialization_replaces_checkbox_but_upload_remains_explicit(self):
         widget = self.widget()
+        widget.set_environment_required(True)
+        self.assertFalse(hasattr(widget, 'confirm'))
         with patch.object(widget, "_confirm_upload", return_value=False) as confirm:
             widget.start_preparation()
             confirm.assert_not_called()
-            widget.confirm.setChecked(True)
+            widget.set_environment_ready(True)
             widget.start_preparation()
             confirm.assert_called_once()
             self.assertEqual(widget.preparation.calls, [])
@@ -155,7 +158,6 @@ class TemperatureUiTests(unittest.TestCase):
         self.assertFalse(widget.config_group.isEnabled())
         self.assertTrue(widget.stop_button.isEnabled())
         self.assertFalse(widget.start_button.isEnabled())
-        self.assertEqual(widget.stop_button.text(), "取消准备")
         widget.stop_capture()
         widget._poll()
         self.assertFalse(widget.is_running)
@@ -163,7 +165,6 @@ class TemperatureUiTests(unittest.TestCase):
 
     def test_preparation_failure_cancel_and_external_busy_do_not_enable_capture(self):
         widget = self.widget()
-        widget.confirm.setChecked(True)
         widget.set_external_busy(True)
         widget.start_preparation(upload=False)
         self.assertEqual(widget.preparation.calls, [])
@@ -182,7 +183,6 @@ class TemperatureUiTests(unittest.TestCase):
 
     def test_cancelling_write_keeps_busy_until_backend_finishes(self):
         widget = self.widget()
-        widget.confirm.setChecked(True)
         with patch.object(widget, "_confirm_upload", return_value=True):
             widget.start_preparation()
         widget.preparation.write_active = True
@@ -203,7 +203,6 @@ class TemperatureUiTests(unittest.TestCase):
         widget.port.addItem("other", "/dev/cu.usbserial-OTHER")
         widget.port.setCurrentIndex(1)
         self.assertFalse(widget.preparation_ready)
-        self.assertFalse(widget.confirm.isChecked())
         self.assertFalse(widget.start_button.isEnabled())
         self.prepare(widget)
         widget.protocol.setCurrentIndex(1)

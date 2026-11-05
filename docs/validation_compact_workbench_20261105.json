@@ -1,0 +1,148 @@
+{
+  "verified_at": "2026-11-05T13:03:03.232450+08:00",
+  "execution_device": {
+    "model": "Mac17,6",
+    "chip": "Apple M5 Max",
+    "ram_bytes": 68719476736
+  },
+  "changes": "Compact conditions/help and searchable archive metadata; expose recorded B210 transport failure without automatic retries",
+  "tests": {
+    "passed": 842,
+    "subtests_passed": 943,
+    "failed": 0,
+    "seconds": 83.9,
+    "command": "python -B -m pytest -q -p no:cacheprovider tests"
+  },
+  "visual_review": {
+    "views": [
+      "default",
+      "expanded help",
+      "manual + liquid conditions",
+      "147-record real archive",
+      "minimum 1080x740 window"
+    ],
+    "service": "real DesktopService with a temporary independent APFS data copy",
+    "initialize_and_start_methods": "blocked during preview",
+    "result": "passed"
+  },
+  "selfcheck": {
+    "environment": "rf-gnuradio",
+    "python": "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+    "qt": "6.12.0",
+    "pyqtgraph": "0.14.0",
+    "gnuradio": "3.10.12.0",
+    "uhd_import": true,
+    "profiles": [
+      {
+        "id": "own",
+        "name": "自有 B210",
+        "channel": 0
+      },
+      {
+        "id": "teacher",
+        "name": "老师 B210",
+        "channel": 0
+      }
+    ],
+    "history_count": 147,
+    "hardware_opened": false
+  },
+  "hardware_opened": false,
+  "firmware_uploaded": false,
+  "hardware_recovery_verified": false,
+  "user_confirmed_topology": "Hub/dock used now and during previous successes; cause not established",
+  "prior_failures": "Two recorded starts failed during streaming despite initialization ready; acquisition parameters and code hashes match successful baseline",
+  "source_data_modified": false,
+  "changed_files_before_audit": [
+    {
+      "path": "CONTEXT_RULES.md",
+      "before_sha256": "99426316c5e80805dd69c49b802e9b899ed2e826337fdf8bde99bc6680a2a287",
+      "after_sha256": "6575fc083f79ee33070ed95d03cd87b752c0f55585a0f6117f5a03d079451169"
+    },
+    {
+      "path": "README.md",
+      "before_sha256": "bf2c20cd1a74544a204e2465a5fbbb654ad7c675226ac5c5e0f12d5a46bc7c6a",
+      "after_sha256": "7d690dbf390bfdfd4ce60b7effd509d9c56b739d9ab256fbcf23a63cf5020dcf"
+    },
+    {
+      "path": "docs/start_failure_diagnosis_20261105.json",
+      "before_sha256": null,
+      "after_sha256": "93761c5c6e990e9b73cf225b14f707e641bab6376fb46495c5975af43c3ed126"
+    },
+    {
+      "path": "docs/startup_failure_20261105.md",
+      "before_sha256": null,
+      "after_sha256": "bff7c51fc547756dba1ef68b2818c19103d545749b244cd614f80a4d482e1bd7"
+    },
+    {
+      "path": "docs/unified_sweep.md",
+      "before_sha256": "7ae5c96f30876ce220e583c862d0a93671456717116bbd3ab6bb282b688aca8d",
+      "after_sha256": "9b0e60e6ae3e63019a57cc3219167e18fea40eee75a8493ca349eeb090395edc"
+    },
+    {
+      "path": "sspp_desktop/archive_conditions.py",
+      "before_sha256": null,
+      "after_sha256": "f962c0f1c9849b09179d69ada6f03a2b61f569277dcfec3f388e5ad0d55def2f"
+    },
+    {
+      "path": "sspp_desktop/comparison_service.py",
+      "before_sha256": "9899db249ded84e577b8846a8a7831150f9595d4a30eef57bd76ccd2eee0bcdd",
+      "after_sha256": "2c7e27e99926232d71372b58b81f387d5b8106dfbca845ee03521695e50e6a66"
+    },
+    {
+      "path": "sspp_desktop/device_environment.py",
+      "before_sha256": "5ecc6bf9c72facd32d4b46f2685cac9755a1e9769342e8bb817654147b4fe074",
+      "after_sha256": "a4ac53c8eac8becf413aa3ef653fb39688114a2a4e786f8dcc52b4b27e36f339"
+    },
+    {
+      "path": "sspp_desktop/serial_archive.py",
+      "before_sha256": "f5d1377ee927effd6c1fe05c97e24f5b3473ce723b858e382e89dd4786953e54",
+      "after_sha256": "f005ac070e16577787a7c5b6b6cf7ea4989103763950af189e5dfe38abeccf4b"
+    },
+    {
+      "path": "sspp_desktop/services.py",
+      "before_sha256": "e4b0fee89eebdfd67149171312dd7cc0a7c48e1db0df2cc209d3156cc12a598d",
+      "after_sha256": "04259675ad92e6505495473c9628a242ab018e57e00b015e1f79b7da9b5f28ec"
+    },
+    {
+      "path": "sspp_desktop/unified_sweep_widget.py",
+      "before_sha256": "a725de96dfa49bf41d6af1028f8f7fd0b0876f7c42968ad3527634141ef48824",
+      "after_sha256": "c67984cf7613d23b6d50ccaa9d40ab7dc9d9bb4a10b1a7806f31aabbf2e36830"
+    },
+    {
+      "path": "sspp_desktop/window.py",
+      "before_sha256": "8b1022df6a5c579003d3cbf3c18f7fd9c98829a70f2be6a325718b11fa889bca",
+      "after_sha256": "843b0cca0a1cd50d324bd44c1a89e0a6d53cbfeabc1fec8277e1ef43c6a40c6c"
+    },
+    {
+      "path": "sspp_lab/controller.py",
+      "before_sha256": "c401970d55b1f7052504e31d751191afd5832bccb2db97803946403d12254327",
+      "after_sha256": "914b6ec11e3079cb07e96fc11f68659421335d07653dbb71173a3b07707e2627"
+    },
+    {
+      "path": "tests/test_acquisition_failure_summary.py",
+      "before_sha256": null,
+      "after_sha256": "d8999032c406c910849b531387bd4943ecb046bdb2f02c66974abde61336714f"
+    },
+    {
+      "path": "tests/test_archive_conditions.py",
+      "before_sha256": null,
+      "after_sha256": "85fd418397070d805896141c18873945cff0505c4ca00eb7d4462e3bc2d19077"
+    },
+    {
+      "path": "tests/test_compact_experiment_ui.py",
+      "before_sha256": null,
+      "after_sha256": "a13208e7cb7ca7ef623a6f1940eb427881c0378a87e864dd1db7c0ba2b2ee063"
+    },
+    {
+      "path": "tests/test_sweep_budget.py",
+      "before_sha256": "9f0f20ddc0f794b52782f2274e1626faf6b0acbd8c2e3f53ee9e63017a5f4d49",
+      "after_sha256": "2737e45749ae1cdc83742bdeded722581a04856c49fa8e07223b2ba6b430e576"
+    },
+    {
+      "path": "tests/test_temperature_sweep_mainwindow.py",
+      "before_sha256": "5843bc8e9aedca6d5faeabe0e843aacd70802c5fe947a350b7b4348d080d55d6",
+      "after_sha256": "b99ef35a5349df4865a00b2ad49ba1cc88c79485ed57691736ccd16318ee7faf"
+    }
+  ]
+}

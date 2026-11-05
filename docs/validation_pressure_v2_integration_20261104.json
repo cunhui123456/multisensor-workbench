@@ -1,0 +1,27 @@
+{
+  "schema": "multisensor.pressure_v2_integration_validation.v1",
+  "at": "2026-11-04T16:38:35.457157+08:00",
+  "hardware_opened": false,
+  "firmware_uploaded": false,
+  "integration_tests": {
+    "passed": 182,
+    "subtests_passed": 81,
+    "log": "integration_tests.log",
+    "scope": "17 pressure/temperature/protocol/firmware/transport/archive/navigation test modules"
+  },
+  "final_ui_tests": {
+    "passed": 33,
+    "scope": "pressure_config_ui, pressure_ui, temperature_ui"
+  },
+  "gui_visual_review": "offscreen pressure settings, raw voltage, ADC readout and manual delta plot inspected; synthetic samples only",
+  "source_hashes": {
+    "sspp_desktop/temperature_widget.py": "9e78a2f1d79e41d6ade0f30886462c853e1377ba37e1e70c4145cd7ba914cdc4",
+    "sspp_desktop/serial_archive.py": "f5d1377ee927effd6c1fe05c97e24f5b3473ce723b858e382e89dd4786953e54",
+    "sspp_desktop/serial_archive_widget.py": "3f64ddbea8948f07b0b2fb761306a92c962a07582082c7a4f1cddf799bb5a4cf",
+    "sspp_experiments/temperature_pressure/comparison.py": "0a51d5a5de5e5b89f15001b5764599e7031dbb5bacc7c4188c59225616351f1e",
+    "tests/test_pressure_ui.py": "e6e80af79fb860d6da043297c978cd70d535967b204361fab78c9bf97c2dd275",
+    "tests/test_temperature_ui.py": "79ccf0a4ac6d7031bb9949957ea9d223b86797c884062037538a4384aa9de50f",
+    "tests/test_pressure_config_ui.py": "e6a3e118020fb10e11d17e101a2c69bd058c422b0e28c20439fb3f18d2792ea7",
+    "tests/test_pressure_archive.py": "d3485d34bcf7f31c8e155191125566ded6b3292620b16ad960e697b5525929a6"
+  }
+}

@@ -17,6 +17,7 @@ import zipfile
 from sspp_lab.controller import LabError, read_json
 from sspp_experiments.comparison import history_category as result_category
 from .figure_archive import FigureArchiveMixin, json_bytes, report_digest
+from .archive_conditions import archive_conditions
 
 
 
@@ -33,13 +34,21 @@ def csv_bytes(rows, columns=None):
 
 
 class ComparisonMixin(FigureArchiveMixin):
-    def history(self):
-        rows = super().history()
-        for row in rows:
-            run = self.run_path(row["key"])
-            context = read_json(run / "desktop_context.json", {}) or read_json(run / "web_context.json", {}) or {}
-            row["category"] = result_category(row, context)
-        return rows
+    def _history_row(self, key, kind, manifest, context):
+        row = super()._history_row(key, kind, manifest, context)
+        row["category"] = result_category(row, context)
+        parameters = context.get("parameters")
+        row["has_liquid_conditions"] = (
+            row["category"].startswith("liquid_temperature_")
+            or isinstance(parameters, dict) and isinstance(parameters.get("liquid_temperature"), dict)
+        )
+        row.update(archive_conditions(row, context, manifest))
+        return row
+
+    def _archive_details(self, details, manifest):
+        details = super()._archive_details(details, manifest)
+        details.update(archive_conditions(details, manifest=manifest))
+        return details
 
     @contextmanager
     def _comparison_operation(self):
@@ -68,6 +77,7 @@ class ComparisonMixin(FigureArchiveMixin):
             code_files = ["sspp_experiments/comparison.py", "sspp_experiments/material_sweep/comparison.py",
                           "sspp_experiments/finger_displacement/comparison.py", "sspp_experiments/temperature_pressure/comparison.py",
                           "sspp_experiments/temperature_pressure/corrections.py",
+                          "sspp_experiments/temperature_pressure/pressure.py",
                           "sspp_desktop/comparison_service.py", "sspp_desktop/publication.py",
                           "sspp_desktop/comparison_export.py", "sspp_lab/dsp.py"]
             return self.register_analysis_report(report, code_files)

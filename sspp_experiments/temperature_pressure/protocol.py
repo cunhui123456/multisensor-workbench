@@ -1,11 +1,12 @@
-"""两份已有 Arduino Sketch 的只读文本协议；保留错误与时钟分段。"""
+"""Versioned Arduino wire protocols; preserve raw values, errors and clock segments."""
 
 import math
 
-PROTOCOLS = {"pressure_v1": "压力原程序 · 时间/电压", "temperature_v1": "温度检查 v1 · S6/S7 ADC/电压"}
+PROTOCOLS = {"pressure_v1": "压力原程序 · 时间/电压", "temperature_v1": "温度检查 v1 · S6/S7 ADC/电压", "pressure_v2": "压力可选通道 v2 · S1–S5 / ADC / ΔV"}
 TEMPERATURE_HEADER = "t6_ms,S6_adc,S6_V,t7_ms,S7_adc,S7_V"
 CSV_FIELDS = ["sample_index", "line_number", "channel", "mcu_time_ms", "mcu_elapsed_s",
               "host_time_utc", "host_elapsed_s", "adc", "voltage_v", "time_segment", "event"]
+PRESSURE_CSV_FIELDS = [*CSV_FIELDS, "baseline_v", "delta_voltage_v", "zero_id", "baseline_ms", "zero_count", "selection_token"]
 
 
 class LineParser:
@@ -103,8 +104,16 @@ class LineParser:
             return [], []
         # Nano 打开串口可能先吐出旧半行，再在复位时输出启动横幅。
         # 仅识别精确固件签名；残片不解释为测量，原始字节仍完整保存。
-        signature = "# Temperature_Channel_Check v1"
-        banner_at = text.find(signature) if self.protocol == "temperature_v1" else -1
+        signature = ("# Temperature_Channel_Check v1" if self.protocol == "temperature_v1"
+                     else "# Pressure_Diagnostic v2" if self.protocol == "pressure_v2" else "# Pressure_Diagnostic v1")
+        banner_at = text.find(signature)
+        if self.protocol in ("pressure_v1", "pressure_v2") and banner_at >= 0:
+            # Only the exact diagnostic version/banner, optionally followed by its
+            # semicolon-separated metadata. Ordinary # P/status text is not a reboot.
+            suffix_at = banner_at + len(signature)
+            if ((suffix_at < len(text) and text[suffix_at] != ";") or
+                    (banner_at > 0 and text.startswith("#"))):
+                banner_at = -1
         if banner_at > 0:
             kind = "startup_fragment" if host_elapsed_s <= 3.0 else "interrupted_line"
             fragment = self._event(kind, "固件重启横幅前的未完成行已排除: " + text[:banner_at][:500],
@@ -114,17 +123,41 @@ class LineParser:
         if text.startswith("#"):
             kind = "firmware_error" if "ERROR" in text.upper() else "firmware_status"
             messages = [self._event(kind, text, host_time_utc, host_elapsed_s)]
-            if self.protocol == "temperature_v1" and text.startswith("# Temperature_Channel_Check v1") and self.sample_index:
+            if banner_at == 0 and self.sample_index:
                 # 固件重启横幅比 millis 的下降更明确；即使新值已经较大也分段。
                 self.segment += 1
                 self.clocks.clear()
-                messages.append(self._event("mcu_reset", "再次收到温度固件启动横幅，开始新时间段", host_time_utc, host_elapsed_s))
+                label = "温度" if self.protocol == "temperature_v1" else "压力诊断"
+                messages.append(self._event("mcu_reset", f"再次收到{label}固件启动横幅，开始新时间段", host_time_utc, host_elapsed_s))
             return [], messages
         if self.protocol == "temperature_v1" and text == TEMPERATURE_HEADER:
             return [], [self._event("protocol_header", text, host_time_utc, host_elapsed_s)]
         try:
             values = [part.strip() for part in text.split(",")]
-            if self.protocol == "pressure_v1":
+            extras = {}
+            if self.protocol == "pressure_v2":
+                if len(values) != 11 or values[0] != "P" or values[2] not in {"S1", "S2", "S3", "S4", "S5"}:
+                    raise ValueError("压力 v2 需要 P 标记、S1–S5 和 11 列")
+                samples = [(values[2], self._time(values[1]), self._number(values[3], 0, 1023), self._number(values[4], 0, 5.1))]
+                zero_id, count, token = self._time(values[7]), self._time(values[9]), self._time(values[10])
+                if count > 40:
+                    raise ValueError("置零帧数超出40")
+                absent = [values[i] == "NA" for i in (5, 6, 8)]
+                if any(absent) != all(absent):
+                    raise ValueError("压力基线字段不完整")
+                if all(absent):
+                    if count == 40 or (zero_id == 0 and count != 0):
+                        raise ValueError("压力基线状态矛盾")
+                    baseline = delta = baseline_ms = ""
+                else:
+                    baseline = self._number(values[5], 0, 5.1)
+                    delta = self._number(values[6], -5.1, 5.1)
+                    baseline_ms = self._time(values[8])
+                    if not zero_id or count != 40 or abs(samples[0][3] - baseline - delta) > .00021:
+                        raise ValueError("压力基线、ΔV与原始电压不一致")
+                extras = dict(baseline_v=baseline, delta_voltage_v=delta, zero_id=zero_id,
+                              baseline_ms=baseline_ms, zero_count=count, selection_token=token)
+            elif self.protocol == "pressure_v1":
                 if len(values) != 2:
                     raise ValueError("压力协议需要两列")
                 samples = [(self.pressure_channel, self._time(values[0]), "", self._number(values[1], 0, 5.1))]
@@ -145,5 +178,5 @@ class LineParser:
             rows.append({"sample_index": self.sample_index, "line_number": self.line_number, "channel": channel,
                          "mcu_time_ms": mcu_time, "mcu_elapsed_s": elapsed, "host_time_utc": host_time_utc,
                          "host_elapsed_s": host_elapsed_s, "adc": adc, "voltage_v": voltage,
-                         "time_segment": self.segment, "event": marker})
+                         "time_segment": self.segment, "event": marker, **extras})
         return rows, events

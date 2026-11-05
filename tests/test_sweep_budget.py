@@ -4,6 +4,7 @@ import unittest
 
 from PySide6 import QtWidgets
 import test_experiment_navigation as fixtures
+from test_temperature_ui import FakePreparation
 
 
 class UnlimitedSweepWindowTests(unittest.TestCase):
@@ -21,18 +22,26 @@ class UnlimitedSweepWindowTests(unittest.TestCase):
         self.assertIsNone(window.config()['max_seconds'])
         visible_text = '\n'.join(widget.text() for widget in
                                  window.sweep_group.findChildren(QtWidgets.QLabel))
-        self.assertNotIn('总时限', visible_text)
+        # The concise hint may state that no total limit exists; no total-limit control/config is allowed.
         self.assertNotIn('自动预留', visible_text)
-        self.assertNotIn('总时限', window.workspace_hint.text())
+        self.assertNotIn('总时限', window.help_dialog.body.toPlainText())
 
     def ready(self, serial=False):
         for kind in ('usrp', 'serial') if serial else ('usrp',):
             self.service.initialize_environment(self.window._environment_target(kind))
+        if serial:
+            panel = self.window.temperature_workspace
+            panel.protocol.setCurrentIndex(panel.protocol.findData('temperature_v1'))
+            prepared = FakePreparation()
+            panel.preparation = prepared
+            self.window._set_active(False)
+            prepared.start(self.window.temperature_sweep_workspace.port.currentData(), 'temperature_v1', upload=False)
+            prepared.finish()
         self.window._set_active(False)
 
     def start_and_stop(self):
         window = self.window
-        window.confirm.setChecked(True)
+        self.assertFalse(hasattr(window, 'confirm'))
         window.start_button.click()
         self.pump(lambda: self.service.started is not None and not window.runner.pending)
         self.assertIsNone(self.service.started['max_seconds'])
@@ -57,16 +66,19 @@ class UnlimitedSweepWindowTests(unittest.TestCase):
         self.ready()
         self.start_and_stop()
 
-    def test_changed_sweep_parameters_still_revoke_confirmation(self):
+    def test_changed_sweep_parameters_preserve_device_readiness_without_confirmation(self):
+        self.ready()
         for key, value in [('points', 40), ('repeat', 2), ('point_timeout', 12)]:
             with self.subTest(parameter=key):
-                self.window.confirm.setChecked(True)
                 self.window.fields[key].setValue(value)
-                self.assertFalse(self.window.confirm.isChecked())
+                self.assertFalse(hasattr(self.window, 'confirm'))
+                self.assertTrue(self.window._environment_ready('usrp'))
+                self.assertTrue(self.window.config()['setup_confirmed'])
                 self.assert_unlimited()
 
     def test_old_draft_limits_are_ignored_across_navigation_and_reset(self):
         window = self.window
+        window.material_workspace.material_name.setText('legacy_draft_sample')
         draft = deepcopy(window._capture_draft())
         draft['values'].update(max_seconds=90, auto_sweep_budget=False, points=40, repeat=2)
         draft['auto_sweep_budget'] = False
@@ -79,10 +91,12 @@ class UnlimitedSweepWindowTests(unittest.TestCase):
         window.temperature_sweep_workspace.reference_temperature.setText('50')
         window.fields['points'].setValue(30)
         self.assert_unlimited()
+        self.select('finger')
         self.select('material')
-        self.assertEqual((window.config()['points'], window.config()['repeat']), (40, 2))
+        self.assertEqual((window.config()['points'], window.config()['repeat']), (30, 2))
+        self.assertEqual(window.config()['temperature_sweep']['reference_temperature_c'], 50)
         window.reset_parameters()
-        self.assertEqual(window.config()['points'], 20)
+        self.assertEqual(window.config()['points'], 30)
         self.assertEqual(window.config()['point_timeout'], 8)
         self.assert_unlimited()
         self.select('temperature_sweep')
@@ -92,9 +106,10 @@ class UnlimitedSweepWindowTests(unittest.TestCase):
     def test_continuous_sweep_ignores_round_count_and_keeps_manual_stop(self):
         self.select('temperature_sweep')
         window = self.window
+        window.material_workspace.material_name.setText('continuous_sample')
         panel = window.temperature_sweep_workspace
-        panel.experiment_mode.setCurrentIndex(1)
-        panel.set_port('/dev/cu.usbserial_TEST')
+        window.sweep_options.temperature_mode.setCurrentIndex(2)
+        window._joint_port_changed('/dev/cu.usbserial_TEST')
         window.fields['repeat'].setValue(1)
         self.assertEqual(window.config()['temperature_sweep']['mode'], 'continuous')
         self.assertFalse(window.fields['repeat'].isEnabled())
@@ -106,9 +121,10 @@ class UnlimitedSweepWindowTests(unittest.TestCase):
     def test_manual_temperature_sweep_retains_finite_rounds(self):
         self.select('temperature_sweep')
         window = self.window
+        window.material_workspace.material_name.setText('manual_sample')
         panel = window.temperature_sweep_workspace
-        panel.experiment_mode.setCurrentIndex(1)
-        panel.experiment_mode.setCurrentIndex(0)
+        window.sweep_options.temperature_mode.setCurrentIndex(2)
+        window.sweep_options.temperature_mode.setCurrentIndex(1)
         panel.reference_temperature.setText('50')
         window.fields['repeat'].setValue(5)
         self.assertEqual(window.config()['temperature_sweep']['mode'], 'manual')

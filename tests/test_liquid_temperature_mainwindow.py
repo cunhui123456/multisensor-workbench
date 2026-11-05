@@ -71,69 +71,70 @@ class LiquidTemperatureMainWindowTests(unittest.TestCase):
         self.fail("主窗口液体温度集成等待超时")
 
     def prepare(self, mode="phase"):
-        self.window.liquid_workspace.prepare_requested.emit({"mode": mode, "liquid_temperature": deepcopy(METADATA)})
-        self.pump(lambda: not self.window.liquid_workspace.is_busy)
+        self.assertTrue(self.window.select_experiment('finger' if mode=='phase' else 'material'))
+        self.pump(lambda:not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
+        if mode=='phase':self.window.fields['label'].setText('liquid_sample')
+        else:self.window.material_workspace.material_name.setText('liquid_sample')
+        for key,value in METADATA.items():
+            if key in self.window.liquid_workspace.fields:
+                self.window.liquid_workspace.fields[key].setText(str(value))
+        self.window.sweep_options.liquid_enabled.setChecked(True)
 
-    def test_prepare_signal_sets_metadata_and_requires_fresh_confirmation_without_start(self):
-        self.window.confirm.setChecked(True)
+    def test_direct_fields_set_metadata_without_apply_or_hardware_action(self):
         self.prepare()
         config = self.window.config()
-        self.assertEqual(config["mode"], "phase")
-        self.assertEqual(config["condition"], "material")
-        self.assertEqual(config["liquid_temperature"]["temperature_c"], 29.8)
-        self.assertEqual(config["liquid_temperature"]["temperature_source"], "operator_reference_thermometer")
-        self.assertFalse(config["setup_confirmed"])
+        self.assertEqual(config['mode'],'phase')
+        self.assertEqual(config['condition'],'material')
+        self.assertEqual(config['liquid_temperature']['temperature_c'],29.8)
+        self.assertEqual(config['liquid_temperature']['temperature_source'],'operator_reference_thermometer')
+        self.assertFalse(config['setup_confirmed'])
         self.assertIsNone(self.service.started)
         self.assertFalse(self.service.stopped)
-        self.assertEqual(self.window.tabs.currentIndex(), 0)
         self.assertFalse(self.window.tabs.isTabEnabled(self.window.finger_tab))
-        self.assertIn("液体温度", self.window.start_button.text())
-        # 调用方不能通过返回的字典悄悄改写待采集条件。
-        config["liquid_temperature"]["temperature_c"] = 99.
-        self.assertEqual(self.window.config()["liquid_temperature"]["temperature_c"], 29.8)
+        self.assertIn('液体',self.window.start_button.text())
+        config['liquid_temperature']['temperature_c']=99.
+        self.assertEqual(self.window.config()['liquid_temperature']['temperature_c'],29.8)
         self.window.start_experiment()
         self.assertIsNone(self.service.started)
+        self.assertIn('初始化',self.window.notice.text())
 
-    def test_normal_config_contains_explicit_none_and_exit_clears_conditions(self):
-        self.assertEqual(set(self.window.config()), set(DEFAULTS) | {"profile"})
-        self.assertIsNone(self.window.config()["liquid_temperature"])
-        self.prepare("sweep")
-        self.assertTrue(self.window.config()["liquid_temperature"])
-        self.window.confirm.setChecked(True)
-        self.window.liquid_clear_button.click()
-        self.assertIsNone(self.window.config()["liquid_temperature"])
-        self.assertIsNone(self.window._liquid_setup)
-        self.assertFalse(self.window.confirm.isChecked())
-        self.assertEqual(self.window.experiment_id, "liquid")
-        self.assertEqual(self.window.start_button.text(), "先应用温度条件")
+    def test_optional_liquid_group_can_be_disabled_without_leaking_metadata(self):
+        self.assertEqual(set(self.window.config()),set(DEFAULTS)|{'profile'})
+        self.assertIsNone(self.window.config()['liquid_temperature'])
+        self.prepare('sweep')
+        self.assertTrue(self.window.config()['liquid_temperature'])
+        self.window.sweep_options.liquid_enabled.setChecked(False)
+        self.assertIsNone(self.window.config()['liquid_temperature'])
+        self.assertEqual(self.window.experiment_id,'material')
+        self.assertNotIn('应用',self.window.start_button.text())
+        self.assertFalse(hasattr(self.window,'confirm'))
 
-    def test_changing_mode_clears_temperature_conditions_and_confirmation(self):
-        self.prepare("phase")
-        self.window.confirm.setChecked(True)
-        self.window.mode.setCurrentIndex(self.window.mode.findData("sweep"))
-        self.assertIsNone(self.window._liquid_setup)
-        self.assertIsNone(self.window.config().get("liquid_temperature"))
-        self.assertFalse(self.window.confirm.isChecked())
-        self.window.mode.setCurrentIndex(self.window.mode.findData("phase"))
+    def test_phase_and_sweep_optional_condition_drafts_remain_independent(self):
+        self.prepare('phase')
+        self.window.liquid_workspace.fields['temperature_c'].setText('31.2')
+        self.assertTrue(self.window.select_experiment('material'))
+        self.pump(lambda:not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
+        self.assertIsNone(self.window.config()['liquid_temperature'])
+        self.assertTrue(self.window.select_experiment('finger'))
+        self.pump(lambda:not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
+        self.assertEqual(self.window.config()['liquid_temperature']['temperature_c'],31.2)
+        self.assertIsNone(self.window.config()['temperature_sweep'])
         self.assertFalse(self.window.tabs.isTabEnabled(self.window.finger_tab))
-        self.assertEqual(self.window.experiment_id, "liquid")
-        self.assertEqual(self.window.start_button.text(), "先应用温度条件")
+        self.assertEqual(self.window.experiment_id,'finger')
+        self.assertNotIn('应用',self.window.start_button.text())
 
-    def test_completed_temperature_run_clears_setup_and_loads_saved_record(self):
+    def test_completed_liquid_run_preserves_form_and_loads_saved_record(self):
         self.prepare()
-        config = self.window.config()
-        running = {"job": {"status": "running", "config": config, "baseline": {"end_s": 7.},
-                           "output": "Data/phase_runs/temperature-test"}}
+        config=self.window.config()
+        running={'job':{'status':'running','config':config,'baseline':{'end_s':7.},'output':'Data/phase_runs/temperature-test'}}
         self.window._apply_status(deepcopy(running))
         self.assertFalse(self.window.config_container.isEnabled())
-        done = deepcopy(running)
-        done["job"].update(status="complete", rf_stopped=True)
+        done=deepcopy(running);done['job'].update(status='complete',rf_stopped=True)
         self.window._apply_status(done)
-        self.pump(lambda: not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
-        self.assertIsNone(self.window._liquid_setup)
-        self.assertFalse(self.window.confirm.isChecked())
-        self.assertEqual(self.service.liquid_load_calls, ["phase_runs/temperature-test"])
-        self.assertEqual(self.window.liquid_workspace.current_key, "phase_runs/temperature-test")
+        self.pump(lambda:not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
+        self.assertEqual(self.window.config()['liquid_temperature']['temperature_c'],29.8)
+        self.assertEqual(self.service.liquid_load_calls,['phase_runs/temperature-test'])
+        self.assertEqual(self.window.liquid_workspace.current_key,'phase_runs/temperature-test')
         self.assertIsNone(self.service.started)
 
     def test_temperature_history_category_and_finger_action_are_separate(self):
@@ -146,7 +147,7 @@ class LiquidTemperatureMainWindowTests(unittest.TestCase):
             row.update(category=history_category(row), status="complete", started_utc="2026-10-27T00:00:00Z")
         self.assertEqual([row["category"] for row in rows],
                          ["liquid_temperature_phase", "liquid_temperature_sweep", "finger_displacement"])
-        self.assertTrue(self.window.select_experiment("liquid"))
+        self.assertTrue(self.window.select_experiment("finger"))
         self.window.open_archive()
         self.pump(lambda: not self.window.runner.pending and not self.window.liquid_workspace.is_busy)
         self.window._history_all_rows = rows
@@ -156,8 +157,10 @@ class LiquidTemperatureMainWindowTests(unittest.TestCase):
         self.assertIn("液体温度", self.window.history_table.item(0, 3).text())
         checkbox = self.window.history_table.item(0, 0)
         checkbox.setCheckState(QtCore.Qt.CheckState.Checked)
-        self.assertFalse(self.window.comparison_keys)
-        self.assertIn("液体温度影响页", self.window.notice.text())
+        self.assertEqual(self.window.comparison_keys, {'phase_runs/liquid'})
+        self.assertFalse(self.window.compare_button.isEnabled())
+        self.window.compare_selected()
+        self.assertIn("液体", self.window.notice.text())
         self.window.selected_details = {"key": "phase_runs/liquid", "context": {"experiment": "liquid_temperature_phase"}}
         self.window._history_buttons(True)
         self.assertFalse(self.window.finger_history_button.isEnabled())

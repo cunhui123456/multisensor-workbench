@@ -56,9 +56,9 @@ class ComparisonService(FakeService):
     def history(self):
         return copy.deepcopy(self.rows)
 
-    def details(self, key):
+    def details(self, key, *, include_curve=True):
         self.details_release.wait(2)
-        return {"key": key, "metadata": {"key": key}, "curve": {"mode": "sweep", "points": []}, "files": []}
+        return {"key": key, "metadata": {"key": key}, "curve_loaded": include_curve, "curve": {"mode": "sweep", "points": []}, "files": []}
 
     def compare_runs(self, keys, reference_key=None):
         self.comparisons.append((list(keys), reference_key, threading.get_ident()))
@@ -152,7 +152,7 @@ class ComparisonUiTests(unittest.TestCase):
         self.check(first)
         self.assertTrue(self.window.compare_button.isEnabled())
         self.assertEqual(self.window.compare_button.text(),'分析所选记录')
-        self.assertIn('已勾选 1 / 8',self.window.comparison_count.text())
+        self.assertIn('已勾选 1',self.window.comparison_count.text())
         self.assertNotIn('至少 2',self.window.comparison_count.text())
         self.assertIn('1–8',self.item(first).toolTip())
         self.check(second)
@@ -415,6 +415,7 @@ class ComparisonUiTests(unittest.TestCase):
         self.assertEqual(self.service.comparisons[0][0],[first])
         self.assertFalse(self.window.compare_button.isEnabled())
         self.window.history_search.setText('样品 1')
+        self.wait(lambda: not self.window._history_filter_timer.isActive())
         self.assertFalse(self.window.comparison_keys)
         self.service.compare_release.set()
         self.wait(lambda: not self.window.runner.pending)
@@ -430,6 +431,7 @@ class ComparisonUiTests(unittest.TestCase):
         self.check(first)
         self.check(second)
         self.window.history_search.setText("样品 1")
+        self.wait(lambda: not self.window._history_filter_timer.isActive())
         self.assertEqual([row["key"] for row in self.window.history_rows], [second])
         self.assertEqual(self.window.comparison_keys, {second})
         self.assertIn("已清除 1 条", self.window.notice.text())
@@ -447,6 +449,7 @@ class ComparisonUiTests(unittest.TestCase):
         self.window.history_search.setText("sspp a")
         self.assertEqual(len(self.window.history_rows), 9)
         self.window.history_search.setText(first)
+        self.wait(lambda: not self.window._history_filter_timer.isActive())
         self.assertEqual(self.window.history_rows[0]["key"], first)
         self.assertIn("原始 UTC", self.window.history_table.item(0, 1).toolTip())
 
@@ -457,29 +460,35 @@ class ComparisonUiTests(unittest.TestCase):
         self.wait(lambda: self.window.selected_details is not None)
         self.service.rows.reverse()
         self.window.refresh_history()
-        self.wait(lambda: "history" not in self.window.runner.pending)
+        self.wait(lambda: not self.window.runner.pending and self.window.selected_details is not None)
         self.assertEqual(self.window.comparison_keys, {key})
         self.assertEqual(self.item(key).checkState(), QtCore.Qt.CheckState.Checked)
         self.assertEqual(self.window.history_table.currentRow(), self.item(key).row())
         self.assertEqual(self.window.selected_details["key"], key)
 
-    def test_same_category_max_eight_and_teacher_rejection(self):
+    def test_batch_selection_preserves_analysis_limits_and_teacher_rejection(self):
         for row in self.service.rows[:9]:
             self.check(row["key"])
-        self.assertEqual(len(self.window.comparison_keys), 8)
-        self.assertIn("最多分析 8", self.window.notice.text())
+        self.assertEqual(len(self.window.comparison_keys), 9)
+        self.assertFalse(self.window.compare_button.isEnabled())
+        self.window.compare_selected()
+        self.assertFalse(self.service.comparisons)
         self.assertTrue(self.window.select_experiment("finger"))
         self.wait(lambda: not self.window.runner.pending)
         self.assertFalse(self.window.comparison_keys)
         self.check("phase_runs/finger_displacement")
         self.check("phase_runs/phase_history")
-        self.assertEqual(self.window.comparison_keys, {"phase_runs/finger_displacement"})
-        self.assertIn("同一种实验", self.window.notice.text())
+        self.assertEqual(self.window.comparison_keys, {"phase_runs/finger_displacement", "phase_runs/phase_history"})
+        self.assertFalse(self.window.compare_button.isEnabled())
+        self.window.compare_selected()
+        self.assertFalse(self.service.comparisons)
         self.assertTrue(self.window.select_experiment("material"))
         self.wait(lambda: not self.window.runner.pending)
         self.check("teacher_runs/one")
-        self.assertFalse(self.window.comparison_keys)
-        self.assertIn("暂不支持", self.window.notice.text())
+        self.assertEqual(self.window.comparison_keys, {"teacher_runs/one"})
+        self.assertFalse(self.window.compare_button.isEnabled())
+        self.window.compare_selected()
+        self.assertFalse(self.service.comparisons)
 
     def test_late_details_and_comparison_do_not_override_changed_filter(self):
         key = self.service.rows[0]["key"]
@@ -491,6 +500,7 @@ class ComparisonUiTests(unittest.TestCase):
         self.assertIsNone(self.window.selected_details)
         self.assertIsNone(self.window.viewing_key)
         self.window.history_search.clear()
+        self.wait(lambda: not self.window._history_filter_timer.isActive())
         self.check(key)
         self.check(self.service.rows[1]["key"])
         self.service.compare_release.clear()

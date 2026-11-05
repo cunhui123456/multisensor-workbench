@@ -1,0 +1,1348 @@
+{
+  "created_utc": "2026-11-05T05:14:07.092931+00:00",
+  "read_only_root": "/private/tmp/workbench_performance_20261105/stage",
+  "schema": "workbench.sweep_performance_audit.v1",
+  "boundaries": [
+    "No device opened or acquisition started. Existing sealed records only; running/faulted records excluded from speed estimates.",
+    "Point active wall derives from saved monotonic base deadline minus base budget through accepted MEASURE/invalid timeout. Between-point time combines save/compress/hash, retune, fixed settle and bookkeeping; old logs cannot split them further.",
+    "Processed sample spans are not additive with wall timing. Failed escalation prefixes overlap; naive summing window durations double counts real samples.",
+    "No run-to-run causal speed claim: sample/temperature/signal quality differ. Offline CPU/I/O benchmarks are not new hardware throughput measurements."
+  ],
+  "inventory": {
+    "manifest_count": 113,
+    "versions": {
+      "null": 35,
+      "sspp.sweep.full_window_quality.v2": 19,
+      "sspp.sweep.adaptive_coherent_quality.v3": 14,
+      "sspp.sweep.bounded_missing_points.v4": 11,
+      "sspp.sweep.target_confirmed.v5": 8,
+      "sspp.sweep.target_confirmed.v6": 1,
+      "sspp.sweep.target_confirmed.v7": 1,
+      "sspp.sweep.target_confirmed.v8": 24
+    },
+    "eligible_v8_count": 21,
+    "excluded_v8": [
+      {
+        "run": "20261105T044154_929542Z",
+        "status": "failed_or_incomplete",
+        "reason": "not sealed complete sweep with all RF-stop evidence"
+      },
+      {
+        "run": "20261105T044309_486093Z",
+        "status": "failed_or_incomplete",
+        "reason": "not sealed complete sweep with all RF-stop evidence"
+      },
+      {
+        "run": "20261105T051109_738104Z",
+        "status": "running",
+        "reason": "not sealed complete sweep with all RF-stop evidence"
+      }
+    ]
+  },
+  "aggregate_v8": {
+    "wall_duration_s": {
+      "n": 21,
+      "min": 60.034562,
+      "median": 145.154825,
+      "p90": 164.700441,
+      "max": 174.028544,
+      "sum": 2904.377717
+    },
+    "point_count": 1260,
+    "valid_count": 1251,
+    "wall_duration_sum_s": 2904.377717,
+    "point_active_wall_sum_s": 2341.4880719558714,
+    "between_point_sum_s": 493.9597485030972,
+    "source_runs": [
+      "20261102T111057_516921Z",
+      "20261102T111238_829221Z",
+      "20261102T111518_782405Z",
+      "20261102T111915_993989Z",
+      "20261102T112203_601443Z",
+      "20261102T112424_829015Z",
+      "20261102T112649_043292Z",
+      "20261102T113040_043444Z",
+      "20261102T113536_490816Z",
+      "20261102T114002_315500Z",
+      "20261102T114504_454368Z",
+      "20261102T114850_430307Z",
+      "20261102T115233_510558Z",
+      "20261102T115935_214073Z",
+      "20261102T120300_433101Z",
+      "20261102T120639_773078Z",
+      "20261102T121522_411351Z",
+      "20261102T122416_130069Z",
+      "20261102T123515_382508Z",
+      "20261105T050830_453913Z",
+      "20261105T050951_801879Z"
+    ]
+  },
+  "selected_runs": [
+    {
+      "run": "20261102T120639_773078Z",
+      "status": "complete_with_gaps",
+      "label": "温度平台_1",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 135.159066,
+      "point_count": 60,
+      "valid_count": 57,
+      "decomposition_s": {
+        "point_active_wall": 108.31277191503614,
+        "between_points": 23.195269501957227,
+        "outside_first_point_start_to_last_finish": 3.651024583006631,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.33456741701229475,
+        "median": 0.534045000000333,
+        "p90": 3.226441804409842,
+        "max": 8.001277791001485,
+        "sum": 108.31277191503614
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.18050099999527447,
+        "median": 0.21696229100052733,
+        "p90": 0.6086452584015207,
+        "max": 1.3199468340026215,
+        "sum": 23.195269501957227
+      },
+      "unique_processed_sample_span_s": 103.82000000000001,
+      "attempt_window_duration_s": {
+        "0.02": 63,
+        "0.1": 202,
+        "1.0": 69,
+        "2.0": 9
+      },
+      "accepted_window_duration_s": {
+        "1.0": 21,
+        "0.1": 36
+      },
+      "attempts": 343,
+      "failed_attempts": 163,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 149,
+        "tone_frequency_out_of_tolerance": 24,
+        "target_tone_below_local_floor_margin": 147,
+        "previous_tone_not_sufficiently_rejected": 98
+      },
+      "window_sources": {
+        "default": 22,
+        "previous_round_success": 38
+      },
+      "extensions": 21,
+      "carryover_hold_attempts": 96,
+      "invalid_active_wall_s": 24.003083249990596,
+      "round_active_wall_s": {
+        "1": 28.409953877009684,
+        "2": 39.12716362401261,
+        "3": 40.77565441401384
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 9,
+          "carrier_ghz": 5.126315789473685,
+          "active_wall_s": 24.003083249990596,
+          "invalid": 3,
+          "attempts": 27
+        },
+        {
+          "point": 1,
+          "carrier_ghz": 5.0,
+          "active_wall_s": 9.526124791998882,
+          "invalid": 0,
+          "attempts": 16
+        },
+        {
+          "point": 10,
+          "carrier_ghz": 5.142105263157895,
+          "active_wall_s": 9.320482667026226,
+          "invalid": 0,
+          "attempts": 13
+        },
+        {
+          "point": 11,
+          "carrier_ghz": 5.157894736842105,
+          "active_wall_s": 9.297461332986131,
+          "invalid": 0,
+          "attempts": 13
+        },
+        {
+          "point": 8,
+          "carrier_ghz": 5.110526315789474,
+          "active_wall_s": 9.282211458004895,
+          "invalid": 0,
+          "attempts": 13
+        }
+      ],
+      "raw_npz_bytes": 52296766,
+      "telemetry": {
+        "rx_samples": 32980992,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "a4d738e07cd54eefa2134adffe4d12a8d0c548a697a0dc9a73879a80224f72fa",
+        "desktop_context.json": "4335a8f8d54036cad3d48fa6723e8e77c94f5a2211f71fcf0c08e89d6df7a633",
+        "sweep_quality.jsonl": "a1b8f53f41a865adaf971fe78bf9b451fd3bda9f5249630592b79dcd68616360"
+      }
+    },
+    {
+      "run": "20261102T121522_411351Z",
+      "status": "complete_with_gaps",
+      "label": "温度平台_1",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 164.700441,
+      "point_count": 60,
+      "valid_count": 58,
+      "decomposition_s": {
+        "point_active_wall": 134.80968016303086,
+        "between_points": 26.337974378970102,
+        "outside_first_point_start_to_last_finish": 3.552786457999048,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.1145236659940565,
+        "median": 0.5477475005027372,
+        "p90": 3.3851333625003464,
+        "max": 16.000922042003367,
+        "sum": 134.80968016303086
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.1416190000018105,
+        "median": 0.334731708993786,
+        "p90": 0.6644353751995368,
+        "max": 2.297507167008007,
+        "sum": 26.337974378970102
+      },
+      "unique_processed_sample_span_s": 128.72,
+      "attempt_window_duration_s": {
+        "0.02": 64,
+        "0.1": 179,
+        "1.0": 78,
+        "2.0": 17,
+        "0.04": 1
+      },
+      "accepted_window_duration_s": {
+        "0.1": 31,
+        "1.0": 25,
+        "0.04": 1,
+        "2.0": 1
+      },
+      "attempts": 339,
+      "failed_attempts": 146,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 131,
+        "target_tone_below_local_floor_margin": 112,
+        "tone_frequency_out_of_tolerance": 20,
+        "previous_tone_not_sufficiently_rejected": 90
+      },
+      "window_sources": {
+        "default": 20,
+        "previous_round_success": 39,
+        "previous_round_weak_confirmation": 1
+      },
+      "extensions": 28,
+      "carryover_hold_attempts": 86,
+      "invalid_active_wall_s": 32.0011061670084,
+      "round_active_wall_s": {
+        "1": 41.80068137503986,
+        "2": 41.60453662199143,
+        "3": 51.404462165999576
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 9,
+          "carrier_ghz": 5.126315789473685,
+          "active_wall_s": 40.134656708003604,
+          "invalid": 2,
+          "attempts": 24
+        },
+        {
+          "point": 5,
+          "carrier_ghz": 5.063157894736842,
+          "active_wall_s": 9.463923500006786,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 20,
+          "carrier_ghz": 5.3,
+          "active_wall_s": 9.394132333007292,
+          "invalid": 0,
+          "attempts": 14
+        },
+        {
+          "point": 19,
+          "carrier_ghz": 5.284210526315789,
+          "active_wall_s": 9.342715959006455,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 11,
+          "carrier_ghz": 5.157894736842105,
+          "active_wall_s": 9.330720498997835,
+          "invalid": 0,
+          "attempts": 13
+        }
+      ],
+      "raw_npz_bytes": 64987573,
+      "telemetry": {
+        "rx_samples": 40394752,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "426544e8de147f3ffd69852c921d1e9cc3d515962692f1c682bcea213c6d940e",
+        "desktop_context.json": "04335db02296d3c71d22ae64cbd67e06dfab33f7d84c01b3aa579c5f6078aa41",
+        "sweep_quality.jsonl": "68178abb595cd56e876f27004ca4083dc8147532fe24e47ffdab0c5032a217bd"
+      }
+    },
+    {
+      "run": "20261102T122416_130069Z",
+      "status": "complete",
+      "label": "温度平台_1",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 159.170857,
+      "point_count": 60,
+      "valid_count": 60,
+      "decomposition_s": {
+        "point_active_wall": 130.01849691898678,
+        "between_points": 26.005822581020766,
+        "outside_first_point_start_to_last_finish": 3.146537499992462,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.24283887499768753,
+        "median": 3.055244750001293,
+        "p90": 3.364700124990486,
+        "max": 7.107242541009327,
+        "sum": 130.01849691898678
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.1685823750012787,
+        "median": 0.5256120830017608,
+        "p90": 0.5834034418105148,
+        "max": 1.0581890000030398,
+        "sum": 26.005822581020766
+      },
+      "unique_processed_sample_span_s": 127.9,
+      "attempt_window_duration_s": {
+        "0.02": 63,
+        "0.1": 154,
+        "1.0": 108,
+        "0.04": 1,
+        "2.0": 3
+      },
+      "accepted_window_duration_s": {
+        "0.1": 24,
+        "1.0": 34,
+        "0.04": 1,
+        "2.0": 1
+      },
+      "attempts": 329,
+      "failed_attempts": 136,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 122,
+        "target_tone_below_local_floor_margin": 109,
+        "previous_tone_not_sufficiently_rejected": 87,
+        "tone_frequency_out_of_tolerance": 21
+      },
+      "window_sources": {
+        "default": 20,
+        "previous_round_success": 40
+      },
+      "extensions": 35,
+      "carryover_hold_attempts": 83,
+      "invalid_active_wall_s": 0,
+      "round_active_wall_s": {
+        "1": 35.638052206952125,
+        "2": 41.26789425301831,
+        "3": 53.11255045901635
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 9,
+          "carrier_ghz": 5.126315789473685,
+          "active_wall_s": 13.334585832999437,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 10,
+          "carrier_ghz": 5.142105263157895,
+          "active_wall_s": 13.284707459009951,
+          "invalid": 0,
+          "attempts": 17
+        },
+        {
+          "point": 11,
+          "carrier_ghz": 5.157894736842105,
+          "active_wall_s": 9.570570126001257,
+          "invalid": 0,
+          "attempts": 16
+        },
+        {
+          "point": 13,
+          "carrier_ghz": 5.189473684210527,
+          "active_wall_s": 9.490042750985594,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 18,
+          "carrier_ghz": 5.268421052631579,
+          "active_wall_s": 9.478807708001113,
+          "invalid": 0,
+          "attempts": 15
+        }
+      ],
+      "raw_npz_bytes": 62723100,
+      "telemetry": {
+        "rx_samples": 39116800,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "3df030a346c19714f48287950fe259d5bf4b9f85604e34b912a30931584de003",
+        "desktop_context.json": "35fb0067bf0ac79f9465fc0deac2716d4dd7b735712980239cc7bed428ad5304",
+        "sweep_quality.jsonl": "0aa9a32fafc2032b184eccf852eb6c5068f1a9489f73d8a6da5a1fa051d5ac99"
+      }
+    },
+    {
+      "run": "20261102T123515_382508Z",
+      "status": "complete",
+      "label": "温度平台_1",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 126.30907,
+      "point_count": 60,
+      "valid_count": 60,
+      "decomposition_s": {
+        "point_active_wall": 100.81611716496991,
+        "between_points": 22.32466946002387,
+        "outside_first_point_start_to_last_finish": 3.168283375006226,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.11595491600746755,
+        "median": 0.5406179794954369,
+        "p90": 3.2484666416057735,
+        "max": 3.437594999995781,
+        "sum": 100.81611716496991
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.15605662499729078,
+        "median": 0.3375138339906698,
+        "p90": 0.5677469916030532,
+        "max": 0.7063707920024171,
+        "sum": 22.32466946002387
+      },
+      "unique_processed_sample_span_s": 98.78,
+      "attempt_window_duration_s": {
+        "0.02": 52,
+        "0.1": 182,
+        "1.0": 81,
+        "0.04": 1
+      },
+      "accepted_window_duration_s": {
+        "0.1": 32,
+        "1.0": 27,
+        "0.04": 1
+      },
+      "attempts": 316,
+      "failed_attempts": 129,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 118,
+        "tone_frequency_out_of_tolerance": 17,
+        "target_tone_below_local_floor_margin": 112,
+        "previous_tone_not_sufficiently_rejected": 79
+      },
+      "window_sources": {
+        "default": 20,
+        "previous_round_success": 40
+      },
+      "extensions": 27,
+      "carryover_hold_attempts": 78,
+      "invalid_active_wall_s": 0,
+      "round_active_wall_s": {
+        "1": 28.788690833025612,
+        "2": 33.60956479096785,
+        "3": 38.417861540976446
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 2,
+          "carrier_ghz": 5.015789473684211,
+          "active_wall_s": 9.484331624989863,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 7,
+          "carrier_ghz": 5.094736842105263,
+          "active_wall_s": 9.480983665009262,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 8,
+          "carrier_ghz": 5.110526315789474,
+          "active_wall_s": 9.40536033299577,
+          "invalid": 0,
+          "attempts": 14
+        },
+        {
+          "point": 6,
+          "carrier_ghz": 5.078947368421053,
+          "active_wall_s": 9.393262583995238,
+          "invalid": 0,
+          "attempts": 15
+        },
+        {
+          "point": 10,
+          "carrier_ghz": 5.142105263157895,
+          "active_wall_s": 9.342534124996746,
+          "invalid": 0,
+          "attempts": 14
+        }
+      ],
+      "raw_npz_bytes": 48592630,
+      "telemetry": {
+        "rx_samples": 30892032,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "c35e579c673873cb28f8c7d668500d352852dc262eb2e0e5e7189d58de49dae6",
+        "desktop_context.json": "d073b9793fda94466d9b4c6bdb5e6f7482519c9309de95c0b05623c0df6d3443",
+        "sweep_quality.jsonl": "24add8ca6d42c4b3b650b7baabf3f6ecac40db41c6b4602d49ed23c6d37fbf10"
+      }
+    },
+    {
+      "run": "20261105T050830_453913Z",
+      "status": "complete",
+      "label": "空瓶",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 60.034562,
+      "point_count": 60,
+      "valid_count": 60,
+      "decomposition_s": {
+        "point_active_wall": 42.284930201858515,
+        "between_points": 14.546151923132129,
+        "outside_first_point_start_to_last_finish": 3.203479875009357,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.1296112909913063,
+        "median": 0.48357210399990436,
+        "p90": 3.0376531080080893,
+        "max": 3.382775167003274,
+        "sum": 42.284930201858515
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.14195162497344427,
+        "median": 0.20327720799832605,
+        "p90": 0.5228047006006818,
+        "max": 0.5773556249914691,
+        "sum": 14.546151923132129
+      },
+      "unique_processed_sample_span_s": 41.56,
+      "attempt_window_duration_s": {
+        "0.02": 293,
+        "0.1": 143,
+        "1.0": 21,
+        "0.04": 24
+      },
+      "accepted_window_duration_s": {
+        "0.1": 29,
+        "1.0": 7,
+        "0.04": 24
+      },
+      "attempts": 481,
+      "failed_attempts": 296,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 282,
+        "tone_frequency_out_of_tolerance": 62,
+        "target_tone_below_local_floor_margin": 263,
+        "previous_tone_not_sufficiently_rejected": 274
+      },
+      "window_sources": {
+        "default": 20,
+        "previous_round_success": 40
+      },
+      "extensions": 7,
+      "carryover_hold_attempts": 274,
+      "invalid_active_wall_s": 0,
+      "round_active_wall_s": {
+        "1": 10.263757496955805,
+        "2": 16.051867246977054,
+        "3": 15.969305457925657
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 2,
+          "carrier_ghz": 5.015789473684211,
+          "active_wall_s": 9.48084695803118,
+          "invalid": 0,
+          "attempts": 16
+        },
+        {
+          "point": 3,
+          "carrier_ghz": 5.031578947368421,
+          "active_wall_s": 6.886264581989963,
+          "invalid": 0,
+          "attempts": 17
+        },
+        {
+          "point": 1,
+          "carrier_ghz": 5.0,
+          "active_wall_s": 6.589489373989636,
+          "invalid": 0,
+          "attempts": 14
+        },
+        {
+          "point": 6,
+          "carrier_ghz": 5.078947368421053,
+          "active_wall_s": 1.5541649999795482,
+          "invalid": 0,
+          "attempts": 17
+        },
+        {
+          "point": 11,
+          "carrier_ghz": 5.157894736842105,
+          "active_wall_s": 1.543161666020751,
+          "invalid": 0,
+          "attempts": 23
+        }
+      ],
+      "raw_npz_bytes": 20735061,
+      "telemetry": {
+        "rx_samples": 14319616,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "afddc99f2a916d9731779c423ae5c57fdc9e9c660e9ef90ec40d3f5fd7ccb1ca",
+        "desktop_context.json": "248862e096c3c2bce8a169af18ae8f660ea7a1f8e5343695df4513235d91d10e",
+        "sweep_quality.jsonl": "246c2412a077aa6808cb03d3e85c7fcc0596eea8be33d28101eb24f330f8f6b7"
+      }
+    },
+    {
+      "run": "20261105T050951_801879Z",
+      "status": "complete",
+      "label": "空瓶",
+      "algorithm": "sspp.sweep.target_confirmed.v8",
+      "plan": {
+        "num_points": 20,
+        "sweep_repeat": 3,
+        "continuous": false,
+        "freq_start": 5000000000.0,
+        "freq_stop": 5300000000.0,
+        "switch_settle_time": 0.1,
+        "tone_start": 2000.0,
+        "tone_step": 1000.0
+      },
+      "settings": {
+        "point_timeout": 8.0,
+        "weak_point_extra_seconds": 8.0,
+        "rate": 250000,
+        "amplitude": 0.3,
+        "tx_gain": 20.0,
+        "rx_gain": 30.0
+      },
+      "wall_duration_s": 70.614557,
+      "point_count": 60,
+      "valid_count": 60,
+      "decomposition_s": {
+        "point_active_wall": 51.29833225189941,
+        "between_points": 16.119692789099645,
+        "outside_first_point_start_to_last_finish": 3.19653195900095,
+        "configured_settle_lower_bound_between_points": 5.9
+      },
+      "point_active_wall_s": {
+        "n": 60,
+        "min": 0.1193335419811774,
+        "median": 0.5066745625081239,
+        "p90": 3.0638530081021598,
+        "max": 3.3432201250107028,
+        "sum": 51.29833225189941
+      },
+      "between_point_gap_s": {
+        "n": 59,
+        "min": 0.13814591700793244,
+        "median": 0.21301966698956676,
+        "p90": 0.530705599981593,
+        "max": 0.6995021660113707,
+        "sum": 16.119692789099645
+      },
+      "unique_processed_sample_span_s": 50.34,
+      "attempt_window_duration_s": {
+        "0.02": 240,
+        "0.1": 155,
+        "1.0": 30,
+        "0.04": 19
+      },
+      "accepted_window_duration_s": {
+        "1.0": 10,
+        "0.1": 31,
+        "0.04": 19
+      },
+      "attempts": 444,
+      "failed_attempts": 259,
+      "rejections": {
+        "target_tone_not_confirmed_in_both_halves": 249,
+        "tone_frequency_out_of_tolerance": 55,
+        "target_tone_below_local_floor_margin": 227,
+        "previous_tone_not_sufficiently_rejected": 235
+      },
+      "window_sources": {
+        "default": 20,
+        "previous_round_success": 40
+      },
+      "extensions": 10,
+      "carryover_hold_attempts": 234,
+      "invalid_active_wall_s": 0,
+      "round_active_wall_s": {
+        "1": 15.90850225093891,
+        "2": 16.0056524159736,
+        "3": 19.3841775849869
+      },
+      "top_slow_frequencies": [
+        {
+          "point": 1,
+          "carrier_ghz": 5.0,
+          "active_wall_s": 9.47097420800128,
+          "invalid": 0,
+          "attempts": 16
+        },
+        {
+          "point": 3,
+          "carrier_ghz": 5.031578947368421,
+          "active_wall_s": 9.321514250972541,
+          "invalid": 0,
+          "attempts": 13
+        },
+        {
+          "point": 2,
+          "carrier_ghz": 5.015789473684211,
+          "active_wall_s": 9.264297834015451,
+          "invalid": 0,
+          "attempts": 14
+        },
+        {
+          "point": 14,
+          "carrier_ghz": 5.205263157894737,
+          "active_wall_s": 3.743458082957659,
+          "invalid": 0,
+          "attempts": 33
+        },
+        {
+          "point": 13,
+          "carrier_ghz": 5.189473684210527,
+          "active_wall_s": 1.5677202910301276,
+          "invalid": 0,
+          "attempts": 22
+        }
+      ],
+      "raw_npz_bytes": 25039569,
+      "telemetry": {
+        "rx_samples": 16965632,
+        "rx_timeouts": 0,
+        "tx_partial_sends": 0,
+        "tx_end_of_burst_sent": true,
+        "rx_stop_command_sent": true,
+        "workers_stopped": true
+      },
+      "provenance": {
+        "manifest.json": "454527a1f1cb8132e8caf7a6afd4b6ce805bc1765786a74f4c4e00a2475e67d8",
+        "desktop_context.json": "4dcac6f28b7a958b6a11410a9beedf14dcca4db879620f22eb9057419e04d8a4",
+        "sweep_quality.jsonl": "33450983c701ec8f0ae49f05c9f702a8692d695a9932817b1d7d5000694ac4a0"
+      }
+    }
+  ],
+  "offline_benchmark": {
+    "runtime": "3.14.6 | packaged by conda-forge | (main, Jun 12 2026, 08:47:56) [Clang 20.1.8 ]",
+    "numpy": "2.4.6",
+    "conditions": "No RF/serial; warm in-memory saved IQ; local temporary file writes, no fsync (matching current save path). Machine shared with other tasks; medians are local measurements, not claimed whole-experiment acceleration.",
+    "dsp": [
+      {
+        "run": "20261105T050830_453913Z",
+        "point": 2,
+        "repeat": 1,
+        "window_s": 0.02,
+        "sample_count": 5000,
+        "recorded_passed": false,
+        "recorded_target_halves_required": true,
+        "samples_sha256": "3fb19312dd85a1880f318cf74808fc920ed96dfb132abac684985907266872bc",
+        "median_s": 0.0007867499953135848,
+        "min_s": 0.0007787500217091292,
+        "max_s": 0.000839749991428107,
+        "profile": [
+          {
+            "function": "_raw_fft",
+            "calls": 7,
+            "cumulative_s": 0.000145668,
+            "self_s": 0.000144046
+          },
+          {
+            "function": "_target_half_confirmation",
+            "calls": 2,
+            "cumulative_s": 0.000397583,
+            "self_s": 0.00018945800000000001
+          },
+          {
+            "function": "_split_previous_candidate",
+            "calls": 1,
+            "cumulative_s": 0.00021950000000000002,
+            "self_s": 9.8337e-05
+          },
+          {
+            "function": "fft",
+            "calls": 7,
+            "cumulative_s": 0.000150707,
+            "self_s": 4.540000000000001e-06
+          }
+        ]
+      },
+      {
+        "run": "20261105T050830_453913Z",
+        "point": 2,
+        "repeat": 1,
+        "window_s": 0.1,
+        "sample_count": 25000,
+        "recorded_passed": false,
+        "recorded_target_halves_required": true,
+        "samples_sha256": "90c05b99b0a856acb1d0c205d6d63bdff05e4a892b8bf6fceacae5e9696de69b",
+        "median_s": 0.002745166013482958,
+        "min_s": 0.0025896249862853438,
+        "max_s": 0.0032153750071302056,
+        "profile": [
+          {
+            "function": "_raw_fft",
+            "calls": 7,
+            "cumulative_s": 0.000580291,
+            "self_s": 0.0005784140000000001
+          },
+          {
+            "function": "_target_half_confirmation",
+            "calls": 2,
+            "cumulative_s": 0.0013273340000000001,
+            "self_s": 0.000742915
+          },
+          {
+            "function": "_split_previous_candidate",
+            "calls": 1,
+            "cumulative_s": 0.000704208,
+            "self_s": 0.000345914
+          },
+          {
+            "function": "fft",
+            "calls": 7,
+            "cumulative_s": 0.000585542,
+            "self_s": 4.586000000000001e-06
+          }
+        ]
+      },
+      {
+        "run": "20261105T050830_453913Z",
+        "point": 2,
+        "repeat": 1,
+        "window_s": 1.0,
+        "sample_count": 250000,
+        "recorded_passed": true,
+        "recorded_target_halves_required": false,
+        "samples_sha256": "b8b84ca3a6ee37ea266061d98d3076fabef3a1607481280be422d300e11f4f00",
+        "median_s": 0.02829385400400497,
+        "min_s": 0.025474292022408918,
+        "max_s": 0.02927616602391936,
+        "profile": [
+          {
+            "function": "_raw_fft",
+            "calls": 5,
+            "cumulative_s": 0.005253291,
+            "self_s": 0.005251914000000001
+          },
+          {
+            "function": "_target_half_confirmation",
+            "calls": 1,
+            "cumulative_s": 0.006074333,
+            "self_s": 0.00338913
+          },
+          {
+            "function": "_split_previous_candidate",
+            "calls": 1,
+            "cumulative_s": 0.006421250000000001,
+            "self_s": 0.0033248320000000002
+          },
+          {
+            "function": "fft",
+            "calls": 5,
+            "cumulative_s": 0.00525825,
+            "self_s": 4.543e-06
+          }
+        ]
+      },
+      {
+        "run": "20261102T121522_411351Z",
+        "point": 9,
+        "repeat": 1,
+        "window_s": 2.0,
+        "sample_count": 500000,
+        "recorded_passed": false,
+        "recorded_target_halves_required": true,
+        "samples_sha256": "b4c46848a324374dea0fe71a314493b562c5b47dd065cd10bc63c3270d93de70",
+        "median_s": 0.0819665415037889,
+        "min_s": 0.06952304200967774,
+        "max_s": 0.08396491702296771,
+        "profile": [
+          {
+            "function": "_raw_fft",
+            "calls": 7,
+            "cumulative_s": 0.018132291000000002,
+            "self_s": 0.018129497
+          },
+          {
+            "function": "_target_half_confirmation",
+            "calls": 2,
+            "cumulative_s": 0.040055542,
+            "self_s": 0.023022671
+          },
+          {
+            "function": "_split_previous_candidate",
+            "calls": 1,
+            "cumulative_s": 0.019959417,
+            "self_s": 0.010180207
+          },
+          {
+            "function": "fft",
+            "calls": 7,
+            "cumulative_s": 0.018147042000000002,
+            "self_s": 1.3627e-05
+          }
+        ]
+      }
+    ],
+    "archive": [
+      {
+        "run": "20261105T050830_453913Z",
+        "file": "iq_point_002.npz",
+        "samples": 835584,
+        "raw_array_bytes": 6684672,
+        "original_npz_bytes": 1615410,
+        "methods": {
+          "savez_compressed": {
+            "median_write_s": 0.4867253749980591,
+            "median_hash_s": 0.0009341250115539879,
+            "bytes": 1615410
+          },
+          "savez": {
+            "median_write_s": 0.001722208020510152,
+            "median_hash_s": 0.0026095419889315963,
+            "bytes": 6688264
+          }
+        }
+      },
+      {
+        "run": "20261105T050830_453913Z",
+        "file": "iq_point_009.npz",
+        "samples": 65536,
+        "raw_array_bytes": 524288,
+        "original_npz_bytes": 129401,
+        "methods": {
+          "savez_compressed": {
+            "median_write_s": 0.038490749982884154,
+            "median_hash_s": 0.00010620799730531871,
+            "bytes": 129401
+          },
+          "savez": {
+            "median_write_s": 0.00023599999258294702,
+            "median_hash_s": 0.00022483299835585058,
+            "bytes": 526380
+          }
+        }
+      },
+      {
+        "run": "20261102T121522_411351Z",
+        "file": "iq_point_002.npz",
+        "samples": 131072,
+        "raw_array_bytes": 1048576,
+        "original_npz_bytes": 254158,
+        "methods": {
+          "savez_compressed": {
+            "median_write_s": 0.07618183302110992,
+            "median_hash_s": 0.0003149170079268515,
+            "bytes": 254158
+          },
+          "savez": {
+            "median_write_s": 0.0004200830007903278,
+            "median_hash_s": 0.00042720799683593214,
+            "bytes": 1050792
+          }
+        }
+      },
+      {
+        "run": "20261102T121522_411351Z",
+        "file": "iq_point_009.npz",
+        "samples": 3997696,
+        "raw_array_bytes": 31981568,
+        "original_npz_bytes": 7752088,
+        "methods": {
+          "savez_compressed": {
+            "median_write_s": 2.2883138339966536,
+            "median_hash_s": 0.003324207995319739,
+            "bytes": 7752088
+          },
+          "savez": {
+            "median_write_s": 0.007770833006361499,
+            "median_hash_s": 0.012916250008856878,
+            "bytes": 31991632
+          }
+        }
+      }
+    ],
+    "npz_compression_levels": [
+      {
+        "run": "20261105T050830_453913Z",
+        "file": "iq_point_002.npz",
+        "levels": {
+          "1": {
+            "median_write_s": 0.04744175000814721,
+            "bytes": 2159786,
+            "decoded_arrays_exactly_equal": true
+          },
+          "3": {
+            "median_write_s": 0.11761049999040551,
+            "bytes": 1869777,
+            "decoded_arrays_exactly_equal": true
+          },
+          "6": {
+            "median_write_s": 0.4535699160187505,
+            "bytes": 1615410,
+            "decoded_arrays_exactly_equal": true
+          }
+        }
+      },
+      {
+        "run": "20261105T050830_453913Z",
+        "file": "iq_point_009.npz",
+        "levels": {
+          "1": {
+            "median_write_s": 0.004155875009018928,
+            "bytes": 171761,
+            "decoded_arrays_exactly_equal": true
+          },
+          "3": {
+            "median_write_s": 0.010322083020582795,
+            "bytes": 149190,
+            "decoded_arrays_exactly_equal": true
+          },
+          "6": {
+            "median_write_s": 0.03754579200176522,
+            "bytes": 129401,
+            "decoded_arrays_exactly_equal": true
+          }
+        }
+      },
+      {
+        "run": "20261102T121522_411351Z",
+        "file": "iq_point_009.npz",
+        "levels": {
+          "1": {
+            "median_write_s": 0.2252460419840645,
+            "bytes": 10354236,
+            "decoded_arrays_exactly_equal": true
+          },
+          "3": {
+            "median_write_s": 0.572274833015399,
+            "bytes": 8966547,
+            "decoded_arrays_exactly_equal": true
+          },
+          "6": {
+            "median_write_s": 2.247702541993931,
+            "bytes": 7752088,
+            "decoded_arrays_exactly_equal": true
+          }
+        }
+      }
+    ],
+    "full_run_npz": {
+      "run": "20261105T050830_453913Z",
+      "files": 60,
+      "samples": 10633216,
+      "iq_bytes_uncompressed": 85065728,
+      "original_npz_bytes": 20735061,
+      "levels": {
+        "1": {
+          "write_seconds_per_trial": [
+            0.607644954114221,
+            0.6138665880425833,
+            0.6069489549554419
+          ],
+          "hash_seconds_per_trial": [
+            0.01256962597835809,
+            0.012363706948235631,
+            0.012503702950198203
+          ],
+          "bytes": 27643449,
+          "median_total_write_s": 0.607644954114221,
+          "median_total_hash_s": 0.012503702950198203
+        },
+        "3": {
+          "write_seconds_per_trial": [
+            1.5296828749415,
+            1.5322055889701005,
+            1.5358963749895338
+          ],
+          "hash_seconds_per_trial": [
+            0.012826458987547085,
+            0.012617374013643712,
+            0.012746666063321754
+          ],
+          "bytes": 23955257,
+          "median_total_write_s": 1.5322055889701005,
+          "median_total_hash_s": 0.012746666063321754
+        },
+        "6": {
+          "write_seconds_per_trial": [
+            5.80055045595509,
+            5.793510703777429,
+            5.795539205078967
+          ],
+          "hash_seconds_per_trial": [
+            0.016514041111804545,
+            0.01796682894928381,
+            0.017056829965440556
+          ],
+          "bytes": 20735061,
+          "median_total_write_s": 5.795539205078967,
+          "median_total_hash_s": 0.017056829965440556
+        }
+      },
+      "decoded_arrays_and_metadata_exactly_equal": true,
+      "scope": "Three offline passes over all 60 saved point files; only serialization/compression/write and SHA timed, input decompression excluded. Original source files untouched. No actual new sweep speed measured.",
+      "source_run_timing": {
+        "run": "20261105T050830_453913Z",
+        "started_utc": "2026-11-05T05:08:30.454160+00:00",
+        "ended_utc": "2026-11-05T05:09:30.488722+00:00",
+        "wall_duration_s": 60.034562,
+        "manifest_sha256": "afddc99f2a916d9731779c423ae5c57fdc9e9c660e9ef90ec40d3f5fd7ccb1ca",
+        "benchmark_script_sha256": "1e0daf440cce16923509b2f1b9f25f100b807ce6bbad3f28c55179c9276def16"
+      }
+    }
+  },
+  "existing_optimizations": [
+    "v8已按20/100/1000/2000ms自适应扩窗；不是每点固定等待8/16秒。",
+    "仅最近失败窗可复用为升级前缀；两次通过VERIFY和正式MEASURE保持独立。",
+    "同run紧邻上一轮窗长提示已实现（所审多数60点run为20次default+40次previous_round_success），不缓存IQ或通过状态。",
+    "额外8秒仅在基础8秒内至少1秒VERIFY合格时启用一次；整场无总时限。",
+    "实时预览FFT与stdout序列化已有独立worker和有界丢弃策略，不能把降低GUI刷新率等同于缩短积分时间。",
+    "最终CSV/XLSX/PDF绘图位于RF停止之后；逐点NPZ压缩仍同步阻塞下一次切频。"
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "proposal": "新采集逐点NPZ采用ZIP DEFLATE level3折中，保持字段、dtype、shape、逐样本值与SHA登记；不改历史文件、质量门槛或采样窗口。",
+      "evidence": "全部60个实存点每级3次离线重写；逐字段解码一致。",
+      "estimated_compression_only_saving_s": 4.263333616108866,
+      "fraction_of_historical_run_wall_not_a_hardware_measurement": 0.0710146534609325,
+      "extra_storage_bytes": 3220196,
+      "extra_storage_fraction": 0.15530197861486883,
+      "alternative": "level1总写入0.608s、文件+33.32%；本轮选择level3保存空间折中，未采用后台归档。",
+      "implementation_site": "sspp_experiments/material_sweep/acquisition.py: RecordedSweep.flush_point -> save_point_archive (DEFLATE level3), then sha(target)",
+      "validation_needed": "新writer与旧NPZ字段/dtype/shape/value等价；已有回放、质量离线读取、归档哈希与失败路径回归；不能宣称已经实测整场RF提速。",
+      "source_run": "20261105T050830_453913Z",
+      "historical_source_run_wall_s": 60.034562,
+      "source_manifest_sha256": "afddc99f2a916d9731779c423ae5c57fdc9e9c660e9ef90ec40d3f5fd7ccb1ca"
+    },
+    {
+      "priority": 2,
+      "proposal": "保持6dB目标/旧音门控和两VERIFY+MEASURE，优先识别并改善真实弱频点的信号路径和机械稳定性。",
+      "evidence": "latest60s样本积分跨度41.56s，point active42.285s；弱信号run有27–34个1s正式窗，缺测run存在每点8/16s截止。",
+      "boundary": "具体物理改善需现场独立实验，不自动提高增益或幅值；不得承诺已证明的速度提升。"
+    },
+    {
+      "priority": 3,
+      "proposal": "若继续做纯CPU优化，同次quality_measurement中共享两半窗Hann加权/FFT/频率网格，保留所有返回诊断和判定。",
+      "evidence": "当前一次判定有5或7次FFT；previous精确确认、split previous和target确认重复计算相同两半窗。",
+      "boundary": "预计只节省毫秒级处理；20ms/100ms/1s/2s实样窗口本机判定中位约0.79/2.75/28.29/81.97ms。先做逐字段等价离线回归，不跳过诊断/阈值/真实采样。"
+    },
+    {
+      "priority": 4,
+      "proposal": "后续性能日志分开记录point compression/hash/retune/settle/quality processing耗时。",
+      "boundary": "现有host_processed_monotonic与base_deadline可测active和点间总时间，但不能精确区分历史retune、压缩和线程调度。无需先添加后台归档复杂生命周期。"
+    }
+  ],
+  "operator_tradeoffs": [
+    {
+      "change": "20点改10点，仍5.0–5.3GHz",
+      "position_count": "3轮为60→30个位置",
+      "grid_spacing_mhz": [
+        15.789473684210526,
+        33.333333333333336
+      ],
+      "effect": "减少采样频率覆盖密度，可能漏窄峰/谷；不会自动提高或降低单点窗口精度。基带tone由点索引决定，改变点数也改变同一RF点的tone配对，历史定量比较须匹配实际RF+tone。时间不能保证恰好减半，取决于保留的弱点。"
+    },
+    {
+      "change": "3轮改1轮",
+      "effect": "频率网格不变；不能再计算跨轮样本SD或评估同次轮间稳定性，也没有后续轮窗长提示收益。独立噪声下平均方差随样本数变化只是统计模型，不代表本传感器实测精度。"
+    },
+    {
+      "change": "缩小频段但保持20点",
+      "effect": "仍20位置/轮，通常不会按带宽比例提速；只是频率间隔变细。若同步减少点数可近似保持间隔但丢失频段外特征，须记录新plan且重新核对跨记录可比性。"
+    },
+    {
+      "change": "缩短point_timeout或关闭weak_point_extra_seconds",
+      "effect": "缩短的是困难点等待，易增加缺测；已经快速通过的点不因此更快。不是保持原数据完整性的免费提速。"
+    },
+    {
+      "change": "提高采样率或FFT长度",
+      "effect": "当前窗口下限和扩窗按秒计；更高采样率不缩短20ms/40ms/1s/2s积分，反而增CPU和归档量。"
+    },
+    {
+      "change": "减少100ms切频等待或250ms旧单音过渡保护",
+      "effect": "所审latest60s run有274次旧单音carryover拒绝；不应为提速跳过。需独立硬件瞬态证据和原质量回归才可改变。"
+    }
+  ],
+  "implementation": {
+    "status": "stage implementation validated offline",
+    "approved_level": 3,
+    "changed_files": [
+      "sspp_experiments/material_sweep/acquisition.py",
+      "tests/test_point_archive.py",
+      "tests/test_sweep_unlimited_backend.py"
+    ],
+    "quality_algorithm_unchanged_sha256": "ee93a079dd42f7cc1c7d96d21417f4dd56e42aa4d60c959fca7671fe8115f81f",
+    "no_hardware_run": true,
+    "historical_data_not_rewritten": true,
+    "validation": {
+      "tests": 89,
+      "subtests": 125,
+      "seconds": 12.91,
+      "log": "/private/tmp/workbench_performance_20261105/point_archive_tests.log"
+    }
+  },
+  "source_crosscheck": {
+    "verified_utc": "2026-11-05T05:30:19.251518+00:00",
+    "stage_and_original_manifest_hashes_match": true,
+    "run_duration_mapping_s": {
+      "20261105T050830_453913Z": 60.034562,
+      "20261105T050951_801879Z": 70.614557
+    },
+    "finding": "Benchmark and 60.034562-second decomposition both use 050830. Existing 7.101465346% estimate was correct; identifiers/timestamps/hashes added explicitly to prevent inversion."
+  }
+}

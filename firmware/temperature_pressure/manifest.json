@@ -6,7 +6,7 @@
   "upload_baudrate": 57600,
   "data_baudrate": 9600,
   "application_limit": 30720,
-  "provenance_note": "既有2026-09-07验证固件，原源码保持；未在2026-10-28重新编译或烧录。压力应用HEX来自完整Flash备份的应用区，含原尾部填充，与当前源码不是新编译产物。",
+  "provenance_note": "pressure_v1/temperature_v1保留既有2026-09-07来源；pressure_v2为2026-11-04新构建，来源与验证边界逐项记录，未实物烧录。",
   "protocols": {
     "pressure_v1": {
       "source_file": "Temperature_Pressure_Acquisition.ino",
@@ -27,6 +27,22 @@
       "hex_origin": "/Users/cunhui/Library/Mobile Documents/iCloud~md~obsidian/Documents/Note-Public/1_Projects/Academic_Research/Three_Layer_Sensor_Research/02_Engineering/Firmware_Temperature_Check_v1_2026-09-07.hex",
       "wiring": "P5 / S6、P6 / S7 → A1，顺序采样",
       "provenance": "2026-09-07 温度检查 v1 编译、烧录、读回校验通过"
+    },
+    "pressure_v2": {
+      "source_file": "Pressure_Diagnostic_v2.ino",
+      "source_sha256": "7a12d5ea457a133182589ecd86dba89ada836363426ce1dacf870cefba802901",
+      "source_origin": "/Users/cunhui/Git-Projects/Academic_Research/arduino-sensor/sketches/Pressure_Diagnostic/Pressure_Diagnostic.ino",
+      "hex_file": "pressure_v2.hex",
+      "hex_sha256": "0eb36474fabd4fa34d6ef9c68b70d73a470074eb580a1cdf610e6f174dc30fc9",
+      "hex_origin": "/Users/cunhui/Git-Projects/Academic_Research/arduino-sensor/firmware/pressure_diagnostic_v2/Pressure_Diagnostic.hex",
+      "build_manifest": "pressure_v2_build.json",
+      "build_manifest_sha256": "591f10d5901c9946794dc50b6f68d6454b006eb7305a7f2e298e59fe88ab3a7e",
+      "wiring": "P0–P4 / S1–S5 单路可选 → A2；实物油墨区域对应需测通确认",
+      "provenance": "2026-11-04 原生 AVR 构建，host 模拟场景和协议联验通过；尚未实物烧录验收",
+      "hardware_validation": "not_uploaded_or_hardware_validated",
+      "data_protocol": "P,t_ms,Sk,adc_mean,V,V0,dV,zero_id,baseline_ms,zero_count,selection_token",
+      "flash_bytes": 13176,
+      "static_ram_bytes": 566
     }
   }
 }

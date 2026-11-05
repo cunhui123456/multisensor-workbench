@@ -188,7 +188,7 @@ class EnvironmentTests(unittest.TestCase):
         self.initialize()
         with patch("sspp_lab.controller.LabController.start", return_value={"accepted": True}) as start:
             self.assertEqual(self.service.start(request), {"accepted": True})
-            start.assert_called_once_with(request)
+            start.assert_called_once_with({**request, "setup_confirmed": True, "setup_confirmation_source": "global_initialization"})
         with patch("sspp_lab.controller.LabController.start", side_effect=LabError("PRIVATE_SERIAL failed")):
             with self.assertRaises(LabError):
                 self.service.start(request)

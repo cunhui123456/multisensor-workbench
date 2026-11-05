@@ -19,11 +19,27 @@ import sys
 import threading
 import time
 import traceback
+import zipfile
 from sspp_lab.realtime import RealtimePublisher
 from sspp_lab.power import IdleSleepGuard
 
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINALS = tuple('historical/teacher_20260908/'+n for n in ('main.py', 'uhd_lib.py', 'thread_works.py', 'do_sweep.py', 'on_time_draw.py'))
+POINT_ARCHIVE_COMPRESSION = {'format': 'npz', 'codec': 'deflate', 'level': 3, 'lossless': True}
+
+
+def save_point_archive(path, **arrays):
+    """Write standard NPZ entries with less compression work between RF points.
+
+    The stored NumPy arrays retain their dtype, shape and values. Both each NPY
+    entry and the ZIP directory close before the caller hashes/registers it.
+    """
+    import numpy as np
+    with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED,
+                         compresslevel=POINT_ARCHIVE_COMPRESSION['level'], allowZip64=True) as archive:
+        for name, value in arrays.items():
+            with archive.open(name + '.npy', 'w', force_zip64=True) as content:
+                np.lib.format.write_array(content, np.asanyarray(value), allow_pickle=False)
 
 
 # 对文件原始字节做 SHA-256；用于 FPGA 校验和实验溯源，不使用文件修改时间判断版本。
@@ -432,7 +448,7 @@ def make_runner(args, cfg, manager, queue, stop, drawer, output, opts, failures,
         def flush_point(self):
             if self.point_info is not None and self.frames:
                 target = output/f'iq_point_{self.point_number:03d}.npz'
-                np.savez_compressed(target, iq=np.concatenate(self.frames),
+                save_point_archive(target, iq=np.concatenate(self.frames),
                     frame_start_indices=np.asarray(self.indices, dtype=np.int64),
                     frame_lengths=np.asarray([len(x) for x in self.frames]),
                     rx_rate=args.rx_rate_actual,
@@ -599,6 +615,7 @@ def main():
        'environment':{'python':sys.version,'executable':sys.executable},
        'measurement':'Teacher FFT peak estimator; relative digital amplitude, not calibrated S21/dBm; no KNN',
        'raw_scope':'Frames fetched after per-point settle/queue clear, including verification and measurement; not a continuous all-session hardware-time recording'}
+    manifest['archive_compression'] = dict(POINT_ARCHIVE_COMPRESSION)
     manifest['time_policy'] = {'total_time_limit_seconds': None,
         'completion': 'operator_stop' if cfg.continuous else 'configured_rounds',
         'point_timeout_seconds': opts.point_timeout,

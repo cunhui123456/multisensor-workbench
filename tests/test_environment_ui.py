@@ -171,7 +171,6 @@ class EnvironmentUiTests(unittest.TestCase):
 
     def prepare_serial(self):
         serial = self.window.temperature_workspace
-        serial.confirm.setChecked(True)
         serial.start_preparation(upload=False)
         self.assertTrue(serial.is_running)
         self.preparation.finish()
@@ -213,7 +212,6 @@ class EnvironmentUiTests(unittest.TestCase):
                     self.initialize()
                 before = self.service.environment_snapshot()
                 previous_calls = len(self.service.initialize_calls)
-                self.window.confirm.setChecked(True)
                 dialog = self.open_dialog()
                 self.window.open_environment_dialog()
                 self.assertIs(self.window.environment_dialog, dialog)
@@ -226,12 +224,12 @@ class EnvironmentUiTests(unittest.TestCase):
                 self.assertEqual(self.window.profile.currentData(), "own")
                 self.assertEqual(self.service.environment_snapshot(), before)
                 self.assertEqual(self.window._environment_ready(), already_ready)
-                self.assertTrue(self.window.confirm.isChecked())
+                self.assertFalse(hasattr(self.window, "confirm"))
                 self.assertEqual(len(self.service.initialize_calls), previous_calls)
                 self.assertEqual(self.service.cancel_calls, 0)
 
     def test_confirming_teacher_keeps_one_global_device_across_drafts_and_resets(self):
-        expected_gains = {"material": 31., "finger": 42., "liquid": 53.}
+        expected_gains = {"material": 31., "finger": 42.}
         # 先建立 own 的不同实验草稿，随后改变全局选择；恢复旧草稿不得带回 own。
         for experiment, gain in expected_gains.items():
             self.select(experiment)
@@ -257,7 +255,6 @@ class EnvironmentUiTests(unittest.TestCase):
 
     def test_confirming_changed_device_invalidates_old_ready_before_background_finishes(self):
         self.initialize()
-        self.window.confirm.setChecked(True)
         self.service.initialize_release.clear()
         dialog = self.request_initialize("teacher")
         # QDialog 的确认信号重复送达也不能启动第二项后台初始化。
@@ -266,7 +263,7 @@ class EnvironmentUiTests(unittest.TestCase):
         self.assertEqual(self.window.profile.currentData(), "teacher")
         self.assertFalse(self.window._environment_ready())
         self.assertFalse(self.window.start_button.isEnabled())
-        self.assertFalse(self.window.confirm.isChecked())
+        self.assertFalse(hasattr(self.window, "confirm"))
         self.assertNotEqual(self.service.initialize_thread_ids[-1], threading.get_ident())
         self.service.initialize_release.set()
         self.pump(lambda: not self.window.runner.pending and not self.window._environment_pending)
@@ -296,7 +293,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.assertEqual(self.window.profile.currentData(), "teacher")
 
     def test_confirmed_direct_start_cannot_bypass_uninitialized_environment(self):
-        self.window.confirm.setChecked(True)
         self.window.start_experiment()
         self.assertIsNone(self.service.started)
         self.assertEqual(self.service.initialize_calls, [])
@@ -304,17 +300,15 @@ class EnvironmentUiTests(unittest.TestCase):
         self.assertIn("初始化实验台", self.window.notice.text())
 
     def test_explicit_button_initializes_in_background_and_then_allows_confirmed_start(self):
-        self.window.confirm.setChecked(True)
         self.initialize()
         self.assertEqual(self.service.initialize_calls, [{"kind": "usrp", "profile": "own"}])
         self.assertNotEqual(self.service.initialize_thread_ids[0], threading.get_ident())
         self.assertTrue(self.window._environment_ready())
         self.assertTrue(self.window.start_button.isEnabled())
-        self.assertFalse(self.window.confirm.isChecked())
+        self.assertFalse(hasattr(self.window, "confirm"))
         self.assertIsNone(self.service.started)
         self.assertIn("就绪", self.window.environment_label.text())
         self.assertIn("设备已释放", self.window.environment_label.toolTip())
-        self.window.confirm.setChecked(True)
         self.window.start_button.click()
         self.pump(lambda: self.service.started is not None and "start" not in self.window.runner.pending)
         self.assertTrue(self.service.started["setup_confirmed"])
@@ -356,7 +350,6 @@ class EnvironmentUiTests(unittest.TestCase):
         window.open_environment_dialog()
         self.assertIsNone(window.environment_dialog)
         window.initialize_environment()
-        window.confirm.setChecked(True)
         window.start_experiment()
         self.assertEqual(len(self.service.initialize_calls), 1)
         self.assertIsNone(self.service.started)
@@ -430,10 +423,9 @@ class EnvironmentUiTests(unittest.TestCase):
 
     def test_changing_profile_invalidates_ready_and_confirmation_without_automatic_retry(self):
         self.initialize()
-        self.window.confirm.setChecked(True)
         self.window.profile.setCurrentIndex(self.window.profile.findData("teacher"))
         self.assertFalse(self.window._environment_ready())
-        self.assertFalse(self.window.confirm.isChecked())
+        self.assertFalse(hasattr(self.window, "confirm"))
         self.assertFalse(self.window.start_button.isEnabled())
         self.assertEqual(len(self.service.initialize_calls), 1)
         self.window.profile.setCurrentIndex(self.window.profile.findData("own"))
@@ -445,11 +437,10 @@ class EnvironmentUiTests(unittest.TestCase):
         self.initialize()
         for experiment in ("finger", "liquid", "material"):
             with self.subTest(experiment=experiment):
-                self.window.confirm.setChecked(True)
                 self.select(experiment)
                 self.assertEqual(self.window.profile.currentData(), "own")
                 self.assertTrue(self.window._environment_ready())
-                self.assertFalse(self.window.confirm.isChecked())
+                self.assertFalse(hasattr(self.window, "confirm"))
                 self.assertEqual(len(self.service.initialize_calls), 1)
                 self.assertIsNone(self.service.started)
 
@@ -470,7 +461,7 @@ class EnvironmentUiTests(unittest.TestCase):
                 self.assertEqual(self.window._environment_ready(), field is serial.protocol)
                 self.assertEqual(serial._environment_ready, field is serial.protocol)
                 self.assertFalse(serial.preparation_ready)
-                self.assertFalse(serial.confirm.isChecked())
+                self.assertFalse(hasattr(serial, "confirm"))
                 self.assertFalse(serial.start_button.isEnabled())
         self.assertEqual(len(self.service.initialize_calls), 2)
 
@@ -478,7 +469,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.select("temperature")
         serial = self.window.temperature_workspace
         serial.sample_name.setText("test_sample")
-        serial.confirm.setChecked(True)
         with patch.object(serial.session, "start") as start:
             serial.start_capture()
             start.assert_not_called()
@@ -487,7 +477,7 @@ class EnvironmentUiTests(unittest.TestCase):
         self.initialize()
         self.assertTrue(serial.verify_button.isEnabled())
         self.assertFalse(serial.start_button.isEnabled())
-        self.assertFalse(serial.confirm.isChecked())
+        self.assertFalse(hasattr(serial, "confirm"))
         self.assertEqual(self.service.started, None)
 
     def test_switching_hardware_kind_keeps_each_completed_check(self):
@@ -557,11 +547,9 @@ class EnvironmentUiTests(unittest.TestCase):
         self.prepare_serial()
         self.assertTrue(serial.start_button.isEnabled())
         self.window.material_workspace.material_name.setText("offline_material")
-        self.window.confirm.setChecked(True)
         self.window.start_experiment()
         self.assertIsNone(self.service.started)
         serial.sample_name.setText("offline_sample")
-        serial.confirm.setChecked(True)
         with tempfile.TemporaryDirectory() as temporary:
             reader = FakeReader([b"100,2.70\n150,2.80\n"])
             serial.session = SerialCaptureSession(temporary, lambda port, baud: reader)
@@ -587,7 +575,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.assertTrue(self.window.start_button.isEnabled())
         self.assertFalse(self.window.temperature_workspace.start_button.isEnabled())
         self.window.material_workspace.material_name.setText("offline_material")
-        self.window.confirm.setChecked(True)
         self.window.start_experiment()
         self.pump(lambda: self.service.started is not None and not self.window._start_pending)
         self.assertEqual(self.service.started["profile"], "own")
@@ -612,18 +599,16 @@ class EnvironmentUiTests(unittest.TestCase):
         self.request_initialize(both=True)
         self.pump(lambda: not self.window.runner.pending and not self.window._environment_pending)
         serial = self.window.temperature_workspace
-        serial.confirm.setChecked(True)
         self.window.profile.setCurrentIndex(self.window.profile.findData("teacher"))
         self.assertFalse(self.window._environment_ready("usrp"))
         self.assertTrue(self.window._environment_ready("serial"))
-        self.assertTrue(serial.confirm.isChecked())
+        self.assertFalse(hasattr(serial, "confirm"))
         self.initialize("teacher")
-        self.window.confirm.setChecked(True)
         serial.port.setCurrentIndex(1 - serial.port.currentIndex())
         self.assertTrue(self.window._environment_ready("usrp"))
         self.assertFalse(self.window._environment_ready("serial"))
-        self.assertTrue(self.window.confirm.isChecked())
-        self.assertFalse(serial.confirm.isChecked())
+        self.assertFalse(hasattr(self.window, "confirm"))
+        self.assertFalse(hasattr(serial, "confirm"))
 
     def test_cancel_batch_preserves_serial_completed_before_rf_and_releases_global_lock(self):
         self.service.kind_releases["usrp"] = threading.Event()
@@ -648,14 +633,13 @@ class EnvironmentUiTests(unittest.TestCase):
         self.request_initialize(both=True)
         self.pump(lambda: not self.window.runner.pending and not self.window._environment_pending)
         serial = self.window.temperature_workspace
-        serial.confirm.setChecked(True)
         serial.refresh_ports()
         self.assertTrue(self.window._environment_ready("serial"))
-        self.assertTrue(serial.confirm.isChecked())
+        self.assertFalse(hasattr(serial, "confirm"))
         with patch("sspp_desktop.temperature_widget.list_serial_ports", return_value=["/dev/cu.usbserial-TEST_B"]):
             serial.refresh_ports()
         self.assertFalse(self.window._environment_ready("serial"))
-        self.assertFalse(serial.confirm.isChecked())
+        self.assertFalse(hasattr(serial, "confirm"))
         self.assertTrue(self.window._environment_ready("usrp"))
 
     def test_all_missing_devices_leave_history_available_without_claiming_ready(self):
@@ -710,7 +694,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.select("temperature")
         self.initialize()
         serial = self.window.temperature_workspace
-        serial.confirm.setChecked(True)
         self.window.fields["rate"].setValue(500000)
         self.window._message("上一次样品名称错误")
         serial.start_preparation(upload=False)
@@ -814,7 +797,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.select("temperature")
         self.initialize()
         serial = self.window.temperature_workspace
-        serial.confirm.setChecked(True)
         serial.start_preparation(upload=False)
         self.preparation.write_active = True
         with patch.object(QtWidgets.QMessageBox, "question", return_value=QtWidgets.QMessageBox.StandardButton.Yes):
@@ -836,7 +818,6 @@ class EnvironmentUiTests(unittest.TestCase):
         self.request_initialize(both=True)
         self.pump(lambda: not self.window.runner.pending and not self.window._environment_pending)
         self.window.material_workspace.material_name.setText("offline_material")
-        self.window.confirm.setChecked(True)
         with patch.object(self.service, "start", side_effect=RuntimeError("fake RF capture failure")):
             self.window.start_experiment()
             self.pump(lambda: "start" not in self.window.runner.pending)

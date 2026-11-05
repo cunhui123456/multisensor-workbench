@@ -94,6 +94,8 @@ class SerialArchiveNavigationTests(unittest.TestCase):
             cooling=next(i for i,r in enumerate(self.window.history_rows) if r['key'].endswith('/cooling'))
             self.window.history_table.selectRow(cooling)
             self.pump(lambda:self.window.selected_details is not None)
+            self.window.view_history_button.click()
+            self.pump(lambda: not self.window.runner.pending and self.window.selected_details.get('curve_loaded'))
             widget=self.window.serial_archive_workspace
             widget.table.selectRow(0)
             with patch.object(QtWidgets.QInputDialog,'getText',return_value=('40 ℃标错',True)):
@@ -131,10 +133,11 @@ class SerialArchiveNavigationTests(unittest.TestCase):
                 self.window.history_table.selectRow(0)
                 self.pump(lambda:self.window.selected_details is not None)
                 self.assertIs(self.window.tabs.currentWidget(),self.window.history_table.parentWidget())
+                self.assertFalse(self.window.selected_details.get('curve_loaded'))
+                self.window.view_history_button.click()
+                self.pump(lambda: not self.window.runner.pending and self.window.tabs.currentIndex()==self.window.serial_archive_tab)
                 self.assertEqual(self.window.serial_archive_workspace.table.rowCount(),1)
                 self.assertTrue(self.window.serial_archive_workspace.lines)
-                self.window.view_history_button.click()
-                self.assertEqual(self.window.tabs.currentIndex(),self.window.serial_archive_tab)
                 self.assertIs(self.window.temperature_workspace._plot_points_cache,live_cache)
                 self.assertFalse(self.window.replay_button.isEnabled())
                 item=self.window.history_table.item(0,0)

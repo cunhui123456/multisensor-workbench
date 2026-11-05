@@ -25,6 +25,7 @@ import time
 
 from .protocol import LineParser, PROTOCOLS
 from .serial_io import PosixSerialReader
+from .pressure_control import CHANNELS, PressureControl, open_transport
 
 BOARD_LABEL = "Arduino Nano · ATmega328P · Old Bootloader（57600）"
 USB_PREFIXES = ("usbserial", "usbmodem", "wchusbserial", "slab_usbtouart")
@@ -210,11 +211,12 @@ class PreparationSession:
                     "result": deepcopy(self.result), "write_active": self.write_active,
                     "preparation_key": self.key}
 
-    def matches(self, port, protocol, board="nano_old"):
+    def matches(self, port, protocol, board="nano_old", *, pressure_channel="S3"):
         with self.lock:
             return bool(not self.is_running and self.status == "ready" and self.result
                         and not self.invalidated and self.result["port"] == port
-                        and self.result["protocol"] == protocol and self.result["board"] == board)
+                        and self.result["protocol"] == protocol and self.result["board"] == board
+                        and (protocol != "pressure_v2" or self.result.get("pressure_channel") == pressure_channel))
 
     def invalidate(self):
         with self.lock:
@@ -226,11 +228,13 @@ class PreparationSession:
                 self.status = "idle"
                 self.message = "设备或实验模式已变化，请重新准备或验证。"
 
-    def start(self, port, protocol, board="nano_old", upload=True):
+    def start(self, port, protocol, board="nano_old", upload=True, *, pressure_channel="S3"):
         if not is_usb_serial_port(port):
             raise ValueError("请选择 Arduino USB 串口（usbserial / usbmodem / wchusbserial / SLAB_USBtoUART）；蓝牙端口不能用于此实验。")
         if protocol not in PROTOCOLS or board != "nano_old":
-            raise ValueError("当前支持 Nano ATmega328P Old Bootloader 及两种已验证实验固件。")
+            raise ValueError("当前支持 Nano ATmega328P Old Bootloader 及所列温压协议。")
+        if protocol == "pressure_v2" and pressure_channel not in CHANNELS:
+            raise ValueError("请选择压力硬件通道 S1–S5")
         if not isinstance(upload, bool):
             raise ValueError("请明确选择烧录固件或只验证已有固件")
         with self.lock:
@@ -246,7 +250,7 @@ class PreparationSession:
             ident = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S_%fZ")
             self.key = "device_preparations/" + ident
             self.path = self.root / "Data" / self.key
-            self.thread = threading.Thread(target=self._run, args=(port, protocol, board, upload),
+            self.thread = threading.Thread(target=self._run, args=(port, protocol, board, upload, pressure_channel),
                                            name="arduino-preparation", daemon=True)
             self.thread.start()
             return self.key
@@ -389,8 +393,8 @@ class PreparationSession:
                 if process.stdout:
                     process.stdout.close()
 
-    def _verify_stream(self, port, protocol):
-        """Three complete advancing frames; all bytes saved, no writes to serial."""
+    def _verify_stream(self, port, protocol, pressure_channel="S3"):
+        """Three advancing frames; v2 additionally requires an owned selection ACK."""
         parser = LineParser(protocol)
         other = LineParser("temperature_v1" if protocol == "pressure_v1" else "pressure_v1")
         reader, raw_count, matched, previous = None, 0, 0, None
@@ -398,11 +402,14 @@ class PreparationSession:
         previous_line = None
         began = time.monotonic()
         frames = []
+        control = PressureControl(pressure_channel, lambda event: self._log(event["text"])) if protocol == "pressure_v2" else None
         try:
             with (self.path / "verification_serial.bin").open("wb") as raw:
-                reader = self.transport_factory(port, 9600)
+                reader = open_transport(self.transport_factory, port, 9600, protocol)
                 while time.monotonic() - began < self.verify_timeout_s:
                     self._check_cancelled()
+                    if control:
+                        control.tick(reader)
                     data = reader.read(timeout=.1)
                     if data is None:
                         continue
@@ -414,6 +421,9 @@ class PreparationSession:
                         raise RuntimeError("串口数据量异常，尚未确认所选 9600 波特协议")
                     stamp = {"host_time_utc": datetime.now(timezone.utc).isoformat(), "host_elapsed_s": time.monotonic() - began}
                     rows, events = parser.feed(data, **stamp)
+                    if control:
+                        self._check_cancelled()
+                        rows = control.consume(rows, events, reader)
                     alt_rows, _ = other.feed(data, **stamp)
                     other_matches += len(alt_rows)
                     for event in events:
@@ -438,7 +448,8 @@ class PreparationSession:
                             os.fsync(raw.fileno())
                             self._log(f"收到 {matched} 个连续且 MCU 时间递增的完整数据帧，协议验证通过。")
                             return {"verified_frames": matched, "verification_bytes": raw_count,
-                                    "verification_protocol": protocol, "preview": [row for frame in frames for row in frame]}
+                                    "verification_protocol": protocol, "preview": [row for frame in frames for row in frame],
+                                    **({"pressure_channel": pressure_channel, "pressure_control": control.snapshot()} if control else {})}
                 if raw_count == 0:
                     raise RuntimeError(f"{self.verify_timeout_s:g} 秒内未收到任何串口字节。请检查 USB 端口、数据线、供电及板上程序；仅能打开端口不表示 Arduino 就绪。")
                 if other_matches:
@@ -449,12 +460,14 @@ class PreparationSession:
             if reader is not None:
                 reader.close()
 
-    def _run(self, port, protocol, board, upload):
+    def _run(self, port, protocol, board, upload, pressure_channel="S3"):
         evidence = {"schema": "multisensor.device_preparation.v1", "started_utc": datetime.now(timezone.utc).isoformat(),
                     "port": port, "protocol": protocol, "board": board, "upload": upload,
                     "preparation_key": self.key, "status": "checking", "commands": [],
                     "firmware_identity": "protocol_only", "firmware_sha256": None,
                     "limitations": ["串口验证只证明当前输出协议及时间递增，不是温度/压力标定", "不写 EEPROM、熔丝或 bootloader"]}
+        if protocol == "pressure_v2":
+            evidence["pressure_channel"] = pressure_channel
         self._evidence = evidence
         final_status, result = "failed", None
         try:
@@ -515,7 +528,7 @@ class PreparationSession:
                 self._check_cancelled()
             self._phase("verifying", "验证 9600 波特串口数据：等待至少 3 个完整且时间递增的数据帧。")
             self._check_log_health()
-            verification = self._verify_stream(port, protocol)
+            verification = self._verify_stream(port, protocol, pressure_channel) if protocol == "pressure_v2" else self._verify_stream(port, protocol)
             self._check_log_health()
             self._check_cancelled()
             evidence.update(verification)

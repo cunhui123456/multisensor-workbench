@@ -18,9 +18,10 @@ from .comparison_service import ComparisonMixin
 from .liquid_temperature_service import LiquidTemperatureMixin
 from .serial_archive import SerialArchiveMixin
 from .publication_analysis import PublicationAnalysisMixin
+from .archive_trash import ArchiveTrashMixin
 
 
-class DesktopService(PublicationAnalysisMixin, SerialArchiveMixin, DeviceEnvironmentMixin, LiquidTemperatureMixin, FingerResearchMixin, BundleExportMixin, ComparisonMixin, LabController):
+class DesktopService(ArchiveTrashMixin, PublicationAnalysisMixin, SerialArchiveMixin, DeviceEnvironmentMixin, LiquidTemperatureMixin, FingerResearchMixin, BundleExportMixin, ComparisonMixin, LabController):
     def __init__(self, settings=None):
         self.settings = settings or Settings.from_env()
         super().__init__(self.settings.root)
@@ -234,10 +235,14 @@ class DesktopService(PublicationAnalysisMixin, SerialArchiveMixin, DeviceEnviron
             "experiment": "temperature_sweep" if temperature else ("liquid_temperature_" + job["config"]["mode"]) if liquid else ("material_sweep" if job["config"]["mode"] == "sweep" else "finger_displacement"),
             "job_id": job["id"], "condition": job["config"]["condition"],
             "sensor": job["config"]["sensor"], "parameters": job["config"],
-            "initial_setup_user_confirmed": job["config"]["setup_confirmed"],
+            "initial_setup_user_confirmed": (job["config"]["setup_confirmed"] and
+                                             job["config"].get("setup_confirmation_source", "manual") == "manual"),
+            "setup_confirmation_source": job["config"].get("setup_confirmation_source", "manual"),
             "manual_events": self.events, "desktop_status": job["status"],
             "stage_timestamps_are_not_measured_motion": True,
             "rf_stopped_confirmed": job.get("rf_stopped", False),
+            "failure_diagnosis": job.get("failure_diagnosis"),
+            "failure_summary": job.get("failure_summary"),
             "conda_environment": self.settings.conda_env,
             "display_gaps": self.display_gaps,
             "updated_utc": datetime.now(timezone.utc).isoformat(),

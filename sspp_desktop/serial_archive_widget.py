@@ -15,7 +15,7 @@ class SerialArchiveWidget(QtWidgets.QWidget):
         self._calibration_points = {}
         self._calibration_editable = False
         self._edit_busy = False
-        self.summary=QtWidgets.QLabel('选择温压／温度标定档案后查看；此处为历史数据。')
+        self.summary=QtWidgets.QLabel('选择温压／温度／压力标定档案后查看；此处为历史数据。')
         self.summary.setWordWrap(True);layout.addWidget(self.summary)
         self.voltage=make_plot('历史实收电压','主机接收经过时间（s）','电压（V）')
         self.adc=make_plot('历史ADC','主机接收经过时间（s）','ADC码值')
@@ -49,21 +49,34 @@ class SerialArchiveWidget(QtWidgets.QWidget):
             if plot.plotItem.legend:plot.plotItem.legend.clear()
         self.lines=[]
         curve=details.get('curve',{});rows=curve.get('points',[]);metadata=details.get('metadata',{})
+        pressure_v2 = metadata.get('protocol') == 'pressure_v2'
+        self.adc.setTitle('历史手动置零 ΔV' if pressure_v2 else '历史ADC')
+        self.adc.setLabel('left', 'ΔV（V）' if pressure_v2 else 'ADC码值')
         self.summary.setText(f"历史只读档案 · {details['key']}\n样品：{metadata.get('sample_name',metadata.get('label',''))} · 状态：{metadata.get('status','')} · 原始样本 {curve.get('stored_rows',0)} 行；当前显示 {len(rows)} 行")
         for i,ch in enumerate(sorted({r['channel'] for r in rows})):
             selected=[r for r in rows if r['channel']==ch]
             x=[];voltage=[];adc=[];previous=None
             for r in selected:
-                if previous and (r['time_segment']!=previous['time_segment'] or r['host_elapsed_s']-previous['host_elapsed_s']>3):
+                if previous and (r['time_segment']!=previous['time_segment'] or r['host_elapsed_s']-previous['host_elapsed_s']>3 or (pressure_v2 and r.get('selection_token') != previous.get('selection_token'))):
                     x.append(r['host_elapsed_s']);voltage.append(float('nan'));adc.append(float('nan'))
-                x.append(r['host_elapsed_s']);voltage.append(r['voltage_v']);adc.append(r['adc'] if r['adc'] is not None else float('nan'));previous=r
+                if pressure_v2 and previous and (r.get('zero_id') != previous.get('zero_id') or r.get('selection_token') != previous.get('selection_token')):
+                    x.append(r['host_elapsed_s']); voltage.append(r['voltage_v']); adc.append(float('nan'))
+                value = r.get('delta_voltage_v') if pressure_v2 else r.get('adc')
+                x.append(r['host_elapsed_s']);voltage.append(r['voltage_v']);adc.append(value if value is not None else float('nan'));previous=r
             for plot,values in ((self.voltage,voltage),(self.adc,adc)):
                 self.lines.append(plot.plot(x,values,pen=pg.mkPen(COLORS[i%len(COLORS)],width=1.5),name=ch,connect='finite'))
         self._calibration_editable = (
-            details.get('context',{}).get('experiment') == 'temperature_calibration'
+            details.get('context',{}).get('experiment') in ('temperature_calibration', 'pressure_calibration')
             and metadata.get('status') == 'complete'
             and all(metadata.get(field) is True for field in
                     ('serial_closed','workers_stopped','data_files_closed')))
+        pressure = details.get('context',{}).get('experiment') == 'pressure_calibration'
+        points=details.get('calibration_points',[])
+        channels=sorted({channel for point in points for channel in point.get('channels',{})}) if pressure else ['S6','S7']
+        self.table.setColumnCount(7+len(channels) if pressure else 6)
+        self.table.setHorizontalHeaderLabels(
+            ['原始点 ID','时长 s','参考力 N','平均压强 kPa','方向 / 循环','力敏通道',*[channel+'均值±SD V' for channel in channels],'状态 / 排除标记'] if pressure else
+            ['原始点 ID','时长 s','参考均温 ℃','S6均值±SD V','S7均值±SD V','状态 / 排除标记'])
         points=details.get('calibration_points',[])
         self._calibration_points = {p['id']: p for p in points
                                     if isinstance(p.get('id'),int) and not isinstance(p['id'],bool)}
@@ -72,7 +85,7 @@ class SerialArchiveWidget(QtWidgets.QWidget):
         self.table.setRowCount(len(points))
         for i,p in enumerate(points):
             voltages=[]
-            for ch in ('S6','S7'):
+            for ch in channels:
                 v=p.get('channels',{}).get(ch)
                 voltages.append('—' if not v else f"{v['mean_v']:.5f} ± {v['sample_sd_v']:.5f}" if v.get('sample_sd_v') is not None else f"{v['mean_v']:.5f}（单样本）")
             state_parts = ['已删除（可恢复）' if p.get('deleted') is True else
@@ -84,7 +97,13 @@ class SerialArchiveWidget(QtWidgets.QWidget):
             if p.get('deleted') is True and deletion.get('reason'):
                 state_parts.append(str(deletion['reason']))
             state='；'.join(part for part in state_parts if part)
-            for j,v in enumerate([p.get('id'),p.get('duration_s'),p.get('reference_mean_c'),*voltages,state]):
+            if pressure:
+                direction={'loading':'加载','unloading':'卸载','hold':'保持'}.get(p.get('direction'),p.get('direction',''))
+                values=[p.get('id'),p.get('duration_s'),p.get('reference_mean_n'),p.get('reference_mean_kpa'),
+                        f"{direction} / {p.get('cycle','—')}",p.get('pressure_channel'),*voltages,state]
+            else:
+                values=[p.get('id'),p.get('duration_s'),p.get('reference_mean_c'),*voltages,state]
+            for j,v in enumerate(values):
                 item=QtWidgets.QTableWidgetItem('—' if v is None else f'{v:.3f}' if isinstance(v,float) else str(v))
                 item.setData(QtCore.Qt.ItemDataRole.UserRole,p.get('id'))
                 if p.get('deleted') is True:
@@ -120,7 +139,7 @@ class SerialArchiveWidget(QtWidgets.QWidget):
         if self._edit_busy:
             state='正在保存标定点变更…'
         elif not self._calibration_editable:
-            state='仅完整封存的温度标定记录可修改标定点。'
+            state='仅完整封存的温度／压力标定记录可修改标定点。'
         elif point_ids and not (can_delete or can_restore):
             state='请分别选择已保存的有效点或已删除点；未保存点不可操作。'
         elif point_ids:

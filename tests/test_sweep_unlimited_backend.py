@@ -197,8 +197,8 @@ class CompletionTests(unittest.TestCase):
 
 class MainLifetimeTests(unittest.TestCase):
     def test_main_never_constructs_timer_and_saves_completion_policy(self):
-        for continuous in (False, True):
-            with self.subTest(continuous=continuous), tempfile.TemporaryDirectory() as folder:
+        for continuous, raw_failure in ((False, False), (True, False), (False, True)):
+            with self.subTest(continuous=continuous, raw_failure=raw_failure), tempfile.TemporaryDirectory() as folder:
                 thermal = {'mode': 'continuous'} if continuous else None
                 opts = SimpleNamespace(command='acquire', temperature_config=json.dumps(thermal) if thermal else None,
                     headless=True, label='lifetime_offline', output_root=Path(folder), freq_start=5e9,
@@ -248,7 +248,10 @@ class MainLifetimeTests(unittest.TestCase):
                             handlers[signal.SIGINT](signal.SIGINT, None)
                             test.assertTrue(stop.is_set())
                         return {'offline': True}
-                    return SimpleNamespace(run=run, flush_point=lambda: None, raw_files=[],
+                    def flush():
+                        if raw_failure:
+                            raise OSError('offline point archive failure')
+                    return SimpleNamespace(run=run, flush_point=flush, raw_files=[],
                         quality_attempt_count=0, rejected_measurement_count=0)
                 output = io.StringIO()
                 with patch.object(acquisition, 'parse_args', return_value=opts), \
@@ -268,16 +271,21 @@ class MainLifetimeTests(unittest.TestCase):
                      patch('sspp_experiments.temperature_sweep.acquisition.TemperatureSweepCapture', Companion), \
                      contextlib.redirect_stdout(output):
                     code = acquisition.main()
-                self.assertEqual(code, 0, output.getvalue())
+                self.assertEqual(code, 2 if raw_failure else 0, output.getvalue())
                 self.assertEqual(runner_called, [True])
                 self.assertEqual(stopped, [True])
                 manifest = json.loads(next(Path(folder).glob('*/manifest.json')).read_text())
+                self.assertEqual(manifest['archive_compression'],
+                                 {'format':'npz', 'codec':'deflate', 'level':3, 'lossless':True})
                 self.assertEqual(manifest['time_policy'], {
                     'total_time_limit_seconds': None, 'completion': 'operator_stop' if continuous else 'configured_rounds',
                     'point_timeout_seconds': 8., 'weak_point_extra_seconds':8.,
                     'point_max_timeout_seconds':16.,
                     'weak_point_extension_policy':'one_extension_after_qualified_long_verify_before_base_deadline'})
-                self.assertEqual(manifest['errors'], [])
+                self.assertEqual(manifest['errors'], ['Raw saving: offline point archive failure'] if raw_failure else [])
+                if raw_failure:
+                    self.assertEqual(manifest['status'], 'failed_or_incomplete')
+                    self.assertNotIn('raw_files', manifest)
                 self.assertEqual(manifest['telemetry'].get('stop_reason'), 'operator_stop' if continuous else None)
                 self.assertTrue(manifest['telemetry']['rf_stopped_confirmed'])
                 self.assertIn('no total time limit', output.getvalue())

@@ -1,0 +1,227 @@
+{
+  "date": "2026-11-05T12:18:42.466603+08:00",
+  "change": "Unified SSPP sweep with optional manual/continuous temperature and liquid conditions; initialization replaces redundant wiring checkbox",
+  "hardware_opened": false,
+  "firmware_uploaded": false,
+  "raw_source_data_modified": false,
+  "full_suite": {
+    "command": "python -B -m pytest -q -p no:cacheprovider tests",
+    "passed": 826,
+    "failed": 1,
+    "subtests_passed": 927,
+    "seconds": 84.35,
+    "failure": "test_desktop_ui.py::DesktopUiTests::test_real_replay_seek_force_refreshes_preview_and_shows_timing_note",
+    "resolution": "Navigate to the matching archive, wait for navigation background work, and disable the offline test periodic timer; production acquisition code unchanged for this fix."
+  },
+  "final_retest": {
+    "modules": [
+      "tests/test_desktop_ui.py",
+      "tests/test_unified_sweep_interactions.py"
+    ],
+    "passed": 14,
+    "failed": 0,
+    "subtests_passed": 7,
+    "seconds": 4.36
+  },
+  "remaining_failures": [],
+  "focused_backend": {
+    "passed": 116,
+    "subtests_passed": 125
+  },
+  "visual_review": {
+    "method": "PySide6 offscreen with fake services",
+    "states": [
+      "default sweep",
+      "manual temperature + liquid",
+      "continuous temperature",
+      "liquid fields and advanced settings",
+      "temperature/pressure page"
+    ],
+    "result": "Controls remain legible; start/reset remain fixed; redundant confirmation absent"
+  },
+  "selfcheck": {
+    "environment": "rf-gnuradio",
+    "python": "/opt/homebrew/Caskroom/miniforge/base/envs/rf-gnuradio/bin/python",
+    "qt": "6.12.0",
+    "pyqtgraph": "0.14.0",
+    "gnuradio": "3.10.12.0",
+    "uhd_import": true,
+    "profiles": [
+      {
+        "id": "own",
+        "name": "自有 B210",
+        "channel": 0
+      },
+      {
+        "id": "teacher",
+        "name": "老师 B210",
+        "channel": 0
+      }
+    ],
+    "history_count": 145,
+    "hardware_opened": false
+  },
+  "source_data_test_method": "APFS copy in temporary stage, not a symlink; tests do not write source Data",
+  "changed_files_before_validation": [
+    {
+      "path": "CONTEXT_RULES.md",
+      "before_sha256": "75788c55708c5e86de9a33463f017b7bc55b0933705097e550e541c332034bb4",
+      "after_sha256": "99426316c5e80805dd69c49b802e9b899ed2e826337fdf8bde99bc6680a2a287"
+    },
+    {
+      "path": "README.md",
+      "before_sha256": "30bd71c4fd62e4782d0bc891767e035da913e4a2df5dc661a15f6f8407993b0a",
+      "after_sha256": "bf2c20cd1a74544a204e2465a5fbbb654ad7c675226ac5c5e0f12d5a46bc7c6a"
+    },
+    {
+      "path": "docs/design.md",
+      "before_sha256": "c3e7c6d490a623ed8015156e9f94581c66e24e95cc648c4b85c15af6975c006e",
+      "after_sha256": "948928dac461da72b9b39bf8b314310131c1543f120cc98685648fd694ea47f8"
+    },
+    {
+      "path": "docs/experiment_workflows.md",
+      "before_sha256": "c703e9c235f85d1b19ecff7094472427c9facd11c6357ff57667525896e61ef4",
+      "after_sha256": "78375229693f42f0322cf97232ff952d12c20895465f22c92537a43d356a84b8"
+    },
+    {
+      "path": "docs/liquid_temperature_experiment.md",
+      "before_sha256": "619e3d9859b0338ab5117329b51c262298a70a753f006f98d044b6c82a065ae0",
+      "after_sha256": "7e3ccea5260b31b87459d0b653daf468a203d6705d57679c6d167345abfd40c5"
+    },
+    {
+      "path": "docs/pressure_calibration.md",
+      "before_sha256": "6b386cdf2b3800125b023b67ffdd9190c8af517e89af10fdcd29b457f558ed62",
+      "after_sha256": "4ebb334fadbed63a5a994d7e942f57a54c0e24449af5b6effe6f468dfa940ae3"
+    },
+    {
+      "path": "docs/temperature_firmware_workflow.md",
+      "before_sha256": "67c33384aee9df697350e912e192c09e5be4f048bec1a13402a239b94b541a61",
+      "after_sha256": "d5b60451ab3c56d9e02e8fa4cfba7298b790e80af202376935bbd3de62bf6cd0"
+    },
+    {
+      "path": "docs/temperature_sweep.md",
+      "before_sha256": "803fe38da37903216e1c763be25ef57245ab7c6d049722487ff811c3247b43c4",
+      "after_sha256": "f3442a526b1e3208049f58b88ca96e0a8773fa1ce7886fe8e1c983b261c8b610"
+    },
+    {
+      "path": "docs/unified_sweep.md",
+      "before_sha256": null,
+      "after_sha256": "7ae5c96f30876ce220e583c862d0a93671456717116bbd3ab6bb282b688aca8d"
+    },
+    {
+      "path": "sspp_desktop/comparison_service.py",
+      "before_sha256": "94b0c104a96069c4dee840bf115fdabce67eea468e1f04d7e7c8257f8fba8706",
+      "after_sha256": "9899db249ded84e577b8846a8a7831150f9595d4a30eef57bd76ccd2eee0bcdd"
+    },
+    {
+      "path": "sspp_desktop/device_environment.py",
+      "before_sha256": "d6dadd90c10f29c0e9804ab668acc693252c5fd4ec715bd39c074909e2d8908e",
+      "after_sha256": "5ecc6bf9c72facd32d4b46f2685cac9755a1e9769342e8bb817654147b4fe074"
+    },
+    {
+      "path": "sspp_desktop/liquid_temperature_service.py",
+      "before_sha256": "71c7defbe6969d04e0ac7ba2530efc6b322f72f9eb9ebaea9f28c86110601964",
+      "after_sha256": "0106095ef7fc13651a51f51c17406d99bfca9bafbbee0c2d6d809a1c973c1a41"
+    },
+    {
+      "path": "sspp_desktop/services.py",
+      "before_sha256": "61ad3db219036f54e8a66ef32aec76025ce4f48caf4712a8e45b03d69e806667",
+      "after_sha256": "e4b0fee89eebdfd67149171312dd7cc0a7c48e1db0df2cc209d3156cc12a598d"
+    },
+    {
+      "path": "sspp_desktop/temperature_widget.py",
+      "before_sha256": "9e78a2f1d79e41d6ade0f30886462c853e1377ba37e1e70c4145cd7ba914cdc4",
+      "after_sha256": "2e5b930f3ad73521b93c7344da0580faa1b929f0b2d09586e0429e0cbe44bd2a"
+    },
+    {
+      "path": "sspp_desktop/unified_sweep_widget.py",
+      "before_sha256": null,
+      "after_sha256": "a725de96dfa49bf41d6af1028f8f7fd0b0876f7c42968ad3527634141ef48824"
+    },
+    {
+      "path": "sspp_desktop/window.py",
+      "before_sha256": "7f834f23c6e73b179ede3f52142cac645565270fee45479133abd17cad6bbc7c",
+      "after_sha256": "8b1022df6a5c579003d3cbf3c18f7fd9c98829a70f2be6a325718b11fa889bca"
+    },
+    {
+      "path": "sspp_experiments/comparison.py",
+      "before_sha256": "f4f218ee5034d8d24810b732f557fdf7c1e2c03851fc5c91cbc02fef5c4e82d6",
+      "after_sha256": "5f823f300fb083985e525f1d308be489ebc6fa923da507e5eef7474a57aaa4a8"
+    },
+    {
+      "path": "sspp_lab/controller.py",
+      "before_sha256": "edc22c29bf55cced77323a64d3ea3545d8d1097f765419c631062c79b28908ba",
+      "after_sha256": "c401970d55b1f7052504e31d751191afd5832bccb2db97803946403d12254327"
+    },
+    {
+      "path": "tests/test_desktop_ui.py",
+      "before_sha256": "c84937d01d4e4c1336f4647367d75c4b3d670a2b687d69119073e90ad4aaf946",
+      "after_sha256": "345c244ff462419f44439dee84f19b3bf106443022d1cda8e4811cb426126434"
+    },
+    {
+      "path": "tests/test_device_environment.py",
+      "before_sha256": "da5f972c9e66b863c29db144121b7734d7db54c267946bb56677ec86e43f737d",
+      "after_sha256": "1382805e1fd70d07b034c61f69c205d9efe12cd5e83fab31c47540a52cb245d1"
+    },
+    {
+      "path": "tests/test_environment_ui.py",
+      "before_sha256": "a02fbdcd07c3257336b37d995e97155cd82aa4a95acc1681f88b1d780e5593a4",
+      "after_sha256": "ddd284c54c8962f312bf55ee25e3be58acd5cc6c6778ba2ada494cb7ac8c000c"
+    },
+    {
+      "path": "tests/test_experiment_navigation.py",
+      "before_sha256": "bec54faf329862fb5e2d01592f8dc4ff2f480f138e544142624165ddd09c9abd",
+      "after_sha256": "6cdb382618c0183d1dcadafce45a9e614366da3475b8382e6bf04a1d08e303ae"
+    },
+    {
+      "path": "tests/test_liquid_temperature_mainwindow.py",
+      "before_sha256": "56eb6ef208b696998e6176e32045b998886144e4f11ddbdebaa075b44932adb2",
+      "after_sha256": "dad8691b118aa80310dfb2bfe84141eec4e8f25c4079c9afc911ff2935285610"
+    },
+    {
+      "path": "tests/test_pressure_config_ui.py",
+      "before_sha256": "e6a3e118020fb10e11d17e101a2c69bd058c422b0e28c20439fb3f18d2792ea7",
+      "after_sha256": "cf38d179e66101c08585382a2e36498d534afc39f33e3348b30aaed5d1a6751b"
+    },
+    {
+      "path": "tests/test_pressure_ui.py",
+      "before_sha256": "e6e80af79fb860d6da043297c978cd70d535967b204361fab78c9bf97c2dd275",
+      "after_sha256": "ea5ac9612891d1e9a03cb8dbb3af30bf55a0c71c1814fabd7ba99b2067959e1d"
+    },
+    {
+      "path": "tests/test_research_ui.py",
+      "before_sha256": "18235053e8ba21ce68f605a39d4588c531e3b5e644e2a35f39a3b29ed001a4c7",
+      "after_sha256": "9c7128782a7f9434941b1f45ad49a22bf7e2c9fe03b623b506c7def6ff447ab1"
+    },
+    {
+      "path": "tests/test_sweep_budget.py",
+      "before_sha256": "147f82f4c4d4156a18dde10b237e9aece069630aacf9fbc7ae37e2db20a38cca",
+      "after_sha256": "9f0f20ddc0f794b52782f2274e1626faf6b0acbd8c2e3f53ee9e63017a5f4d49"
+    },
+    {
+      "path": "tests/test_temperature_sweep_mainwindow.py",
+      "before_sha256": "463a3a7d4434a6ffab7c6605c6418162ebe62d27ee6d48a495842e2698ec9962",
+      "after_sha256": "5843bc8e9aedca6d5faeabe0e843aacd70802c5fe947a350b7b4348d080d55d6"
+    },
+    {
+      "path": "tests/test_temperature_ui.py",
+      "before_sha256": "79ccf0a4ac6d7031bb9949957ea9d223b86797c884062037538a4384aa9de50f",
+      "after_sha256": "e94f6de7d4c3f3ecc08252dd8c51d13329868dde39f51b8bb4bbf79fbe8f90c8"
+    },
+    {
+      "path": "tests/test_unified_sweep_backend.py",
+      "before_sha256": null,
+      "after_sha256": "09d2eeaa5bc4e875e95a3bcc95c68acc6511d7b497cafdd2386279517cda54cf"
+    },
+    {
+      "path": "tests/test_unified_sweep_interactions.py",
+      "before_sha256": null,
+      "after_sha256": "10f06bc538f85100f2c9ff2c4e866725a9e0c40f5af921aef3311988072f09d0"
+    },
+    {
+      "path": "tests/test_weak_point_budget_ui.py",
+      "before_sha256": "2f6f58499334fc03c99e310176acea418ac4227dfd2efd38db06c1960575ca17",
+      "after_sha256": "8d1a8d7f4c66486c6f6a0bf5365f1c5389ce929efe361ac30b2a434827d6f6b4"
+    }
+  ]
+}

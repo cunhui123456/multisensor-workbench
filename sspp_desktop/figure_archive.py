@@ -17,6 +17,7 @@ from sspp_lab.controller import LabError
 
 
 EXPERIMENT_FOLDERS = {
+    'pressure_calibration':'pressure_calibration',
     'material_sweep':'material_sweep', 'teacher_sweep':'material_sweep',
     'finger_displacement':'finger_displacement', 'phase_history':'finger_displacement',
     'liquid_temperature':'liquid_temperature', 'liquid_temperature_sweep':'liquid_temperature',

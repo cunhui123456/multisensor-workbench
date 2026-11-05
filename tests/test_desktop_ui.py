@@ -193,9 +193,6 @@ class DesktopUiTests(unittest.TestCase):
             window.initialize_environment()
             self.pump_until(lambda: "initialize_environment" not in window.runner.pending)
             window.start_experiment()
-            self.assertIsNone(service.started)  # 接线确认不能跳过。
-            window.confirm.setChecked(True)
-            window.start_experiment()
             self.pump_until(lambda: service.started is not None and "start" not in window.runner.pending)
             self.assertFalse(window.config_container.isEnabled())
             self.assertTrue(window.stop_button.isEnabled())
@@ -242,7 +239,6 @@ class DesktopUiTests(unittest.TestCase):
                     # 单点时限复位；扫频没有总时限控件或隐藏预算。
                     self.assertNotIn("max_seconds", window.fields)
                     window.fields["point_timeout"].setValue(30)
-                    window.confirm.setChecked(True)
                     window.reset_button.click()
                     cfg = validate_request(window.config(), require_setup=False)
                     self.assertIsNone(cfg["max_seconds"])
@@ -258,7 +254,7 @@ class DesktopUiTests(unittest.TestCase):
                     self.assertEqual(window.finger_workspace.tolerance.value(), 1.5)
                     self.assertEqual(window.finger_workspace.records, [{"id": "keep_annotation"}])
                     window.start_experiment()
-                    self.assertIsNone(service.started)  # 复位不授权启动，必须重新确认。
+                    self.assertIsNone(service.started)  # 参数复位不自动初始化设备。
         finally:
             window.close()
             self.pump_until(lambda: service.closed and not window.isVisible())
@@ -273,7 +269,6 @@ class DesktopUiTests(unittest.TestCase):
             self.assertTrue(window.select_experiment("finger"))
             self.pump_until(lambda: not window.runner.pending)
             window.fields["carrier_ghz"].setValue(3.5)
-            window.confirm.setChecked(True)
             for snapshot in ([{"job": {"status": status}} for status in
                               ("starting", "running", "stopping", "saving")]
                              + [{"preparing": True}]):
@@ -282,7 +277,7 @@ class DesktopUiTests(unittest.TestCase):
                     self.assertFalse(window.reset_button.isEnabled())
                     window.reset_parameters()  # 直接调用也不能绕过禁用按钮。
                     self.assertEqual(window.fields["carrier_ghz"].value(), 3.5)
-                    self.assertTrue(window.confirm.isChecked())
+                    self.assertFalse(hasattr(window, "confirm"))
             window._apply_status({})
             for flag in ("_start_pending", "_close_requested"):
                 setattr(window, flag, True)
@@ -298,7 +293,7 @@ class DesktopUiTests(unittest.TestCase):
             self.assertTrue(window.reset_button.isEnabled())
             window.reset_button.click()
             self.assertEqual(window.fields["carrier_ghz"].value(), 2.4)
-            self.assertFalse(window.confirm.isChecked())
+            self.assertFalse(hasattr(window, "confirm"))
             self.assertIsNone(service.started)
             self.assertFalse(service.stopped)
         finally:
@@ -366,11 +361,15 @@ class DesktopUiTests(unittest.TestCase):
         from sspp_desktop.services import DesktopService
         service = DesktopService(Settings.from_env(Path(__file__).resolve().parents[1]))
         window = MainWindow(service)
+        window.timer.stop()
         window.show()
         try:
-            window.open_archive()
-            self.pump_until(lambda: bool(window.history_rows))
             for mode in ("phase", "sweep"):
+                self.pump_until(lambda: not window.runner.pending and not window._navigation_blocked())
+                self.assertTrue(window.select_experiment("finger" if mode == "phase" else "material"), window.notice.text())
+                self.pump_until(lambda: not window.runner.pending)
+                window.open_archive()
+                self.pump_until(lambda: bool(window.history_rows) and not window.runner.pending)
                 index = next(i for i, row in enumerate(window.history_rows) if row["mode"] == mode and row["status"] == "complete")
                 window.history_table.selectRow(index)
                 self.pump_until(lambda: window.selected_details is not None)

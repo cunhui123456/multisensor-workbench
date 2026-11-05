@@ -9,14 +9,17 @@ import csv
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import threading
 import time
 
-from .protocol import CSV_FIELDS, LineParser, PROTOCOLS
+from .protocol import CSV_FIELDS, PRESSURE_CSV_FIELDS, LineParser, PROTOCOLS
 from .serial_io import PosixSerialReader
 from .ramp import validate_ramp, VoltageTrend
 from .plateau import PlateauRecorder
+from .pressure import PressureRecorder
+from .pressure_control import CHANNELS, PressureControl, open_transport
 
 SCHEMA = "sspp.temperature_pressure.v1"
 
@@ -50,6 +53,8 @@ class CaptureConfig:
     preparation: dict | None = None
     temperature_ramp: dict | None = None
     temperature_calibration: bool = False
+    pressure_calibration: bool = False
+    pressure_channel: str = "S3"
 
     def validate(self):
         if not isinstance(self.port, str) or not self.port.startswith("/dev/cu.") or "/" in self.port[len("/dev/"):]:
@@ -64,6 +69,14 @@ class CaptureConfig:
             raise ValueError("实验说明最多 1000 字")
         if not isinstance(self.temperature_calibration, bool):
             raise ValueError("温度标定开关必须为布尔值")
+        if not isinstance(self.pressure_calibration, bool):
+            raise ValueError("压力标定开关必须为布尔值")
+        if self.protocol == "pressure_v2" and self.pressure_channel not in CHANNELS:
+            raise ValueError("请选择压力硬件通道 S1–S5")
+        if self.pressure_calibration and (self.temperature_calibration or self.temperature_ramp is not None):
+            raise ValueError("压力标定与温度标定必须分别记录")
+        if self.pressure_calibration and self.protocol == "pressure_v1" and not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,31}", self.channel):
+            raise ValueError("压力标定通道须使用稳定标识（如 A2）：英文字母开头，只含字母、数字或下划线，最多32字符；实际接线详情请填入实验说明")
         if self.temperature_calibration and self.protocol != "temperature_v1":
             raise ValueError("平台标定必须使用温度双路固件")
         if self.temperature_ramp is not None:
@@ -74,7 +87,8 @@ class CaptureConfig:
             if (not isinstance(self.preparation, dict)
                     or self.preparation.get("port") != self.port
                     or self.preparation.get("protocol") != self.protocol
-                    or not self.preparation.get("preparation_key")):
+                    or not self.preparation.get("preparation_key")
+                    or (self.protocol == "pressure_v2" and self.preparation.get("pressure_channel") != self.pressure_channel)):
                 raise ValueError("固件准备记录与当前端口／实验模式不一致，请重新验证")
 
 
@@ -104,7 +118,11 @@ class SerialCaptureSession:
         self.plateau_commands = Queue(maxsize=32)
         self.plateau_status = {}
         self.ramp_enabled = False
+        self.pressure_enabled = False
         self.ramp_endpoint = None
+        self.pressure_control = {}
+        self.pressure_commands = Queue(maxsize=1)
+        self.protocol = None
 
     @property
     def is_running(self):
@@ -119,7 +137,11 @@ class SerialCaptureSession:
             self.plateau_commands = Queue(maxsize=32)
             self.plateau_status = {}
             self.ramp_endpoint = None
-            self.ramp_enabled = config.temperature_calibration or config.temperature_ramp is not None
+            self.protocol = config.protocol
+            self.pressure_control = {}
+            self.pressure_commands = Queue(maxsize=1)
+            self.pressure_enabled = config.pressure_calibration
+            self.ramp_enabled = config.pressure_calibration or config.temperature_calibration or config.temperature_ramp is not None
             self.preview.clear()
             self.events.clear()
             self.errors = []
@@ -138,10 +160,30 @@ class SerialCaptureSession:
     def request_stop(self):
         self.stop_event.set()
 
+    def pressure_command(self, operation, *, channel=None):
+        with self.lock:
+            if (operation not in ("zero", "clear", "select") or self.protocol != "pressure_v2" or
+                    not self.is_running or self.stop_event.is_set() or not self.rows or
+                    not self.pressure_control.get("confirmed_channel")):
+                raise ValueError("请先采集并确认压力 v2 通道")
+            if self.pressure_control.get("pending") or not self.pressure_commands.empty():
+                raise ValueError("压力控制仍在处理中")
+            if self.plateau_status.get("active") or not self.plateau_commands.empty():
+                raise ValueError("请先结束标定区间，再切换通道、置零或清除基线")
+            if operation == "select" and channel not in CHANNELS:
+                raise ValueError("请选择压力硬件通道 S1–S5")
+            self.pressure_commands.put_nowait({"operation": operation, "channel": channel})
+            self.pressure_control["pending"] = operation
+            if operation == "select":
+                self.pressure_control["confirmed_channel"] = None
+                self.pressure_control["requested_channel"] = channel
+
     def plateau_command(self, operation, **values):
         with self.lock:
             if not self.ramp_enabled or not self.is_running or self.status != "running" or not self.rows or self.stop_event.is_set():
-                raise ValueError("请先开始温度标定连续采集并等待有效数据")
+                raise ValueError("请先开始标定连续采集并等待有效数据")
+            if operation == "begin" and self.protocol == "pressure_v2" and (self.pressure_control.get("pending") or not self.pressure_commands.empty()):
+                raise ValueError("请等待压力置零／清除完成后再开始标定区间")
             command = {**values, "operation": operation, **self._stamp()}
             json.dumps(command, allow_nan=False)
             try:
@@ -151,6 +193,8 @@ class SerialCaptureSession:
 
     def confirm_ramp_endpoint(self):
         with self.lock:
+            if self.pressure_enabled:
+                raise ValueError("压力标定不支持温度终点操作")
             if not self.ramp_enabled or not self.is_running or self.status != "running" or not self.rows or self.stop_event.is_set():
                 raise ValueError("请在有效数据采集中确认终温")
             self.ramp_endpoint = {"temperature_c": 90., "confirmed_by": "operator_external_reference", **self._stamp()}
@@ -179,7 +223,7 @@ class SerialCaptureSession:
                     "rows": self.rows, "raw_bytes": self.raw_bytes, "points": list(self.preview),
                     "events": list(self.events), "errors": list(self.errors), "event_counts": dict(self.event_counts),
                     "elapsed_s": elapsed, "last_sample_age_s": sample_age, "diagnostic": diagnostic,
-                    "plateau":deepcopy(self.plateau_status), "plateau_pending":not self.plateau_commands.empty()}
+                    "pressure_control":deepcopy(self.pressure_control), "plateau":deepcopy(self.plateau_status), "plateau_pending":not self.plateau_commands.empty()}
 
     def _event(self, event, handle):
         handle.write(json.dumps(event, ensure_ascii=False, allow_nan=False) + "\n")
@@ -193,21 +237,25 @@ class SerialCaptureSession:
     def _run(self, config):
         parser = LineParser(config.protocol, config.channel)
         transport = None
+        control = None
         handles = []
         serial_config = asdict(config)
         preparation = serial_config.pop("preparation")
         ramp = serial_config.pop("temperature_ramp")
         platform_calibration = serial_config.pop("temperature_calibration")
-        response_enabled = platform_calibration or ramp is not None
+        pressure_calibration = serial_config.pop("pressure_calibration")
+        response_enabled = pressure_calibration or platform_calibration or ramp is not None
         trend = VoltageTrend()
         ramp_writer = None
-        plateau = PlateauRecorder() if response_enabled else None
+        channels = [config.pressure_channel] if config.protocol == "pressure_v2" else [config.channel] if config.protocol == "pressure_v1" else ["S6", "S7"]
+        seen_channels = set()
+        plateau = PressureRecorder(CHANNELS if config.protocol == "pressure_v2" else channels) if pressure_calibration else PlateauRecorder() if response_enabled else None
         plateau_log = None
         manifest = {"acquisition_schema": SCHEMA, "schema_version": 1, "experiment": "temperature_pressure",
                     "status": "initializing", "started_utc": utc(), "label": config.sample_name,
                     "sample_name": config.sample_name, "notes": config.notes, "serial": serial_config,
                     "preparation": preparation,
-                    "protocol": config.protocol, "data_file": "samples.csv", "channels": [config.channel] if config.protocol == "pressure_v1" else ["S6", "S7"],
+                    "protocol": config.protocol, "data_file": "samples.csv", "channels": channels,
                     "source_hashes": {path.name: _sha(path) for path in Path(__file__).parent.glob("*.py")},
                     "limitations": ["voltage_v uses firmware nominal 5 V reference; not calibrated temperature or pressure",
                                     "host timestamps describe byte receipt; MCU timestamps describe firmware measurements",
@@ -215,12 +263,26 @@ class SerialCaptureSession:
                                     "opening a Nano serial connection may reset MCU; no firmware upload or serial command is issued"],
                     "serial_closed": False, "workers_stopped": False, "data_files_closed": False,
                     "raw_complete_file_closed": False, "errors": [], "files": []}
+        if config.protocol == "pressure_v2":
+            manifest["limitations"][-1] = "Pressure v2 sends SELECT/Z/C only on the owning serial worker; no motion commands or automatic upload"
+            manifest["pressure_channel"] = config.pressure_channel
+            manifest["initial_pressure_channel"] = config.pressure_channel
         if ramp is not None:
             manifest["temperature_ramp"] = validate_ramp(ramp)
             manifest["temperature_ramp"]["time_origin"] = "capture_start_host_monotonic"
             manifest["limitations"].append("Heating is externally controlled; voltage does not prove 90 C; manual reference readings do not imply continuous reference monitoring")
         if platform_calibration:
             manifest["temperature_calibration"] = {"mode":"platform_intervals", "temperature_source":"manual_reference_per_interval"}
+        if pressure_calibration:
+            manifest["pressure_calibration"] = {
+                "mode": "force_intervals", "force_source": "manual_reference_per_interval",
+                "reference_unit": "N", "contact_area_source": "operator_per_interval_optional",
+                "pressure_conversion": "kPa = force_N * 1000 / contact_area_mm2",
+                "automatic_calibration_activated": False}
+            manifest["limitations"].extend([
+                "Manual force references are observations at click time, not continuous force monitoring",
+                "Pressure kPa is reported only for an explicitly supplied contact area; no motion control",
+                "Linear calibration candidates are descriptive fits, not independently validated accuracy"])
         failures = []
         events_file = None
         try:
@@ -232,12 +294,13 @@ class SerialCaptureSession:
             handles.append(samples_file)
             events_file = (self.run_path / "serial_events.jsonl").open("w", encoding="utf-8")
             handles.append(events_file)
-            writer = csv.DictWriter(samples_file, fieldnames=CSV_FIELDS)
+            sample_fields = PRESSURE_CSV_FIELDS if config.protocol == "pressure_v2" else CSV_FIELDS
+            writer = csv.DictWriter(samples_file, fieldnames=sample_fields)
             writer.writeheader()
             if response_enabled:
                 ramp_file = (self.run_path / "voltage_response.csv").open("w", newline="", encoding="utf-8")
                 handles.append(ramp_file)
-                ramp_writer = csv.DictWriter(ramp_file, fieldnames=[*CSV_FIELDS, "delta_voltage_v", "voltage_rate_v_per_min"])
+                ramp_writer = csv.DictWriter(ramp_file, fieldnames=[*sample_fields, "response_delta_voltage_v" if config.protocol == "pressure_v2" else "delta_voltage_v", "voltage_rate_v_per_min"])
                 ramp_writer.writeheader()
             if plateau is not None:
                 plateau_log = (self.run_path / "calibration_events.jsonl").open("w", encoding="utf-8")
@@ -253,6 +316,10 @@ class SerialCaptureSession:
                     except Empty:
                         break
                     try:
+                        if command["operation"] == "begin" and control is not None and (control.pending or not control.confirmed or not self.pressure_commands.empty()):
+                            raise ValueError("请等待压力选通／置零／清除完成后再开始标定区间")
+                        if command["operation"] == "begin" and control is not None and command.get("pressure_channel") != control.channel:
+                            raise ValueError("标定区间通道必须等于单片机当前确认的压力通道")
                         plateau.command(command)
                         error = None
                         accepted = True
@@ -267,17 +334,39 @@ class SerialCaptureSession:
                 state['last_error'] = error
                 with self.lock:
                     self.plateau_status = state
-            transport = self.transport_factory(config.port, config.baudrate)
+            if config.protocol == "pressure_v2":
+                control = PressureControl(config.pressure_channel, lambda event: self._event({**event, **self._stamp()}, events_file))
+            def pressure_tick():
+                if control is None or self.stop_event.is_set():
+                    return
+                try:
+                    command = self.pressure_commands.get_nowait()
+                except Empty:
+                    command = None
+                if command:
+                    if plateau is not None and plateau.active is not None:
+                        control.error = "标定区间中不允许切换通道／置零／清除基线"
+                        self._event({"kind": "pressure_command_rejected", "text": control.error, **self._stamp()}, events_file)
+                    else:
+                        if command["operation"] == "select":
+                            control.select_channel(transport, command["channel"])
+                        else:
+                            control.command(transport, command["operation"])
+                control.tick(transport)
+                with self.lock:
+                    self.pressure_control = control.snapshot()
+            transport = open_transport(self.transport_factory, config.port, config.baudrate, config.protocol)
             with self.lock:
                 self.status = "running"
             manifest["status"] = "running"
             manifest["serial_opened"] = True
             _save(self.run_path / "manifest.json", manifest)
-            self._event({"kind": "capture_started", "text": "串口接收开始；未发送控制命令", **self._stamp()}, events_file)
+            self._event({"kind": "capture_started", "text": "串口接收开始；等待压力通道确认" if control else "串口接收开始；未发送控制命令", **self._stamp()}, events_file)
             last_flush = time.monotonic()
             opened_monotonic = last_flush
             stop_deadline = None
             while True:
+                pressure_tick()
                 process_plateau_commands()
                 stopping = self.stop_event.is_set()
                 if stopping:
@@ -303,19 +392,38 @@ class SerialCaptureSession:
                 raw_file.write(data)
                 stamp = self._stamp()
                 rows, messages = parser.feed(data, **stamp)
+                with self.lock:
+                    self.raw_bytes += len(data)
+                for message in messages:
+                    self._event(message, events_file)
+                if control is not None:
+                    previous_selections = len(control.history)
+                    rows = [] if self.stop_event.is_set() and not control.confirmed else control.consume(rows, messages, transport)
+                    if len(control.history) != previous_selections:
+                        trend = VoltageTrend()
+                        if plateau is not None:
+                            plateau.recent.clear()
+                    with self.lock:
+                        self.pressure_control = control.snapshot()
+                seen_channels.update(row["channel"] for row in rows)
                 writer.writerows(rows)
                 if ramp_writer is not None:
                     for row in rows:
-                        row.update(trend.add(row))
+                        trend_values = trend.add(row)
+                        if config.protocol == "pressure_v2":
+                            trend_values["response_delta_voltage_v"] = trend_values.pop("delta_voltage_v", "")
+                        row.update(trend_values)
                         ramp_writer.writerow(row)
                 if plateau is not None:
                     plateau.add_rows(rows)
                     if plateau.active is not None and any(m.get('kind') in ('malformed_line','invalid_encoding','line_too_long','firmware_error','interrupted_line') for m in messages):
                         plateau.active['quality_flags'].append('serial_parse_event')
-                for message in messages:
-                    self._event(message, events_file)
+                    if pressure_calibration and plateau.active is not None:
+                        if any(m.get('kind') == 'mcu_reset' for m in messages):
+                            plateau.active['quality_flags'].append('mcu_reset_in_interval')
+                        if any(m.get('kind') == 'duplicate_mcu_time' for m in messages):
+                            plateau.active['quality_flags'].append('duplicate_mcu_time_in_interval')
                 with self.lock:
-                    self.raw_bytes += len(data)
                     self.rows += len(rows)
                     self.preview.extend(rows)
                     if rows:
@@ -398,6 +506,11 @@ class SerialCaptureSession:
             if ramp is not None:
                 manifest["temperature_ramp"]["endpoint_reference"] = self.ramp_endpoint
                 manifest["temperature_ramp"]["target_reached_confirmed"] = bool(self.ramp_endpoint)
+            if control is not None:
+                manifest["channels"] = sorted(seen_channels)
+                manifest["pressure_control"] = control.snapshot()
+                with self.lock:
+                    self.pressure_control = control.snapshot()
             manifest.update(ended_utc=utc(), rows=self.rows, raw_bytes=self.raw_bytes,
                             event_counts=dict(self.event_counts), time_segments=parser.segment + 1,
                             errors=failures, warnings=warnings)

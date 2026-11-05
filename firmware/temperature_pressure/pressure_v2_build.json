@@ -1,0 +1,1907 @@
+{
+  "schema": "arduino.pressure_diagnostic_build.v1",
+  "status": "complete",
+  "started_utc": "2026-11-04T08:22:03.059707+00:00",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "core_directory": "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8",
+  "core_version": "1.8.8",
+  "sketch": "/private/tmp/pressure_config_20261104/arduino_stage/sketches/Pressure_Diagnostic/Pressure_Diagnostic.ino",
+  "output": "/private/tmp/pressure_config_20261104/avr_build_v2_final",
+  "fqbn": "arduino:avr:nano:cpu=atmega328old",
+  "f_cpu_hz": 16000000,
+  "mcu": "atmega328p",
+  "variant": "eightanaloginputs",
+  "arduino_macro": 10819,
+  "upload_performed": false,
+  "hardware_opened": false,
+  "preprocessing": "direct -x c++; Arduino.h present; no generated prototypes or ctags",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc"
+      ],
+      "started_utc": "2026-11-04T08:22:03.060191+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.063712+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.063912+00:00",
+      "returncode": 0,
+      "stdout": "avr-gcc (Homebrew AVR GCC 9.5.0_2) 9.5.0\nCopyright (C) 2019 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.067534+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++"
+      ],
+      "started_utc": "2026-11-04T08:22:03.068253+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.071331+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.071562+00:00",
+      "returncode": 0,
+      "stdout": "avr-g++ (Homebrew AVR GCC 9.5.0_2) 9.5.0\nCopyright (C) 2019 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.075153+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar"
+      ],
+      "started_utc": "2026-11-04T08:22:03.075524+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.078796+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.079261+00:00",
+      "returncode": 0,
+      "stdout": "GNU ar (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.085821+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-as"
+      ],
+      "started_utc": "2026-11-04T08:22:03.086534+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.089370+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-as",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.089614+00:00",
+      "returncode": 0,
+      "stdout": "GNU assembler (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or later.\nThis program has absolutely no warranty.\nThis assembler was configured for a target of `avr'.\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.093240+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-ld"
+      ],
+      "started_utc": "2026-11-04T08:22:03.094250+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.097413+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-ld",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.097726+00:00",
+      "returncode": 0,
+      "stdout": "GNU ld (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) a later version.\nThis program has absolutely no warranty.\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.101427+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-objcopy"
+      ],
+      "started_utc": "2026-11-04T08:22:03.102114+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.105227+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-objcopy",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.105515+00:00",
+      "returncode": 0,
+      "stdout": "GNU objcopy (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.109230+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-size"
+      ],
+      "started_utc": "2026-11-04T08:22:03.109989+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.113734+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-size",
+        "--version"
+      ],
+      "started_utc": "2026-11-04T08:22:03.114083+00:00",
+      "returncode": 0,
+      "stdout": "GNU size (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty.\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.117689+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-print-prog-name=cc1"
+      ],
+      "started_utc": "2026-11-04T08:22:03.118053+00:00",
+      "returncode": 0,
+      "stdout": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.121613+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1"
+      ],
+      "started_utc": "2026-11-04T08:22:03.127733+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.131312+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-print-prog-name=cc1plus"
+      ],
+      "started_utc": "2026-11-04T08:22:03.131695+00:00",
+      "returncode": 0,
+      "stdout": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1plus\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.135618+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1plus"
+      ],
+      "started_utc": "2026-11-04T08:22:03.142485+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.146055+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-print-prog-name=collect2"
+      ],
+      "started_utc": "2026-11-04T08:22:03.146560+00:00",
+      "returncode": 0,
+      "stdout": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/collect2\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.150409+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/collect2"
+      ],
+      "started_utc": "2026-11-04T08:22:03.151189+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.154601+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-print-prog-name=lto1"
+      ],
+      "started_utc": "2026-11-04T08:22:03.154998+00:00",
+      "returncode": 0,
+      "stdout": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/lto1\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.158483+00:00"
+    },
+    {
+      "argv": [
+        "/usr/bin/file",
+        "-b",
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/lto1"
+      ],
+      "started_utc": "2026-11-04T08:22:03.164459+00:00",
+      "returncode": 0,
+      "stdout": "Mach-O 64-bit executable arm64\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.167986+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/CDC.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/CDC.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.171916+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.194302+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.195102+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.222554+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial0.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.223186+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.248678+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial1.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial1.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.249546+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.271719+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial2.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial2.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.272448+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.295117+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial3.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial3.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.295823+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.317784+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/IPAddress.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/IPAddress.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.318621+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.345053+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/PluggableUSB.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/PluggableUSB.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.345879+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.368967+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Print.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Print.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.369667+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.402232+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Stream.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Stream.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.402947+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.434530+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Tone.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.435313+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.463228+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/USBCore.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/USBCore.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.464014+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.486040+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WInterrupts.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WInterrupts.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.486767+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.507284+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WMath.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WMath.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.508168+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.524775+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WString.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WString.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.525730+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.569033+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/abi.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/abi.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.569763+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.585857+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/hooks.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/hooks.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.586701+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.601880+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/main.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/main.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.602798+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.625601+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/new.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/new.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.626392+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.644645+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.645577+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.665756+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_analog.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.666815+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.686236+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_digital.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_digital.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.687057+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.710223+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-x",
+        "assembler-with-cpp",
+        "-flto",
+        "-MMD",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_pulse.S",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_pulse.S.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.711130+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.726626+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_pulse.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_pulse.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.727698+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.747702+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_shift.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_shift.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.748487+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.768729+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/Wire.cpp",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/wire/Wire.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.769833+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.798988+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu11",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-MMD",
+        "-flto",
+        "-fno-fat-lto-objects",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/wire/twi.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.800058+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.827434+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+        "-c",
+        "-g",
+        "-Os",
+        "-w",
+        "-std=gnu++11",
+        "-fpermissive",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-threadsafe-statics",
+        "-Wno-error=narrowing",
+        "-MMD",
+        "-flto",
+        "-x",
+        "c++",
+        "-mmcu=atmega328p",
+        "-DF_CPU=16000000L",
+        "-DARDUINO=10819",
+        "-DARDUINO_AVR_NANO",
+        "-DARDUINO_ARCH_AVR",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs",
+        "-I/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src",
+        "/private/tmp/pressure_config_20261104/arduino_stage/sketches/Pressure_Diagnostic/Pressure_Diagnostic.ino",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/sketch/Pressure_Diagnostic.ino.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.828357+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.868613+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/CDC.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.869343+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.877605+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.878283+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.885671+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial0.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.886385+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.895584+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial1.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.896381+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.905170+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial2.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.905905+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.915238+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/HardwareSerial3.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.916047+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.925425+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/IPAddress.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.926259+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.937012+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/PluggableUSB.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.937779+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.948289+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Print.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.949439+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.960508+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Stream.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.961295+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.972909+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/Tone.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.973643+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:03.985992+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/USBCore.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:03.986908+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.000544+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WInterrupts.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.001329+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.013815+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WMath.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.014890+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.028055+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/WString.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.028833+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.043408+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/abi.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.044392+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.058976+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/hooks.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.059911+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.075425+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/main.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.076332+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.092204+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/new.cpp.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.093218+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.108773+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.109680+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.125960+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_analog.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.126835+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.142929+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_digital.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.144131+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.160610+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_pulse.S.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.161479+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.178597+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_pulse.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.179664+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.198347+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+        "rcs",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/core/wiring_shift.c.o"
+      ],
+      "started_utc": "2026-11-04T08:22:04.199419+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.217402+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+        "-w",
+        "-Os",
+        "-g",
+        "-flto",
+        "-fuse-linker-plugin",
+        "-Wl,--gc-sections",
+        "-mmcu=atmega328p",
+        "-o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/Pressure_Diagnostic.elf",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/sketch/Pressure_Diagnostic.ino.o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/wire/Wire.cpp.o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/objects/wire/twi.c.o",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/core.a",
+        "-L/private/tmp/pressure_config_20261104/avr_build_v2_final",
+        "-lm"
+      ],
+      "started_utc": "2026-11-04T08:22:04.218359+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.382293+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-size",
+        "-A",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/Pressure_Diagnostic.elf"
+      ],
+      "started_utc": "2026-11-04T08:22:04.383155+00:00",
+      "returncode": 0,
+      "stdout": "/private/tmp/pressure_config_20261104/avr_build_v2_final/Pressure_Diagnostic.elf  :\nsection                      size      addr\n.data                          98   8388864\n.text                       13078         0\n.bss                          468   8388962\n.comment                       38         0\n.note.gnu.avr.deviceinfo       64         0\n.debug_aranges                296         0\n.debug_info                 58689         0\n.debug_abbrev                9286         0\n.debug_line                 25877         0\n.debug_frame                 1904         0\n.debug_str                  12851         0\n.debug_loc                  11346         0\n.debug_ranges                3608         0\nTotal                      137603\n\n\n",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.387401+00:00"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-objcopy",
+        "-O",
+        "ihex",
+        "-R",
+        ".eeprom",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/Pressure_Diagnostic.elf",
+        "/private/tmp/pressure_config_20261104/avr_build_v2_final/Pressure_Diagnostic.hex"
+      ],
+      "started_utc": "2026-11-04T08:22:04.388456+00:00",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "",
+      "ended_utc": "2026-11-04T08:22:04.393877+00:00"
+    }
+  ],
+  "tools": {
+    "avr-gcc": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc",
+      "sha256": "97debe5ae7c0790bc701356fa2868706711e05576b22c9df385a7e063b74105a",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "avr-gcc (Homebrew AVR GCC 9.5.0_2) 9.5.0\nCopyright (C) 2019 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    },
+    "avr-g++": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-g++",
+      "sha256": "63bc1c73f7672ad32337d18b69a2f37939d4b87fb8f372e66f5b7a76df3d9605",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "avr-g++ (Homebrew AVR GCC 9.5.0_2) 9.5.0\nCopyright (C) 2019 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+    },
+    "avr-gcc-ar": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/bin/avr-gcc-ar",
+      "sha256": "cbe35db317f95a68087660260d66ff1f77b2139d0447c3c341cb583a6dc5e04d",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "GNU ar (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty."
+    },
+    "avr-as": {
+      "path": "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-as",
+      "sha256": "e026462d2f9606ce602409c86d24a1b5332e5c6a8e96ab7cdaae28d4f0475e4d",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "GNU assembler (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or later.\nThis program has absolutely no warranty.\nThis assembler was configured for a target of `avr'."
+    },
+    "avr-ld": {
+      "path": "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-ld",
+      "sha256": "b5e4782d1779723ae61bb74822862f4bf613c9ce621ccad2354965675db912ff",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "GNU ld (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) a later version.\nThis program has absolutely no warranty."
+    },
+    "avr-objcopy": {
+      "path": "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-objcopy",
+      "sha256": "2b1c3c2b516d46738425d2f54979186b96a7e1d399991760884672e25b89b800",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "GNU objcopy (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty."
+    },
+    "avr-size": {
+      "path": "/opt/homebrew/Cellar/avr-binutils/2.47_1/bin/avr-size",
+      "sha256": "bfd5c2c94bb110ed2a250c083150228d5f91100e8bee44e18e36dfd35c784e13",
+      "architecture": "Mach-O 64-bit executable arm64",
+      "version": "GNU size (GNU Binutils) 2.47.20260726\nCopyright (C) 2026 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or (at your option) any later version.\nThis program has absolutely no warranty."
+    },
+    "cc1": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1",
+      "sha256": "20de30b1a9b8456dfc3c67f9fbfdfc7db587589b698abc8145f560bd547c1811",
+      "architecture": "Mach-O 64-bit executable arm64"
+    },
+    "cc1plus": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/cc1plus",
+      "sha256": "199e9de0c6206c7338d01d0c4395b601f01fa0443bc3e3556b76742066505324",
+      "architecture": "Mach-O 64-bit executable arm64"
+    },
+    "collect2": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/collect2",
+      "sha256": "66b88bc4c98af83e25bc014010c90ad535b431646b90ec1b96235ae9f350d788",
+      "architecture": "Mach-O 64-bit executable arm64"
+    },
+    "lto1": {
+      "path": "/opt/homebrew/Cellar/avr-gcc@9/9.5.0_2/libexec/gcc/avr/9.5.0/lto1",
+      "sha256": "278280925a668a8a89e1c3537703967be0d2390e7d70d60df4ff1aa180aebe75",
+      "architecture": "Mach-O 64-bit executable arm64"
+    }
+  },
+  "sources": {
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/boards.txt": {
+      "sha256": "e49283dc7a276291e24e91d04b883ea4e884ea2375ed80ede0d69cbf25d40a5d",
+      "bytes": 40230
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Arduino.h": {
+      "sha256": "335f45c59532cd7df39ce1435fbf1abf8d503d42ac6085a92e0f2ff75f5fffac",
+      "bytes": 7613
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/CDC.cpp": {
+      "sha256": "9cefa4fec5eb361179978b9c94f5937dcacf068eafd45eee726646226b258dc2",
+      "bytes": 8751
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Client.h": {
+      "sha256": "0619cd22b5f07c705d1c19db2c868bf5e2441ce3278f3fba11e71104ee2636bd",
+      "bytes": 1529
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial.cpp": {
+      "sha256": "641c8d9b1f266c7b97ca59bcb0915e09a897ef1fa78dd9cdb2c93ce1c2d19c1b",
+      "bytes": 8990
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial.h": {
+      "sha256": "f64d1a45fb14b94ca2425e73978f61bd054a886e5f838089098008d199a9bd73",
+      "bytes": 5262
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial0.cpp": {
+      "sha256": "388bd9bcd3ff9c2b30a1d6d9a14a4b61a5ab070cc8000f186138c0d15565adf6",
+      "bytes": 2606
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial1.cpp": {
+      "sha256": "a530014dd9f52d02f65db73995b24d18cd38bba586d1249b533826379f82208c",
+      "bytes": 2316
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial2.cpp": {
+      "sha256": "d7ade11adc2a90e526f5629d7804b95ec2a34c06a6811f4d072cffba3d5a0daa",
+      "bytes": 1976
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial3.cpp": {
+      "sha256": "c3b7fdb1ca29887151676e5dd8fd326ecc932e458cf1138cd275777068a113f3",
+      "bytes": 1976
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/HardwareSerial_private.h": {
+      "sha256": "ff787b0f29eebaaa903aff4d12349e4a45f5c6ca995cec7aa699bd8296253a93",
+      "bytes": 4470
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/IPAddress.cpp": {
+      "sha256": "e423a28f833614ff4e1cf1e5b841181e8e0c727f4ca3ae81ee66afa84cf75f63",
+      "bytes": 2851
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/IPAddress.h": {
+      "sha256": "7703aef6f91a385729cf8f16ed561b0f8c7eb823698c80af3a33f9e0de3b4e72",
+      "bytes": 2861
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/PluggableUSB.cpp": {
+      "sha256": "6c39d37902d2819007ef6b82c132ba89c821b134e143d59d33c99a46765e2a62",
+      "bytes": 2725
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/PluggableUSB.h": {
+      "sha256": "555ba172a3004d809a10a8c6bc5ae93154a0148eb5a5a62e9855ad1b57535704",
+      "bytes": 2063
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Print.cpp": {
+      "sha256": "4e5077fe1dff0b2f506f23bb2a7dea251f739aa9aab2ad285f71ad6434161e26",
+      "bytes": 5442
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Print.h": {
+      "sha256": "29403f23a682faae75437ca4e8370e0075efa3c70f9850d27ff0105eca4c9146",
+      "bytes": 2964
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Printable.h": {
+      "sha256": "ba6be49c4ef46aa03fa7b78cc444e72f811805cf33dfdddf26bd062cdbc14a0b",
+      "bytes": 1335
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Server.h": {
+      "sha256": "a75dd1f4e53398af5006b2f9b26df53ca76dd3999649bdf31bf4120aef4ea144",
+      "bytes": 963
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Stream.cpp": {
+      "sha256": "a0f2cfbb1489174e0d52ca9798129751e52994f04a9ece88fb465715f8c3b3cb",
+      "bytes": 8776
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Stream.h": {
+      "sha256": "4f8adb5c1ab52d5f2b5a831cf8bdc0ae49b92c32dd22f2dc5c53389322701cdb",
+      "bytes": 6060
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Tone.cpp": {
+      "sha256": "7c902769f0950fc26a1032258f526775d25ae61aca97de2036653459172f3d00",
+      "bytes": 15022
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/USBAPI.h": {
+      "sha256": "72f7b2eb6361a200106d9041dfa77669e438d64c93c253e79cecf385546d90ae",
+      "bytes": 6282
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/USBCore.cpp": {
+      "sha256": "9750200cafecc523c388b7d9474f2b3b94d71bcca59ab4bc481c668b57e2c836",
+      "bytes": 20589
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/USBCore.h": {
+      "sha256": "4da9e387bade6ae523b311e8f2cac1db5e5b5353028419a5183a07e67f38552f",
+      "bytes": 8372
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/USBDesc.h": {
+      "sha256": "09370bbb62b01fe6f56f19aaed0b9cc7a859049ef7ecd94dfccfa19764fd0903",
+      "bytes": 2070
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/Udp.h": {
+      "sha256": "2bcab2ff8d1e4acfa389085d81b065dafc0fe7173c808447986f89a852d073ba",
+      "bytes": 4363
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WCharacter.h": {
+      "sha256": "26aa841fe42aeace3a7caf3af27b9ffecde391b4a5661782027c0c14b6ccf4e3",
+      "bytes": 4576
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WInterrupts.c": {
+      "sha256": "6550a77cf2e54006286cea7cc22a724d156756a8ad1421b78da6627433449e9b",
+      "bytes": 11466
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WMath.cpp": {
+      "sha256": "6d7dc0d38000d3d22f56438bc4dd26fe15dd8f9c85fed8d9edf0ba23b6431646",
+      "bytes": 1641
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WString.cpp": {
+      "sha256": "85957a0bcece8c429614bfefa15fb841fd12a72e610348b1de4f9f3dd7686468",
+      "bytes": 18056
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/WString.h": {
+      "sha256": "7c592098302f4c17883863514bfb6de50ab51957d69c5dccbb6ec0900c777a50",
+      "bytes": 10001
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/abi.cpp": {
+      "sha256": "eee76e094254f0a57f98d3ad413b94ac581103766117b3a568ece620944c5d9a",
+      "bytes": 1144
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/binary.h": {
+      "sha256": "cf4471358657a38f744807fe2b6eb7ab5dd13bab402e77d3dd38e78635c02755",
+      "bytes": 11214
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/hooks.c": {
+      "sha256": "525370afcb26502a965376f05b00b4aafc89644e6bc3c693718d56533ca38771",
+      "bytes": 1142
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/main.cpp": {
+      "sha256": "a2d7d7d72e5259b0212f6682be0ded139f854481fad2c6e742d2f6264924402b",
+      "bytes": 1372
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/new": {
+      "sha256": "3181c9898df4eb34b6f73b8d64bdb2449c68d39277d4b1fc8e80d2f8fbb296ae",
+      "bytes": 2514
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/new.cpp": {
+      "sha256": "7aedc314beaa121f3568f6fb25466e5c3fd6c8e096c267d1dd371bd6ba779c57",
+      "bytes": 3584
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/new.h": {
+      "sha256": "46d737ed07098aa51ea868c000f7dd0a919361cc7481518754632547fa60d858",
+      "bytes": 149
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring.c": {
+      "sha256": "586bdf890ff6cd70d2a5457aef406517fff1113dcee51ea9f4f86cd54f8cc204",
+      "bytes": 11951
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_analog.c": {
+      "sha256": "af985237cce8dcf22d1a1359bab6af274c780592feae73707c792c334ee63172",
+      "bytes": 7637
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_digital.c": {
+      "sha256": "f56a12bb80e3179db3c4803a90b7c3c4ac6b14d4f23ababb121173ef0e27d26c",
+      "bytes": 4979
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_private.h": {
+      "sha256": "c416d346d436f2ba55507ba867a0fd6bf8d261440194a237fa318e20c5617bdc",
+      "bytes": 2255
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_pulse.S": {
+      "sha256": "9810731062c66edf81cfb5af736c66914410471008c40f73dca2562233b135a8",
+      "bytes": 6022
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_pulse.c": {
+      "sha256": "44e8c70ed20c11689ecbf6eedd7b469ad7bc1090d0b0ddfe8ec9a10d4a212b2d",
+      "bytes": 3435
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/cores/arduino/wiring_shift.c": {
+      "sha256": "651f4a11837e609be423ceb0b31cfd5cf6b09bad06f62cbc85c241efae8e50ec",
+      "bytes": 1569
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/Wire.cpp": {
+      "sha256": "e56c6ff92128cc1334b8e112fc463396646166e2dc8f99178b45d5201bb607c3",
+      "bytes": 10677
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/Wire.h": {
+      "sha256": "e08adefc3c3b31d9444ba8bd28d67beef1efff310cdef4d8f8aa4ad88542da92",
+      "bytes": 2925
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.c": {
+      "sha256": "846c0a685d1796990c8c5d06df4364fcf8d4657c2221161a613f8cafb232301d",
+      "bytes": 21073
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/libraries/Wire/src/utility/twi.h": {
+      "sha256": "a8551bcf840a1d17dfa435fb6f299726bf45abfe75018ddc860a7788053a0f30",
+      "bytes": 1840
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/platform.txt": {
+      "sha256": "afc8745a57fcb6e88a818aebfdee241bf758c2f665cfd6541f00472809c5522a",
+      "bytes": 8486
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/eightanaloginputs/pins_arduino.h": {
+      "sha256": "f781478ed9f9507b6553e44dc90873103ea84e654528dc0e34901a32bfee3149",
+      "bytes": 969
+    },
+    "/Users/cunhui/Library/Arduino15/packages/arduino/hardware/avr/1.8.8/variants/standard/pins_arduino.h": {
+      "sha256": "d313845f9916c1f21c8ba9848d40806f5caab52529ad510e81b3f15318441631",
+      "bytes": 6437
+    },
+    "/private/tmp/pressure_config_20261104/arduino_stage/scripts/build_pressure_diagnostic.py": {
+      "sha256": "16d159e33d365ffefa83e5540f836cb31caa803cfcc3922a1d6f9bc6e69b497b",
+      "bytes": 13270
+    },
+    "/private/tmp/pressure_config_20261104/arduino_stage/sketches/Pressure_Diagnostic/Pressure_Diagnostic.ino": {
+      "sha256": "7a12d5ea457a133182589ecd86dba89ada836363426ce1dacf870cefba802901",
+      "bytes": 17479
+    }
+  },
+  "artifacts": {
+    "Pressure_Diagnostic.elf": {
+      "sha256": "607e78dde4d7000cf1323d7bd970649bc29e638ef86bb67d58c1d1ad695a0a42",
+      "bytes": 283976
+    },
+    "Pressure_Diagnostic.hex": {
+      "sha256": "0eb36474fabd4fa34d6ef9c68b70d73a470074eb580a1cdf610e6f174dc30fc9",
+      "bytes": 37090
+    },
+    "core.a": {
+      "sha256": "a71afda36ad6a4350126deceeba7cc022798a1e8e503709e17cf0b5235d77222",
+      "bytes": 550712
+    }
+  },
+  "size": {
+    "sections": {
+      ".data": 98,
+      ".text": 13078,
+      ".bss": 468,
+      ".comment": 38,
+      ".note.gnu.avr.deviceinfo": 64,
+      ".debug_aranges": 296,
+      ".debug_info": 58689,
+      ".debug_abbrev": 9286,
+      ".debug_line": 25877,
+      ".debug_frame": 1904,
+      ".debug_str": 12851,
+      ".debug_loc": 11346,
+      ".debug_ranges": 3608
+    },
+    "flash_bytes": 13176,
+    "flash_limit": 30720,
+    "static_ram_bytes": 566,
+    "ram_limit": 2048,
+    "stack_and_heap_peak_measured": false
+  },
+  "hex_validation": {
+    "load_bytes": 13176,
+    "lowest_address": 0,
+    "highest_address": 13175,
+    "application_limit_exclusive": 30720,
+    "bootloader_included": false
+  },
+  "ended_utc": "2026-11-04T08:22:04.398807+00:00"
+}

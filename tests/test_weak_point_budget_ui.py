@@ -31,11 +31,11 @@ class WeakPointBudgetUiTests(unittest.TestCase):
         self.window.close();self.pump(lambda:self.service.closed and not self.window.isVisible())
         dispose_closed_windows()
     def test_default_extra_is_visible_and_total_updates_without_creating_total_limit(self):
-        w=self.window;extra=w.fields['weak_point_extra_seconds']
+        w=self.window;w.advanced_toggle.setChecked(True);extra=w.fields['weak_point_extra_seconds']
         self.assertTrue(extra.isVisible());self.assertEqual(extra.value(),8)
         self.assertIn('每点最多 16 秒',w.sweep_weak_budget_hint.text())
-        w.confirm.setChecked(True);extra.setValue(12)
-        self.assertFalse(w.confirm.isChecked())
+        extra.setValue(12)
+        self.assertFalse(hasattr(w, "confirm"))
         self.assertIn('每点最多 20 秒',w.sweep_weak_budget_hint.text())
         self.assertEqual(w.config()['weak_point_extra_seconds'],12)
         self.assertIsNone(w.config()['max_seconds'])
@@ -56,9 +56,9 @@ class WeakPointBudgetUiTests(unittest.TestCase):
         self.assertIn('每点最多 16 秒',w.sweep_weak_budget_hint.text())
     def test_explicit_zero_survives_draft_restore_and_confirmation_is_cleared(self):
         w=self.window;w.fields['weak_point_extra_seconds'].setValue(0);draft=w._capture_draft()
-        w.fields['weak_point_extra_seconds'].setValue(8);w.confirm.setChecked(True)
+        w.fields['weak_point_extra_seconds'].setValue(8)
         w._restore_draft(draft);w._mode_changed()
         self.assertEqual(w.config()['weak_point_extra_seconds'],0)
-        self.assertFalse(w.confirm.isChecked());self.assertIn('已关闭',w.sweep_weak_budget_hint.text())
+        self.assertFalse(hasattr(w, "confirm"));self.assertIn('已关闭',w.sweep_weak_budget_hint.text())
 
 if __name__=='__main__':unittest.main()

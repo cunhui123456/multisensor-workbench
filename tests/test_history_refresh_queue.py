@@ -16,8 +16,8 @@ class HistoryRefreshQueueTests(unittest.TestCase):
         self.releases = []
         self.sources = patch.object(self.window.analysis_workspace, "refresh_sources")
         self.sources.start()
-        self.service.details = lambda key: {
-            "key": key, "metadata": {}, "files": [], "context": {}, "curve": {}}
+        self.service.details = lambda key, include_curve=True: {
+            "key": key, "curve_loaded": include_curve, "metadata": {}, "files": [], "context": {}, "curve": {}}
 
     def tearDown(self):
         for release in self.releases:

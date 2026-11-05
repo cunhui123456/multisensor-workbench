@@ -8,13 +8,18 @@ import uuid
 import zipfile
 from sspp_lab.controller import LabError, read_json
 from sspp_experiments.temperature_pressure.corrections import load_corrections, correction_path, update_calibration_points
+from .archive_conditions import archive_conditions
 
 SERIAL_PREFIX='temperature_pressure_runs/'
 ARTIFACTS=('manifest.json','samples.csv','raw_serial.bin','serial_events.jsonl',
            'voltage_response.csv','calibration_points.json','calibration_events.jsonl')
 
 
-def serial_category(path, manifest):
+def serial_category(path, manifest, calibration=None):
+    if calibration is None:
+        calibration = read_json(path/'calibration_points.json',{}) if ordinary_file(path/'calibration_points.json') else {}
+    if manifest.get('pressure_calibration') or (isinstance(calibration,dict) and calibration.get('schema') == 'sspp.pressure_plateaus.v1'):
+        return 'pressure_calibration'
     if manifest.get('temperature_calibration') or manifest.get('temperature_ramp') or (path/'calibration_points.json').is_file():
         return 'temperature_calibration'
     return 'temperature_pressure'
@@ -25,34 +30,46 @@ def ordinary_file(path):
 
 
 class SerialArchiveMixin:
+    def _serial_history_row(self,path):
+        manifest=read_json(path/'manifest.json',{}) or {}
+        if not manifest:return None
+        row = {'key':SERIAL_PREFIX+path.name,'mode':'serial','category':serial_category(path,manifest),
+               'started_utc':manifest.get('started_utc',''),'status':manifest.get('status','unknown'),
+               'label':manifest.get('sample_name') or manifest.get('label') or path.name,
+               'sensor':manifest.get('protocol',''),'source':'serial_capture'}
+        row.update(archive_conditions(row, manifest=manifest))
+        return row
+
     def history(self):
         rows=super().history()
         base=self.root/'Data'/'temperature_pressure_runs'
         if base.is_dir() and not base.is_symlink():
             for path in base.iterdir():
                 if not path.is_dir() or path.is_symlink() or not ordinary_file(path/'manifest.json'):continue
-                manifest=read_json(path/'manifest.json',{}) or {}
-                if not manifest:continue
-                rows.append({'key':SERIAL_PREFIX+path.name,'mode':'serial','category':serial_category(path,manifest),
-                             'started_utc':manifest.get('started_utc',''),'status':manifest.get('status','unknown'),
-                             'label':manifest.get('sample_name') or manifest.get('label') or path.name,
-                             'sensor':manifest.get('protocol',''),'source':'serial_capture'})
+                row=self._cached_archive_row(SERIAL_PREFIX+path.name,
+                    [path/'manifest.json',path/'calibration_points.json'],lambda:self._serial_history_row(path))
+                if row:rows.append(row)
         return sorted(rows,key=lambda r:r.get('started_utc',''),reverse=True)
 
-    def details(self,key):
-        if not key.startswith(SERIAL_PREFIX):return super().details(key)
+    def details(self,key,*,include_curve=True):
+        if not key.startswith(SERIAL_PREFIX):return super().details(key,include_curve=include_curve)
         path=self.run_path(key)
         if path.is_symlink() or not ordinary_file(path/'manifest.json'):raise LabError('温压档案不是普通记录目录')
         manifest=read_json(path/'manifest.json',{}) or {}
         fields=('status','label','sample_name','notes','started_utc','ended_utc','protocol','channels','rows','raw_bytes',
                 'stop_reason','serial_closed','workers_stopped','data_files_closed','limitations','warnings',
-                'temperature_calibration','temperature_ramp','event_counts')
+                'temperature_calibration','pressure_calibration','temperature_ramp','event_counts',
+                'pressure_channel','pressure_control','selection_token')
         metadata={k:manifest[k] for k in fields if k in manifest}
         metadata['errors']=[self.public_log(str(e)) for e in manifest.get('errors',[])]
-        category=serial_category(path,manifest)
+        calibration={};content=None
+        if ordinary_file(path/'calibration_points.json'):
+            content=(path/'calibration_points.json').read_bytes()
+            calibration=json.loads(content)
+        category=serial_category(path,manifest,calibration)
         points=[];skipped=0;count=0;last={}
         csv_path=path/'samples.csv'
-        if ordinary_file(csv_path):
+        if include_curve and ordinary_file(csv_path):
             with csv_path.open(newline='',encoding='utf-8-sig') as f:count=sum(1 for _ in csv.DictReader(f))
             maximum=getattr(self.settings,'max_display_points',20000)
             step=max(1,math.ceil(count/maximum))
@@ -63,16 +80,18 @@ class SerialArchiveMixin:
                             row[field]=float(row[field])
                             if not math.isfinite(row[field]):raise ValueError('nonfinite sample')
                         row['adc']=float(row['adc']) if row.get('adc') not in (None,'') else None
+                        if manifest.get('protocol') == 'pressure_v2':
+                            for field in ('baseline_v','delta_voltage_v','zero_id','zero_count','selection_token'):
+                                row[field] = float(row[field]) if row.get(field) not in (None, '') else None
+                                if row[field] is not None and not math.isfinite(row[field]):
+                                    raise ValueError('nonfinite pressure sample')
                     except (ValueError,TypeError,KeyError):skipped+=1;continue
                     last[row['channel']]=row
                     if index%step==0 and len(points)<maximum:points.append(row)
             for row in last.values():
                 if row not in points:points.append(row)
             points.sort(key=lambda r:(r['host_elapsed_s'],r['channel']))
-        calibration={}
-        if ordinary_file(path/'calibration_points.json'):
-            content=(path/'calibration_points.json').read_bytes()
-            calibration=json.loads(content)
+        if content is not None:
             try:
                 ledger=load_corrections(self.root,key,content)
             except (ValueError,OSError) as error:
@@ -82,11 +101,14 @@ class SerialArchiveMixin:
                 point.update(deleted=deletion is not None,deletion=deletion)
             metadata['deleted_calibration_points']=len(ledger['deleted_points'])
             metadata['calibration_correction_history']=ledger.get('history',[])
-        metadata['display_skipped_rows']=skipped
-        return {'key':key,'metadata':metadata,'files':[name for name in ARTIFACTS if ordinary_file(path/name)],'figures':[],
+        if include_curve:metadata['display_skipped_rows']=skipped
+        details = {'key':key,'metadata':metadata,'files':[name for name in ARTIFACTS if ordinary_file(path/name)],'figures':[],
                 'context':{'experiment':category,'source':'serial_capture'},
-                'curve':{'mode':'serial','points':points,'stored_rows':count},
+                'curve_loaded':include_curve,
+                'curve':{'mode':'serial','points':points,'stored_rows':count if include_curve else manifest.get('rows'),'loaded':include_curve},
                 'calibration_points':(calibration or {}).get('points',[])}
+        details.update(archive_conditions(details, manifest=manifest))
+        return details
 
     def correct_calibration_points(self,key,point_ids,reason,restore=False):
         with self._comparison_operation():

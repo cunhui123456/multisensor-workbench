@@ -87,7 +87,7 @@ class ResearchUiTests(unittest.TestCase):
             self.assertTrue(window.mark_group.isHidden())
             window._render_live({"mode": None, "points": []})
             self.assertEqual(window.live_plots.mode, "sweep")
-            window.confirm.setChecked(True)
+            self.assertFalse(hasattr(window, 'confirm'))
             service.initialize_environment({"kind": "usrp", "profile": window.profile.currentData()})
             window.start_experiment()
             self.assertIsNone(service.started)

@@ -30,7 +30,8 @@ class LiquidTemperatureMixin:
         record = {"key": key, "_path": path, "_contents": {}, "files": []}
         context = read_json_source(record, "desktop_context.json")
         mode = "sweep" if key.startswith("runs/") else "phase"
-        if context.get("experiment") != "liquid_temperature_" + mode:
+        experiment = context.get("experiment")
+        if experiment != "liquid_temperature_" + mode and not (mode == "sweep" and experiment == "temperature_sweep"):
             raise LabError("请选择明确记录液体温度条件的实验；旧实验不能补猜温度")
         metadata = validate_metadata((context.get("parameters") or {}).get("liquid_temperature"))
         manifest = read_json_source(record, "manifest.json")
@@ -48,7 +49,7 @@ class LiquidTemperatureMixin:
     def liquid_history(self):
         result = []
         for row in self.history():
-            if row.get("category") not in ("liquid_temperature_sweep", "liquid_temperature_phase"):
+            if row.get("category") not in ("liquid_temperature_sweep", "liquid_temperature_phase", "temperature_sweep"):
                 continue
             try:
                 record = self._liquid_record(row["key"])
@@ -187,7 +188,7 @@ class LiquidTemperatureMixin:
         tolerance = number(temperature_tolerance_c, "温度容差", 0, 100)
         with self._comparison_operation():
             report = build_comparison(self.root, keys, reference_key)
-            if report["kind"] != "liquid_temperature_sweep":
+            if report["kind"] not in ("liquid_temperature_sweep", "temperature_sweep"):
                 raise LabError("请选择 2–8 条液体温度扫频记录")
             records = [self._liquid_record(key, completed=True) for key in keys]
             conditions, reasons = [], []
@@ -211,7 +212,9 @@ class LiquidTemperatureMixin:
             report["errors"] = []
             report["warnings"].extend(reasons + ["温度为开始/结束仪表示值，不能证明全程恒温；升温顺序与时间漂移可能混淆，需降温回测和独立重复。"])
             report["status"] = "ready" if report["temperature_quantitative_allowed"] else "partial"
-            report["tables"]["temperature_conditions"] = conditions
+            condition_table = ("liquid_temperature_conditions"
+                               if report["kind"] == "temperature_sweep" else "temperature_conditions")
+            report["tables"][condition_table] = conditions
             report["conditions"] = conditions
             for chart in report["charts"]:
                 for curve in chart.get("series", []):
